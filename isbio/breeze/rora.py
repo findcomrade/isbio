@@ -128,6 +128,7 @@ def patient_data(id):
     data = r_getterFunc(id)
     return data
     
+<<<<<<< HEAD
 def screen_data(id):
     """
           Return one row from table by ID
@@ -159,6 +160,8 @@ def get_all_patient():
     
     return data
     
+=======
+>>>>>>> master
 def sex_data():
     """"
          Return all possible sex category
@@ -174,6 +177,7 @@ def sex_data():
     data = r_getterFunc()
     
     return data
+<<<<<<< HEAD
     
 def media_type():
     """"
@@ -295,6 +299,8 @@ def disease_stage_data():
     # R call
     data = r_getterFunc()
     return data
+=======
+>>>>>>> master
 
 def organism_data():
     """"
@@ -312,6 +318,7 @@ def organism_data():
     
     return data
     
+<<<<<<< HEAD
 def read_out_data():
     """"
         Return all possible organism options
@@ -327,6 +334,8 @@ def read_out_data():
     data = r_getterFunc()
     
     return data
+=======
+>>>>>>> master
 
 def update_patient(data):
     # Source & export R code
@@ -338,6 +347,7 @@ def update_patient(data):
     # R call
     update = r_getterFunc(ro.DataFrame(data))
     return True
+<<<<<<< HEAD
     
 def update_screen(data):
     # Source & export R code
@@ -349,6 +359,8 @@ def update_screen(data):
     # R call
     update = r_getterFunc(ro.DataFrame(data))
     return True
+=======
+>>>>>>> master
 
 def insert_row(table, data):
     """

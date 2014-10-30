@@ -282,6 +282,7 @@ class PatientInfo(forms.Form):
             widget = widgets.AdminDateWidget(),
             initial = datetime.date.today()
         )
+<<<<<<< HEAD
         
 
 class ScreenInfo(forms.Form):
@@ -517,6 +518,8 @@ class ScreenInfo(forms.Form):
     
 
 
+=======
+>>>>>>> master
     
 
 class LoginForm(forms.Form):

@@ -299,6 +299,10 @@ def ajax_patients(request, which):
             rora.update_patient(patient)
             return HttpResponseRedirect('/dbviewer')
         else:
+<<<<<<< HEAD
+=======
+            print("hello")
+>>>>>>> master
             patient_info = breezeForms.PatientInfo(request.POST)
         
     else:
@@ -348,6 +352,7 @@ def ajax_patients_new(request):
     return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
         'form': patient_info,
         'action': '/patient-new/',
+<<<<<<< HEAD
         'header': 'Create New Patient',
         'layout': 'horizontal',
         'submit': 'Save'
@@ -400,6 +405,12 @@ def screen_data(request, which):
     }))
     
     
+=======
+        'header': 'Update Patient Info',
+        'layout': 'horizontal',
+        'submit': 'Save'
+    }))
+>>>>>>> master
 
 def ajax_rora_action(request):
 

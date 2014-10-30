@@ -24,7 +24,10 @@ urlpatterns = patterns('',
     url(r'^search/(?P<what>[a-z]+)?$', views.search),
     url(r'^patient-data/(?P<which>\d+)?$', views.ajax_patients),
     url(r'^patient-new/$', views.ajax_patients_new),
+<<<<<<< HEAD
     url(r'^screen-data/(?P<which>\d+)?$', views.screen_data),
+=======
+>>>>>>> master
     url(r'^reports/$', views.reports),
     url(r'^reports/search$', views.report_search),
     url(r'^reports/delete/(?P<rid>\d+)(?P<redir>-[a-z]+)?$', views.delete_report),
