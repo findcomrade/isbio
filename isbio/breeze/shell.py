@@ -252,7 +252,7 @@ def run_job(job, script=None):
         job.status = 'failed'
 
     job.save()
-
+    s.exit()
     os.chdir(default_dir)
     return True
 
@@ -302,7 +302,7 @@ def run_report(report):
         report.status = 'failed'
 
     report.save()
-
+    s.exit()
     # aux.open_folder_permissions(loc, 0777)
 
     os.chdir(default_dir)
