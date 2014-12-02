@@ -321,7 +321,8 @@ function updateJobs(jid, item) {
             $("#" + jid.toString() + "_bar").attr('style', arg);
             $("#" + jid.toString() + "_SGEstatus").text(msg.name.toString() + " - " + msg.sge.toString());
             $("#" + jid.toString() + "_list_td").text(msg.sge.toString());
-
+            
+            console.log(msg.progress);
             if (msg.status != "active") {
                 var jstatus = ''
                 var jbar = ''
