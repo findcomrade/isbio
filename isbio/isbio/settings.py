@@ -492,6 +492,7 @@ class DevSettings(BreezeSettings):
 	# remote Shiny
 	SHINY_REMOTE_ENABLE = True
 	# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
+	# COMPUTE_NODE = 'vm0339.kaj.pouta.csc.fi'
 	SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
 	SHINY_REMOTE_LOCAL_PATH = '/shiny-csc/'
 	SHINY_REMOTE_CSC_LOCAL_PATH = '/home/shiny/shiny/'

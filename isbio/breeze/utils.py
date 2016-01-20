@@ -543,3 +543,13 @@ def fix_file_acl_interface(fid):
 				return set_file_acl(path)
 
 	return False
+
+
+# clem on 20/08/2015 move here 19/01/2016
+def sys_user_name():
+	"""
+	Return current system user name
+	:rtype: str
+	"""
+	import subprocess
+	return subprocess.Popen('whoami', shell=True, stdout=subprocess.PIPE).stdout.readline().replace('\n', '')

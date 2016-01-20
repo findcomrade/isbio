@@ -696,37 +696,6 @@ def check_watcher():
 	return JobKeeper.p.is_alive()
 
 
-# clem on 20/08/2015
-def check_sge():
-	"""
-	Check if SGE queue master server host is online, and drmaa can initiate a valid session
-	:rtype: bool
-	"""
-	if utils.is_host_online(settings.SGE_MASTER_IP, 2):
-		try:
-			import drmaa
-			s = drmaa.Session()
-			s.initialize()
-			s.exit()
-			return True
-		except Exception as e:
-			# pass
-			raise e
-	return False
-
-
-# clem on 09/12/2015
-def check_sge_c():
-	"""
-	Check if SGE has a non empty env configuration.
-	:rtype: bool
-	"""
-	if settings.Q_BIN != '' and settings.SGE_QUEUE_NAME != '':
-		return True
-
-	return False
-
-
 # clem 08/09/2015
 def check_cas(request):
 	"""
@@ -787,10 +756,10 @@ CHECK_LIST = [
 	SysCheckUnit(check_cas, 'cas', 'CAS server', 'CAS SERVER\t\t', RunType.both, arg=HttpRequest(), ex=CASUnreachable,
 				mandatory=True),
 	SysCheckUnit(check_rora, 'rora', 'RORA db', 'RORA DB\t\t\t', RunType.both, ex=RORAUnreachable),
-	SysCheckUnit(check_sge_c, 'sge_c', 'SGE conf', 'SGE CONFIG\t\t', RunType.boot_time, ex=SGEImproperlyConfigured,
-				mandatory=True),
-	SysCheckUnit(check_sge, 'sge', 'SGE DRMAA', 'SGE MASTER\t\t', RunType.both, ex=SGEUnreachable,
-				mandatory=True),
+	# SysCheckUnit(check_sge_c, 'sge_c', 'SGE conf', 'SGE CONFIG\t\t', RunType.boot_time, ex=SGEImproperlyConfigured,
+	# 			mandatory=True),
+	# SysCheckUnit(check_sge, 'sge', 'SGE DRMAA', 'SGE MASTER\t\t', RunType.both, ex=SGEUnreachable,
+	# 			mandatory=True),
 	SysCheckUnit(check_dotm, 'dotm', 'DotMatics server', 'DOTM DB\t\t\t', RunType.both, ex=DOTMUnreachable),
 	SysCheckUnit(check_shiny, 'shiny', 'Local Shiny HTTP server', 'LOC. SHINY HTTP\t\t', RunType.runtime,
 				arg=HttpRequest(), ex=ShinyUnreachable),
@@ -802,6 +771,14 @@ CHECK_LIST = [
 				ex=FileSystemNotMounted),
 	SysCheckUnit(check_watcher, 'watcher', 'JobKeeper', 'JOB_KEEPER\t\t', RunType.runtime, ex=WatcherIsNotRunning),
 ]
+
+from models import ComputeResource, ComputeClass
+
+for each in ComputeResource.objects.all():
+	assert isinstance(each, ComputeResource)
+	comp = each.comp
+	assert isinstance(comp, ComputeClass)
+	CHECK_LIST += [comp.conf_check(), comp.online_check()]
 
 CHECK_DICT = dict()
 for each_e in CHECK_LIST:

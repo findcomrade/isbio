@@ -42,27 +42,6 @@ class JobState(drmaa.JobState):
 		pass
 
 
-_JOB_PS = {
-	'': JobState.UNDETERMINED,
-	'r': JobState.RUNNING,
-	'p': JobState.PENDING,
-	'qw': JobState.QUEUED_ACTIVE,
-
-	'h': JobState.ON_HOLD,
-	'ho': JobState.SYSTEM_ON_HOLD,
-	'hs': JobState.SYSTEM_ON_HOLD,
-	'hd': JobState.SYSTEM_ON_HOLD,
-	'hu': JobState.USER_ON_HOLD,
-	'hus': JobState.USER_SYSTEM_ON_HOLD,
-
-	's': JobState.SUSPENDED,
-	'ss': JobState.SYSTEM_SUSPENDED,
-	'su': JobState.USER_SUSPENDED,
-	'us': JobState.USER_SUSPENDED,
-	'sus': JobState.USER_SYSTEM_SUSPENDED,
-}
-
-
 # 30/06/2015 & 10/07/2015
 class JobStat(object):
 	"""
@@ -1387,7 +1366,7 @@ class InputTemplate(models.Model):
 		fname, dot, extension = filename.rpartition('.')
 		slug = slugify(self.name)
 		return 'mould/%s.%s' % (slug, extension)
-	
+
 	file = models.FileField(upload_to=file_name)
 	
 	def __unicode__(self):
@@ -1443,10 +1422,13 @@ class Runnable(FolderObj, models.Model):
 	HIDDEN_FILES = [R_FILE_NAME, R_OUT_FILE_NAME, SH_NAME, SUCCESS_FN, FILE_MAKER_FN] # TODO add FM file ?
 
 	objects = managers.WorkersManager() # The default manager.
+	engine_name = 'Rengine'
 
 	def __init__(self, *args, **kwargs):
 		super(Runnable, self).__init__(*args, **kwargs)
 		self.__can_save = False
+		# clem 19/01/2016
+		self._attach_resources()
 
 	##
 	# DB FIELDS
@@ -1767,7 +1749,8 @@ class Runnable(FolderObj, models.Model):
 		if self.breeze_stat != JobStat.DONE:
 			self.breeze_stat = JobStat.ABORT
 			if not self.is_sgeid_empty:
-				print self.sge_obj.abort()
+				# print self.sge_obj.abort()
+				print self.compute.abort()
 			else:
 				self.breeze_stat = JobStat.ABORTED
 			return True
@@ -1794,7 +1777,7 @@ class Runnable(FolderObj, models.Model):
 		os.chmod(self._r_exec_path.path, ACL.R_R_)
 
 	# INTERFACE for extending assembling process
-	def generate_r_file(self, *args, **kwargs):
+	def generate_r_file(self, *args, **kwargs): # FIXME TODO depreciate
 		""" Place Holder for instance specific R files generation
 		THIS METHOD MUST BE overridden in subclasses
 		"""
@@ -1808,6 +1791,22 @@ class Runnable(FolderObj, models.Model):
 		THIS METHOD MUST BE overridden in subclasses
 		"""
 		raise self.not_imp()
+
+	def _attach_resources(self):
+		"""
+		Connects to the engine and the computing resource selected for this job
+		:return:
+		:rtype:
+		"""
+		if self.id:
+			# Associate this instance to a specific engine
+			self.engine_c = EngineClass.objects.get(pk=1) # TODO be dynamic
+			self.engine_c._runnable = self
+			self.engine = self.engine_c.eng
+			# Associate this instance to a specific computing resource
+			self.compute_c = ComputeResource.objects.get(pk=1) # TODO be dynamic
+			self.compute_c._runnable = self
+			self.compute = self.compute_c.comp
 
 	def assemble(self, *args, **kwargs):
 		"""
@@ -1829,16 +1828,18 @@ class Runnable(FolderObj, models.Model):
 		if not os.path.exists(self.home_folder_full_path):
 			os.makedirs(self.home_folder_full_path, ACL.RWX_RWX_)
 
-		# BUILD instance specific R-File
-		# self.generate_r_file(kwargs['sections'], kwargs['request_data'], custom_form=kwargs['custom_form'])
-		# self.generate_r_file(sections=kwargs['sections'], request_data=kwargs['request_data'], custom_form=kwargs['custom_form'])
-		self.generate_r_file(*args, **kwargs)
+		# clem 19/01/2016
+		self._attach_resources()
+
+		# BUILD engine specific "language"-File
+		self.engine.compile(*args, **kwargs) # TODO Must replace line below
+		self.generate_r_file(*args, **kwargs) # TODO remove # BUILD instance specific R-File
 		# other stuff that might be needed by specific kind of instances (Report and Jobs)
 		self.deferred_instance_specific(*args, **kwargs)
 		# open instance home's folder for other to write
-		self.grant_write_access()
+		self.grant_write_access() # FIXME deprecated
 		# Build and write SH file
-		self.write_sh_file()
+		self.write_sh_file() # FIXME replace with engine/compute specific code (merge in compile ?)
 
 		self.save()
 
@@ -1923,13 +1924,16 @@ class Runnable(FolderObj, models.Model):
 		log.debug('%s%s : ' % self.short_id + 'drmaa submit ended successfully !')
 		return 0
 
-	@property
-	def sge_obj(self):
-		from qstat import Qstat
-		return Qstat().job_info(self.sgeid)
+	# @property
+	# def sge_obj(self):
+	#	return self.compute.sge_obj(self.sgeid)
 
-	def qstat_stat(self):
-		return self.sge_obj.state
+	def job_status(self):
+		"""
+		:rtype: JobState
+		"""
+		# return self.sge_obj.state
+		return self.compute.job_status
 
 	def waiter(self, s, drmaa_waiting=False):
 		"""
@@ -1957,7 +1961,7 @@ class Runnable(FolderObj, models.Model):
 				try:
 					while True:
 						time.sleep(1)
-						self.qstat_stat()
+						self.job_status()
 						if self.aborting:
 							break
 				except NoSuchJob:
@@ -3047,4 +3051,159 @@ class OffsiteUser(models.Model):
 
 	def __unicode__(self):
 		return unicode(self.full_name)
+
+
+class EngineClass(models.Model):
+	"""
+	Defines and describes every shared attributes/methods of script running engine. Language specific.
+	Enable using other languages for jobs
+	"""
+	engine_name = models.CharField(max_length=32, blank=False, help_text="Name of this engine. Have to has a python implementation class that has the same name")
+
+	ALLOW_DOWNLOAD = True
+	FAILED_FN = 'failed'
+	SUCCESS_FN = 'done'
+	SH_NAME = settings.GENERAL_SH_NAME
+	FILE_MAKER_FN = settings.REPORTS_FM_FN
+	# R_HOME = settings.R_HOME
+	INC_RUN_FN = settings.INCOMPLETE_RUN_FN
+	# output file name (without extension) for nozzle report. MIGHT not be enforced everywhere
+	REPORT_FILE_NAME = 'report'
+	RQ_FIELDS = ['_name', '_author', '_type']
+	FILE_NAME_BASE = ''
+	SCRIPT_EXT = ''
+	SCRIPT_FILE_NAME = FILE_NAME_BASE + SCRIPT_EXT
+	SCRIPT_OUT_EXT = ''
+	SCRIPT_OUT_FILE_NAME = SCRIPT_FILE_NAME + SCRIPT_OUT_EXT
+	RQ_SPECIFICS = ['request_data', 'sections']
+	FAILED_TEXT = ''
+
+	_eng = None
+
+	def __init__(self, *args, **kwargs):
+		self._runnable = kwargs.pop('runnable', None)
+		if self._runnable:
+			assert isinstance(self._runnable, Runnable)
+		super(EngineClass, self).__init__(*args, **kwargs)
+
+		self.SYSTEM_FILES = [self.INC_RUN_FN, self.FAILED_FN, self.SUCCESS_FN, self.FILE_MAKER_FN]
+		self.HIDDEN_FILES = [self.SUCCESS_FN, self.FILE_MAKER_FN]
+
+	def compile(self, *args, **kwargs):
+		"""
+		Must generate all the code files required for running the job
+		:type runnable: Runnable
+		"""
+		pass
+
+	@property
+	def get_class_eng(self):
+		from breeze import computetype
+		return getattr(computetype, self.engine_name)
+
+	def get_engine(self):
+		""" Wrapper for attaching class	"""
+		class EngineClassDyn(self.get_class_eng):
+			pass
+		return EngineClassDyn(runnable=self._runnable)
+
+	@property
+	def eng(self):
+		"""
+		Dynamically attach the target engine class designated by
+		:rtype: EngineClass
+		"""
+		if not self._eng:
+			self._eng = self.get_engine()
+		assert isinstance(self._eng, EngineClass)
+		return self._eng
+
+	def __unicode__(self): # Python 3: def __str__(self):
+		return '%s:%s' % (self.id, self.engine_name)
+
+
+class ComputeClass(models.Model):
+	"""
+	Defines and describes every shared attributes/methods of computing resource abstract classes.
+	"""
+	class_name = models.CharField(max_length=32, blank=False, help_text="Name of this Compute resource class")
+	class_type = models.CharField(max_length=16, blank=False, help_text="Type of this resource\n"
+	"Must match ComputeClass sub-class name from compute-type.py")
+
+	def __init__(self, *args, **kwargs):
+		self._runnable = kwargs.pop('runnable', None)
+		if self._runnable:
+			assert isinstance(self._runnable, Runnable)
+		super(ComputeClass, self).__init__(*args, **kwargs)
+
+	def __unicode__(self): # Python 3: def __str__(self):
+		return '%s/%s' % (self.class_name, self.class_type)
+
+	def conf_check(self):
+		""" Return whether this computing resource is properly configured """
+		return False
+
+	def online_check(self):
+		""" Return whether this computing resource is currently online (reachable+ready) """
+		return False
+
+	# def get_job_object(self, *args, **kwargs): # FIXME transitional
+	#	""" Return internal work obj (transitional) """
+	#	return object
+
+	def job_status(self):
+		"""
+		Returns the job status as a JobState instance
+		:rtype: breeze.models.JobState
+		"""
+		return
+
+	def abort(self):
+		return False
+
+
+class ComputeResource(models.Model):
+	"""
+	Dynamically assemble a concrete version of a subclass of ComputeClass (the actual computational resource, along with
+	a concrete version of the engine class with defines the language model for a job.
+	"""
+	name = models.CharField(max_length=32, blank=False, help_text="Name of this Compute resource (has to have a python class with the exact same names that extends/implement the associated compute_class class")
+	compute_class = ForeignKey(ComputeClass, blank=False, help_text="Class of the computational resource")
+	institute = ForeignKey(Institute, default=1, db_column='institute_id')
+
+	_comp = None
+
+	def __init__(self, *args, **kwargs):
+		self._runnable = kwargs.pop('runnable', None)
+		if self._runnable:
+			assert isinstance(self._runnable, Runnable)
+		super(ComputeResource, self).__init__(*args, **kwargs)
+
+	@property
+	def get_class_comp(self):
+		from breeze import computetype
+		return getattr(computetype, self.name)
+
+	def get_compute(self):
+		"""
+		Wrapper for attaching class
+		:rtype: ComputeClass
+		"""
+		class ComputeClassDyn(self.get_class_comp):
+			pass
+		return ComputeClassDyn(runnable=self._runnable)
+
+	@property
+	def comp(self):
+		"""
+		Dynamically attach the target computing class designated by self.name
+		:rtype: ComputeClass
+		"""
+		if not self._comp:
+			self._comp = self.get_compute()
+		assert isinstance(self._comp, ComputeClass)
+		return self._comp
+
+	def __unicode__(self): # Python 3: def __str__(self):
+		return '%s <%s>' % (self.name, self.compute_class)
 

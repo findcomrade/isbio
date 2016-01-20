@@ -2925,7 +2925,7 @@ def qstat_lp(request, md5_t=None):
 	if md5_t is None:
 		return qstat_json(request)
 
-	from qstat import Qstat, SgeJob
+	from qstat import Qstat
 	from time import sleep
 	refresh_time = 0.5
 	q = Qstat()

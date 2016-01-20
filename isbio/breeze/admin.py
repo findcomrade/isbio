@@ -17,5 +17,8 @@ admin.site.register(breeze_models.OffsiteUser)
 # admin.site.register(breeze_models.ShinyReport, prepopulated_fields = { 'custom_header': ['title'], })
 admin.site.register(breeze_models.ShinyReport )
 admin.site.register(breeze_models.ShinyTag)
+admin.site.register(breeze_models.ComputeClass)
+admin.site.register(breeze_models.ComputeResource)
+admin.site.register(breeze_models.EngineClass)
 
 
