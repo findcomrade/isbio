@@ -170,7 +170,7 @@ class CranArchiveDownloader: # special purpose light FTP downloader
 				self.ftp.retrbinary("RETR " + filename, _write_f)
 				interval = time.time() - start_time
 				speed = human_readable_byte_size(size / interval)
-				self._out(' done in %s sec (%s/s) !\nsaved to % s' % (speed, round(interval, 2), save_to))
+				self._out(' done in %s sec (%s/s) !\nsaved to % s' % (round(interval, 2), save_to), speed)
 				return True
 			except Exception as e:
 				self._out('Error %s' % e)
