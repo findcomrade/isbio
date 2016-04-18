@@ -8,6 +8,7 @@ def dev():
 	# global client
 	# from .ssh import docker
 	# return docker()
+	excel_test()
 	pass
 
 
