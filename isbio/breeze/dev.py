@@ -86,12 +86,3 @@ def check_scripts():
 		pp(error_list)
 
 
-def base():
-
-
-if __name__ == '__main__':
-	# command line
-	base()
-elif __name__ == 'breeze.dev':
-	# PyCharm python console
-	base()
