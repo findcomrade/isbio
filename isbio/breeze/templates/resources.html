@@ -150,6 +150,12 @@
 					</small>
 
 				</div>
+				<div class="well">
+					<h4>Other infos</h4>
+					Breeze started at : {{ breeze_up }}<br />
+					System uptime : {{ system_up }}
+
+				</div>
 				{% for graph in usage_graph %}
 					<div class="well">
 						<label> {{ graph.legend }} <br />

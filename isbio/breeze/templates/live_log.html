@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% load mathfilters %}
+{% load bootstrap_toolkit %}
+{% load user_translate %}
+
+{% block title %}Log viewer{% endblock %}
+
+{% block extra_head %}
+	<style>
+	h2 {
+		padding-top: 45px;
+	}
+	code {
+		padding: 1px 4px;
+		color: #d14;
+		white-space: nowrap;
+		background-color: #f7f7f9;
+		border: 1px solid #e1e1e8;
+		display: block;
+		margin-bottom: 2px;
+		overflow: auto;
+	}
+	.err {
+		margin-left: 30px;
+	}
+	</style>
+{% endblock %}
+
+{% block content %}
+
+	<!-- LIST OF EXISTING REPORTS -->
+	<div class="row-fluid">
+		<!-- site map bar -->
+		<div class="row-fluid">
+			<div class="span10 offset1">
+				<ul class="breadcrumb pull-left" style="background-color: transparent;">
+					<li><a href="/home/">Breeze</a> <span class="divider">/</span></li>
+					<li> <a href="/resources/"> Manage Resources</a> <span class="divider">/</span></li>
+					<li class="active"> Log</li>
+				</ul>
+			</div>
+		</div>
+		<div class="span11">
+			<h3>Breeze LOG : <small>(In reverse order, showing the {{ showing|safe }})</small></h3>
+			<!--<ul> -->
+			<div id="log_content"></div>
+			<!--</ul> -->
+		</div>
+	</div>
+
+<script type="text/javascript">
+	var TIME_OUT_RETRY_DELAY = 3000;
+	function default_loading(id, placeHolder, trigger) {
+		if (trigger) {
+			$("#" + id)[0].innerHTML = placeHolder;
+		} else {
+			$("#" + id)[0].innerHTML = '';
+		}
+	}
+
+	function check_stuff_lp() {
+		var url = '/test/status/log/';
+		var the_id = 'log_content';
+		$.ajax({
+			cache  : false,
+			url    : url,
+			error  : function (response, textStatus, jqXHR) {
+				default_loading(the_id, 'error', true);
+				setTimeout(function () { check_stuff_lp(); }, TIME_OUT_RETRY_DELAY);
+			},
+			success: function (response, textStatus, jqXHR) {
+				if (typeof response === 'object') {
+					$("#" + id)[0].innerHTML = response['html'];
+					check_stuff_lp();
+				} else { // direct HTML response
+					$("#" + id)[0].innerHTML = response;
+				}
+			},
+			timeout: 0
+		});
+	} // grab some content with long_polling, displays any change real-time
+	check_stuff_lp();
+</script>
+{% endblock %}

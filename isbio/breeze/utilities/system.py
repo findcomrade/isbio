@@ -96,3 +96,12 @@ def import_env():
 	pipe = sp.Popen(['/bin/bash', '-c', '%s && %s' % (source, dump)], stdout=sp.PIPE)
 	env = json.loads(pipe.stdout.read())
 	os.environ = env
+
+
+# clem 01/06/2016
+def system_uptime():
+	from datetime import timedelta
+
+	with open('/proc/uptime') as f:
+		uptime_seconds = float(f.readline().split()[0])
+		return str(timedelta(seconds=uptime_seconds))

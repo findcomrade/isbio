@@ -100,12 +100,15 @@ def pp(data, unfold_objects=False, return_output=False):
 
 # clem 06/04/2016
 def password_from_file(path):
-	from os.path import exists, expanduser
-	if not exists(path):
-		temp = expanduser(path)
-		if exists(temp):
-			path = temp
-	return open(path).read().replace('\n', '')
+	try:
+		from os.path import exists, expanduser
+		if not exists(path):
+			temp = expanduser(path)
+			if exists(temp):
+				path = temp
+		return open(path).read().replace('\n', '')
+	except IOError:
+		print 'error in readfile : %s' % path
 
 
 # clem 06/05/2016, moved here on 16/05/2016

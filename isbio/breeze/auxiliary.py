@@ -642,3 +642,38 @@ def image_embedding(path_to_file, cached_path=None):
 		f2.write(str(soup))
 
 	return str(soup)
+
+
+# clem 31/05/2016 (copied from views.py)
+def log_formater(show_all=False, num=0):
+	DEFAULT_MAX = 250
+
+	def no_withe_space(txt):
+		return txt.replace('\t', '    ').replace(' ', '&nbsp;')
+
+	grab_next = False
+	last_pid = 0
+	with open(settings.LOG_PATH) as f:
+		log = f.readlines()
+		out = list()
+		for l in log:
+			l = l.replace(">", "&gt;").replace("<", "&lt;")
+			if l.replace('__breeze__started__', '') != l:
+				out.append('<hr>') # add a separator to highlight reloads
+			if l.strip() != '':
+				if not l.startswith('20'):
+					# reverse the order of Stack trace for them to be in-order
+					out[-1] += '<br />' + no_withe_space(l)
+				else:
+					out.append(no_withe_space(l))
+	out.append(no_withe_space(settings.USUAL_LOG_FORMAT_DESCRIPTOR))
+	out.reverse()
+	showing = 'whole (ie. <strong>%s</strong>) log since rotation' % len(out)
+	if not show_all:
+		if not num > 0:
+			num = DEFAULT_MAX
+		if num >= len(out):
+			num = len(out)
+		out = out[0:num]
+		showing = 'last <strong>%s</strong> log entries' % num
+	return out, showing

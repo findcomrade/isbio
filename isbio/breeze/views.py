@@ -1128,8 +1128,13 @@ def resources(request):
 			'legend': 'This is an example of another graph', }
 	)
 
-	return render_to_response('resources.html', RequestContext(request, {'resources_status': 'active',
-								'usage_graph': usage_graph, 'resources': get_template_check_list()}))
+	return render_to_response('resources.html', RequestContext(request, {
+		'resources_status': 'active',
+		'usage_graph': usage_graph,
+		'breeze_up': password_from_file('running'),
+		'system_up': system_uptime(),
+		'resources': get_template_check_list()
+	}))
 
 
 @login_required(login_url='/')
@@ -1745,19 +1750,20 @@ def edit_job(request, jid=None, mod=None):
 
 
 # TODO rewrite
-@login_required(login_url='/')
+@login_required(login_url='/') # FIXME silent failing when using options on Heatmaps
 def create_job(request, sid=None, page=1):
 	from django.http import HttpResponseServerError
 	script = Rscripts.objects.get(id=sid)
 	mail_addr = request.user.email
-	mails = dict
 
 	try:
 		if request.method == 'POST':
-			go_run = request.POST.get('run_job') or request.POST.get('action') and request.POST.get('action') == 'run_job'
+			# go_run = request.POST.get('run_job') or request.POST.get('action') and request.POST.get('action') == 'run_job'
+			go_run = True
+			# custom_form, head_form = rshell.build_script(request, script, go_run)
 			custom_form, head_form = rshell.build_script(request, script, go_run)
 			request.POST = custom_form
-			state = "scheduled"
+			# state = "scheduled"
 			if go_run:
 				state = "current"
 			return jobs(request, page, state)
@@ -1780,7 +1786,7 @@ def create_job(request, sid=None, page=1):
 		'report_to': mail_addr
 	}
 	data.update(mails)
-
+	print 'GO RENDER'
 	return render_to_response('forms/user_modal.html', RequestContext(request, data))
 
 
@@ -2934,49 +2940,63 @@ def file_system_info(request):
 # clem on 08/10/2015
 @login_required(login_url='/')
 def view_log(request, show_all=False, num=0):
-	DEFAULT_MAX = 250
-
-	def no_withe_space(txt):
-		return txt.replace('\t', '    ').replace(' ', '&nbsp;')
-
 	if not request.user.is_superuser:
 		raise PermissionDenied
-	grab_next = False
-	last_pid = 0
-	with open(settings.LOG_PATH) as f:
-		log = f.readlines()
-		out = list()
-		for l in log:
-			l = l.replace(">", "&gt;").replace("<", "&lt;")
-			# l.encode('ascii', 'xmlcharrefreplace')
-			# l.encode('ascii', 'ignore')
-			# l = l.decode('utf-8') # .encode('utf-8', 'ignore')
-			if l.replace('__breeze__started__', '') != l:
-				out.append('<hr>') # add a separator to highlight reloads
-			if l.strip() != '':
-				if not l.startswith('20'):
-					# reverse the order of Stack trace for them to be in-order
-					# grab_next = True
-					out[-1] += '<br />' + no_withe_space(l)
 
-				# if l.startswith('20'):
-				#	grab_next = False
-				else:
-					out.append(no_withe_space(l))
-	out.append(no_withe_space(settings.USUAL_LOG_FORMAT_DESCRIPTOR))
-	out.reverse()
-	showing = 'whole (ie. <strong>%s</strong>) log since rotation' % len(out)
-	if not show_all:
-		if not num > 0:
-			num = DEFAULT_MAX
-		if num >= len(out):
-			num = len(out)
-		out = out[0:num]
-		showing = 'last <strong>%s</strong> log entries' % num
+	out, showing = aux.log_formater(show_all, num)
+
 	return render_to_response('log.html', RequestContext(request, {
 		'log': out,
 		'showing': showing
 	}))
+
+
+# clem 31/05/2016
+@login_required(login_url='/')
+def view_log_test(request, show_all=False, num=0):
+	if not request.user.is_superuser:
+		raise PermissionDenied
+
+	log_file = open(settings.LOG_PATH)
+
+	return HttpResponse(log_file.read(), mimetype='text/plain')
+
+
+from django.views.decorators.http import condition
+
+
+@condition(etag_func=None)
+def stream_response(request):
+	response = ''
+	# try:
+	#	response = HttpResponse(mimetype='text/html')
+	#	a = stream_response_generator()
+	#	response['Cache-Control'] = 'no-cache'
+	#	response['Content-Encoding'] = 'plain'
+	#	while True:
+	#		response.write(a.next())
+	#		response.flush()
+	# except StopIteration:
+	#	return response
+
+	# response = HttpResponse(stream_response_generator(), mimetype='text/html')
+	# response['Cache-Control'] = 'no-cache'
+	# response['Content-Encoding'] = 'plain'
+	a = render_to_response('live_log.html', RequestContext(request))
+	a['Cache-Control'] = 'no-cache'
+	a['Content-Encoding'] = 'plain'
+	return a
+	# resp = HttpResponse(stream_response_generator(), mimetype='text/html')
+	# return resp
+
+
+def stream_response_generator():
+	yield "<html><body>\n"
+	for x in range(1, 11):
+		yield "<div>%s</div>\n" % x
+		yield ' ' * 1024 + '\n\n' # Encourage browser to render incrementally
+		time.sleep(1)
+	yield "</body></html>\n"
 
 
 # clem on 08/10/2015
