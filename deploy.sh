@@ -30,7 +30,7 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 		echo # move to a new line
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo "discarding any local changes..."
-		    git status|egrep "modified:|added:|deleted:|renamed:"|awk '{print "\033[36mgit checkout -- "$2"\033[39m"; system("git checkout -- "$2)}' # discard any local changes
+		    git status|egrep "modified:|added:|deleted:|renamed:"|awk '{print "\033[36mgit checkout -- "$3"\033[39m"; system("git checkout -- "$3)}' # discard any local changes
 		    echo "done !"
 		else
 			exit 0
