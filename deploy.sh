@@ -23,14 +23,12 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	echo -e "${CYAN}git checkout${END_C}"
 	git checkout
 	TAIL=`git status|tail -n1`
-	if [ -n ${TAIL} ] && [ "${TAIL}" != "${CLEAN_GIT}" ];
-	then
+	if [ -n "${TAIL}" ] && [ "${TAIL}" != "${CLEAN_GIT}" ]; then
 		echo -e "${LRED}WARNING:${END_C} Non committed local changes will be discarded."
 		echo -e -n "${GREEN}Are you sure you want to proceed${END_C}"
 		read -p " (y/n) ? " -n 1 -r
 		echo # move to a new line
-		if [[ $REPLY =~ ^[Yy]$ ]];
-		then
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			echo "discarding any local changes..."
 		    git status|egrep "modified:|added:|deleted:|renamed:"|awk '{print "\033[36mgit checkout -- "$2"\033[39m"; system("git checkout -- "$2)}' # discard any local changes
 		    echo "done !"
