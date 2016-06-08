@@ -5,10 +5,11 @@ SELF=`md5sum deploy.sh`
 HOST_NAME=`hostname`
 END_C='\033[39m'
 BLUE='\033[34m'
+GREEN='\033[32m'
 RED='\033[31m'
+LRED='\033[91m'
 YELLOW='\033[33m'
 CYAN='\033[36m'
-TAIL_CMD="git status|tail -n1"
 
 version=$(<.version)
 ((version++))
@@ -21,11 +22,12 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	git status
 	echo -e "${CYAN}git checkout${END_C}"
 	git checkout
-	TAIL=`${TAIL_CMD}`
+	TAIL=`git status|tail -n1`
 	if [ -n ${TAIL} ] && [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
-		echo -e "${RED}WARNING:${END_C} Non committed local changes will be discarded."
-		read -p "Are you sure you want to proceed (y/n) ? " -n 1 -r
+		echo -e "${LRED}WARNING:${END_C} Non committed local changes will be discarded."
+		echo -e -n "${GREEN}Are you sure you want to proceed${END_C}"
+		read -p " (y/n) ? " -n 1 -r
 		echo # move to a new line
 		if [[ $REPLY =~ ^[Yy]$ ]];
 		then
@@ -36,7 +38,7 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 			exit 0
 		fi
     fi
-    TAIL=`${TAIL_CMD}`
+    TAIL=`git status|tail -n1`
     if [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
 		echo -e "${RED}ERROR:${END_C} ambiguous git status, please check git co manually !"
