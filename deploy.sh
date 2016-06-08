@@ -24,7 +24,7 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	git checkout
 	TAIL=`git status|tail -n1`
 	if [ -n "${TAIL}" ] && [ "${TAIL}" != "${CLEAN_GIT}" ]; then
-		echo -e "${LRED}WARNING:${END_C} Non committed local changes will be discarded."
+		echo -e "${LRED}WARNING:${END_C} un-committed local changes will be discarded !"
 		echo -e -n "${YELLOW}Are you sure you want to proceed${END_C}"
 		read -p " (y/n) ? " -n 1 -r
 		echo # move to a new line
