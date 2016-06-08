@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CLEAN_GIT="nothing to commit, working directory clean"
+CLEAN_GIT="nothing to commit (working directory clean)"
 SELF=`md5sum deploy.sh`
 HOST_NAME=`hostname`
 END_C='\033[39m'
@@ -25,7 +25,7 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	TAIL=`git status|tail -n1`
 	if [ -n "${TAIL}" ] && [ "${TAIL}" != "${CLEAN_GIT}" ]; then
 		echo -e "${LRED}WARNING:${END_C} Non committed local changes will be discarded."
-		echo -e -n "${GREEN}Are you sure you want to proceed${END_C}"
+		echo -e -n "${YELLOW}Are you sure you want to proceed${END_C}"
 		read -p " (y/n) ? " -n 1 -r
 		echo # move to a new line
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
