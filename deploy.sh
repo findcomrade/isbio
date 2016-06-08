@@ -20,7 +20,8 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	git status
 	echo -e "${CYAN}git checkout${END_C}"
 	git checkout
-	if [ "$(git checkout|tail -n1)" != "$CLEAN_GIT" ];
+	TAIL=`git checkout|tail -n1`
+	if [ -n ${TAIL} ] && [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
 		echo -e "${RED}WARNING:${END_C} Non committed local changes will be discarded."
 		read -p "Are you sure you want to proceed (y/n) ?" -n 1 -r
@@ -34,7 +35,8 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 			exit 0
 		fi
     fi
-    if [ "$(git checkout|tail -n1)" != "$CLEAN_GIT" ];
+    TAIL=`git checkout|tail -n1`
+    if [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
 		echo -e "${RED}ERROR:${END_C} ambiguous git status, please check git co manually !"
 		exit 1
