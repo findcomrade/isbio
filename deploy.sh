@@ -8,6 +8,7 @@ BLUE='\033[34m'
 RED='\033[31m'
 YELLOW='\033[33m'
 CYAN='\033[36m'
+TAIL_CMD="git status|tail -n1"
 
 version=$(<.version)
 ((version++))
@@ -20,11 +21,11 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 	git status
 	echo -e "${CYAN}git checkout${END_C}"
 	git checkout
-	TAIL=`git checkout|tail -n1`
+	TAIL=`${TAIL_CMD}`
 	if [ -n ${TAIL} ] && [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
 		echo -e "${RED}WARNING:${END_C} Non committed local changes will be discarded."
-		read -p "Are you sure you want to proceed (y/n) ?" -n 1 -r
+		read -p "Are you sure you want to proceed (y/n) ? " -n 1 -r
 		echo # move to a new line
 		if [[ $REPLY =~ ^[Yy]$ ]];
 		then
@@ -35,7 +36,7 @@ if [ "$HOST_NAME" = breeze.giu.fi ]; then
 			exit 0
 		fi
     fi
-    TAIL=`git checkout|tail -n1`
+    TAIL=`${TAIL_CMD}`
     if [ "${TAIL}" != "${CLEAN_GIT}" ];
 	then
 		echo -e "${RED}ERROR:${END_C} ambiguous git status, please check git co manually !"
