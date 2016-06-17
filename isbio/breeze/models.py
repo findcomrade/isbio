@@ -2300,7 +2300,8 @@ class Runnable(FolderObj, models.Model):
 		"""
 		from hashlib import md5
 		m = md5()
-		m.update(u'%s%s%s' % (self.text_id, self.get_status(), self.sgeid))
+		tmp_unicode = u'%s%s%s' % (self.text_id, self.get_status(), self.sgeid)
+		m.update(tmp_unicode.encode('utf-8'))
 		return m.hexdigest()
 
 	@property
