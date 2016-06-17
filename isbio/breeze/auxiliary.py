@@ -90,15 +90,18 @@ def save_new_project(form, author):
 	author      -- user name
 	"""
 	insti = breeze.models.UserProfile.objects.get(user=author).institute_info
+	name = form.cleaned_data.get('project_name', None)
+	manager = unicode(form.cleaned_data.get('project_manager', None))
+	print type(manager), manager
 	dbitem = breeze.models.Project(
-		name=str(form.cleaned_data.get('project_name', None)),
-		manager=str(form.cleaned_data.get('project_manager', None)),
-		pi=str(form.cleaned_data.get('principal_investigator', None)),
+		name=unicode(form.cleaned_data.get('project_name', None)),
+		manager=unicode(form.cleaned_data.get('project_manager', None)),
+		pi=unicode(form.cleaned_data.get('principal_investigator', None)),
 		author=author,
 		collaborative=form.cleaned_data.get('collaborative', None),
-		wbs=str(form.cleaned_data.get('wbs', None)),
-		external_id=str(form.cleaned_data.get('eid', None)),
-		description=str(form.cleaned_data.get('description', None)),
+		wbs=unicode(form.cleaned_data.get('wbs', None)),
+		external_id=unicode(form.cleaned_data.get('eid', None)),
+		description=unicode(form.cleaned_data.get('description', None)),
 		institute=insti
 	)
 

@@ -2528,7 +2528,8 @@ class Report(Runnable):
 
 	@property
 	def title(self):
-		return u'%s Report :: %s  <br>  %s' % (self.type, unicode(self.name).decode('utf8'), self.type.description)
+		# return u'%s Report :: %s  <br>  %s' % (self.type, unicode(self.name).decode('utf8'), self.type.description)
+		return u'%s Report :: %s  <br>  %s' % (self.type, self.name, self.type.description)
 
 	@property
 	def fm_file_path(self):
@@ -2688,7 +2689,7 @@ class Report(Runnable):
 		# do the substitution
 		result = src.substitute(d)
 		# save r-file
-		self._rexec.save(self.R_FILE_NAME, base.ContentFile(result))
+		self._rexec.save(self.R_FILE_NAME, base.ContentFile(result.encode('utf-8')))
 
 	# Clem 11/09/2015
 	def trigger_run_success(self, ret_val):
@@ -2706,17 +2707,17 @@ class Report(Runnable):
 	def dump_project_parameters(self):
 		import copy
 
-		dump = '# <----------  Project Details  ----------> \n'
-		dump += 'report.author          <- \"%s\"\n' % self.author.username
-		dump += 'report.pipeline        <- \"%s\"\n' % self.type
-		dump += 'project.name           <- \"%s\"\n' % self.project.name
-		dump += 'project.manager        <- \"%s\"\n' % self.project.manager
-		dump += 'project.pi             <- \"%s\"\n' % self.project.pi
-		dump += 'project.author         <- \"%s\"\n' % self.project.author
-		dump += 'project.collaborative  <- \"%s\"\n' % self.project.collaborative
-		dump += 'project.wbs            <- \"%s\"\n' % self.project.wbs
-		dump += 'project.external.id    <- \"%s\"\n' % self.project.external_id
-		dump += '# <----------  end of Project Details  ----------> \n\n'
+		dump = u'# <----------  Project Details  ----------> \n'
+		dump += u'report.author          <- \"%s\"\n' % self.author.username
+		dump += u'report.pipeline        <- \"%s\"\n' % self.type
+		dump += u'project.name           <- \"%s\"\n' % self.project.name
+		dump += u'project.manager        <- \"%s\"\n' % self.project.manager
+		dump += u'project.pi             <- \"%s\"\n' % self.project.pi
+		dump += u'project.author         <- \"%s\"\n' % self.project.author
+		dump += u'project.collaborative  <- \"%s\"\n' % self.project.collaborative
+		dump += u'project.wbs            <- \"%s\"\n' % self.project.wbs
+		dump += u'project.external.id    <- \"%s\"\n' % self.project.external_id
+		dump += u'# <----------  end of Project Details  ----------> \n\n'
 
 		return copy.copy(dump)
 
