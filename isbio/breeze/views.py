@@ -2459,8 +2459,9 @@ def new_script_dialog(request):
 	if form.is_valid():
 		sname = str(form.cleaned_data.get('name', None))
 		sinline = str(form.cleaned_data.get('inline', None))
-		newpath = rshell.init_script(sname, sinline, request.user)
-		return manage_scripts(request)  # call back the list rendering function
+		newpath = rshell.init_script(sname, sinline, request.user) # FIXME broken
+		if newpath:
+			return manage_scripts(request)  # call back the list rendering function
 	# return HttpResponseRedirect('/resources/scripts/')
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
