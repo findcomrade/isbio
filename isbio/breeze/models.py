@@ -1469,7 +1469,7 @@ class ScriptCategories(CustomModelAbstract):
 		db_table = 'breeze_script_categories'
 
 
-class UserDate(CustomModelAbstract):
+class User_Date(CustomModelAbstract):
 	user = ForeignKey(User)
 	install_date = models.DateField(auto_now_add=True)
 	
@@ -1504,7 +1504,7 @@ class Rscripts(FolderObj, CustomModelAbstract):
 	# report_type = models.ForeignKey(ReportType, null=True, blank=True, default=None)  # assosiation with report type
 	access = models.ManyToManyField(User, null=True, blank=True, default=None, related_name="users")
 	# install date info
-	install_date = models.ManyToManyField(UserDate, blank=True, null=True, default=None, related_name="installdate")
+	install_date = models.ManyToManyField(User_Date, blank=True, null=True, default=None, related_name="installdate")
 	
 	def file_name(self, filename): # TODO check this
 		# TODO check for FolderObj fitness
