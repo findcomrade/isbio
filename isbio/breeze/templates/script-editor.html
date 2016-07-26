@@ -18,14 +18,18 @@
 	<link rel="stylesheet" href="/static/css/r-theme.css">
 	<script src="/static/js/r.js"></script>
 
+	<script type="text/javascript" src="/static/js/bootstrap-multiselect.js"></script>
+	<link rel="stylesheet" href="/static/css/bootstrap-multiselect.css" type="text/css">
+
 	<!-- <script type="text/javascript" src="/static/js/fb.js"></script> -->
 
 	<style>
+	/*
 		body {
 			padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-			padding-bottom: 10px;
+	/*		padding-bottom: 10px;
 		}
-
+	*/
 		#components {
 			min-height: 600px;
 		}
@@ -59,6 +63,9 @@
 		#source {
 			min-height: 500px;
 		}
+	#id_report_type{
+		height: 170px;
+	}
 
 	</style>
 {% endblock %}
@@ -227,6 +234,16 @@
 
 	<script type="text/javascript">
 		$(document).ready(function () {
+
+			// initialize Multiselect plugin
+			var multiConfigurationSet = {
+				includeSelectAllOption: true,
+				enableFiltering       : true,
+				maxHeight             : 450,
+				dropUp                : true
+			};
+			//$('.multiselect').multiselect(multiConfigurationSet);
+
 			var addRTbtn = '<a id="id_addRTbtn" href="#" data-toggle="modal" class="apply btn btn-small btn-inverse"\
 	data-target="#Apply"  data-param="/new-rtype/">\
 		<i class="icon-plus icon-white"></i>\
@@ -236,15 +253,24 @@
 			if (!$('#id_istag').attr('checked')) {
 				$('#id_report_type').attr("disabled", "disabled");
 				$('#id_addRTbtn').addClass("disabled").removeClass('apply');
+				$('#id_report_type~div button.multiselect').attr("disabled", "disabled"); // if multiselect is active
+				//$('#id_r3').removeAttr('checked');
+				$('#id_r3').attr("disabled", "disabled");
+
 			}
 
 			$('#id_istag').change(function () {
 				if ($('#id_istag').attr('checked')) {
 					$('#id_report_type').removeAttr('disabled');
 					$('#id_addRTbtn').removeClass('disabled').addClass('apply');
+					$('#id_r3').removeAttr('disabled');
+					$('#id_report_type~div button.multiselect').removeAttr('disabled'); // if multiselect is active
 				} else {
 					$('#id_report_type').attr('disabled', 'disabled');
 					$('#id_addRTbtn').addClass('disabled').removeClass('apply');
+					//$('#id_r3').removeAttr('checked');
+					$('#id_r3').attr('disabled', 'disabled');
+					$('#id_report_type~div button.multiselect').attr("disabled", "disabled"); // if multiselect is active
 				}
 			});
 

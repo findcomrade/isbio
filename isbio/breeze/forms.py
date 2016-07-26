@@ -840,7 +840,8 @@ class ScriptDescription(forms.Form):
 class ScriptAttributes(forms.ModelForm):
 	class Meta:
 		model = breeze.models.Rscripts
-		fields = ('author', 'category', 'draft', 'istag', 'report_type')
+		fields = ('author', 'category', 'draft', 'istag', 'r3', 'report_type')
+		widgets = { 'report_type': forms.SelectMultiple(attrs={ 'class': 'multiselect', }) }
 
 
 class ScriptLogo(forms.Form):

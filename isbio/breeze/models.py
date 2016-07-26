@@ -1260,14 +1260,19 @@ class Rscripts(FolderObj, models.Model):
 	category = ForeignKey(ScriptCategories, to_field="category")
 	author = ForeignKey(User)
 	creation_date = models.DateField(auto_now_add=True)
-	draft = models.BooleanField(default=True)
+	draft = models.BooleanField(default=True, help_text="Defines whether this script is published, i.e. available "
+	"for users")
 	price = models.DecimalField(max_digits=19, decimal_places=2, default=0.00)
 	# tag related
-	istag = models.BooleanField(default=False)
-	must = models.BooleanField(default=False)  # defines wheather the tag is enabled by default
+	istag = models.BooleanField(default=False, help_text="Defines whether this script can be included in a Pipeline")
+	must = models.BooleanField(default=False, help_text="Defines whether the tag is enabled by default")
+	r3 = models.BooleanField(default=False, help_text="Set this script to be independently run in R3 (only for "
+	"tags)\n<br>N.B. If checked, this script will be run in a separate process, and while having access to "
+	"the same work folder,<br>\nit will NOT be able to access any variables/memory from other scripts in the same "
+	"pipeline.<br>\nCAUTION ! R3 is a whole separate environement with its own libraries and configurations.")
 	order = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0)
 	report_type = models.ManyToManyField(ReportType, null=True, blank=True,
-										 default=None)  # assosiation with report type
+		default=None, help_text="Include this tag in the following pipelines")  # assosiation with report type
 	# report_type = models.ForeignKey(ReportType, null=True, blank=True, default=None)  # assosiation with report type
 	access = models.ManyToManyField(User, null=True, blank=True, default=None, related_name="users")
 	# install date info
@@ -2640,6 +2645,9 @@ class Report(Runnable):
 			self.shared = kwargs['shared_users']
 
 	_path_tag_r_template = settings.TAGS_TEMPLATE_PATH
+	_path_tag_r3_template = settings.TAGS_R3_TEMPLATE_PATH
+	_path_r3_container_template = settings.R3_CONTAINER_TEMPLATE_PATH
+	_path_r3_bin = settings.R3_BOOTSTRAP_PATH
 
 	# TODO : use clean or save ?
 	# def generate_r_file(self, sections, request_data):
@@ -2675,9 +2683,31 @@ class Report(Runnable):
 				# TODO : Find a way to solve this dependency issue
 				gen_params = rshell.gen_params_string(tree, request_data.POST, self,
 					request_data.FILES)
-				# tag_list.append(tag.get_R_code(gen_params) + report_specific)
-				tag_list.append(tag.get_R_code(gen_params) + Template(report_specific).substitute(
-					{ 'loc': self.home_folder_full_path[:-1] }))
+				# clem 26/07/2016 added specific code to bootstrap individual script in R3
+				full_script_code = tag.get_R_code(gen_params)
+				location = self.home_folder_full_path[:-1]
+
+				# add specific bootstrap for external R3 run
+				if tag.r3:
+					r3_tag = open(self._path_tag_r3_template).read()
+					r3_container = open(self._path_r3_container_template).read()
+					r3_script_file_path = '%s/r3_%s.r' % (location, tag.name)
+					# dict for tag_r3 template
+					a_dict = {'tag_name': tag.name,
+						'full_script_code': full_script_code,
+						'sub_script_path': r3_script_file_path
+					}
+					# dict for r3_script_container template
+					b_dict = {'full_script_code': full_script_code, 'loc': location, 'r3_path': self._path_r3_bin}
+					# create the external file
+					with open(r3_script_file_path, 'w') as r3_script_file_obj:
+						r3_script_file_obj.write(Template(r3_container).substitute(b_dict))
+					utils.chmod(r3_script_file_path, ACL.RWX_RX_)
+					# assemble special R3 code
+					full_script_code = Template(r3_tag).substitute(a_dict)
+				# assemble the whole script + tag code
+				tag_list.append(full_script_code + Template(report_specific).substitute(
+					{ 'loc': location }))
 
 		d = { 'loc': self.home_folder_full_path[:-1],
 			'report_name': self.title,

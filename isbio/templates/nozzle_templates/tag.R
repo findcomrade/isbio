@@ -8,8 +8,7 @@ if(exists("section_body")){
 	REPORT <- addTo( REPORT, tag_section )
 }
 
-# <------- end of header -------->
 ##### END OF TAG #####
 
 # setwd(the_path)
-setwd("$loc")
+setwd("$loc") # restore path to work dir (just in case)
