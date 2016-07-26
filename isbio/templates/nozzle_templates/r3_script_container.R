@@ -7,6 +7,6 @@ load(".RData")
 $full_script_code
 ##### END OF TAG #####
 
-.libPaths("")
+.libPaths(c())
 # saves the environnement
 save.image()
