@@ -1266,10 +1266,10 @@ class Rscripts(FolderObj, models.Model):
 	# tag related
 	istag = models.BooleanField(default=False, help_text="Defines whether this script can be included in a Pipeline")
 	must = models.BooleanField(default=False, help_text="Defines whether the tag is enabled by default")
-	r3 = models.BooleanField(default=False, help_text="Set this script to be independently run in R3 (only for "
-	"tags)\n<br>N.B. If checked, this script will be run in a separate process, and while having access to "
-	"the same work folder,<br>\nit will NOT be able to access any variables/memory from other scripts in the same "
-	"pipeline.<br>\nCAUTION ! R3 is a whole separate environement with its own libraries and configurations.")
+	r3 = models.BooleanField(default=False, help_text="N.B. If checked, this script will be run in a separate process; "
+	"however it will still be able to "
+	"access and<br>\nmodify any variables/memory from other scripts in the same  pipeline, like if it was one single "
+	"process.<br>\nCAUTION ! R3 is still a separate environement, with its own libraries and configurations.")
 	order = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0)
 	report_type = models.ManyToManyField(ReportType, null=True, blank=True,
 		default=None, help_text="Include this tag in the following pipelines")  # assosiation with report type
