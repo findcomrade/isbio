@@ -841,6 +841,7 @@ class ScriptAttributes(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(forms.ModelForm, self).__init__(*args, **kwargs)
 		self.fields['r3'].label = 'Run this script on R3.2.1 (for tags only)'
+		self.fields['istag'].label = 'Is a tag'
 
 	class Meta:
 		model = breeze.models.Rscripts
