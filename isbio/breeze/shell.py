@@ -63,15 +63,15 @@ def init_script(name, inline, person):
 
 
 # TODO : integrate into Pipe data model
-def init_pipeline(form):
+def init_pipeline(form, user):
 	"""
 		Initiates a new RetortType item in the DB.
 		Creates a folder for initial pipeline data.
 	"""
 	# First Save the data that comes with a form:
 	# 'type', 'description', 'search', 'access'
-	new_pipeline = form.save()
-
+	new_pipeline = form.save(commit=False)
+	new_pipeline.author = user
 	# Add configuration file
 	new_pipeline.config.save('config.txt', base.ContentFile('#          Configuration Module  \n'))
 	new_pipeline.save()

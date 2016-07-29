@@ -476,7 +476,8 @@ class Project(models.Model):
 	pi = models.CharField(max_length=50)
 	author = ForeignKey(User)
 	# store the institute info of the user who creates this report
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 	
 	collaborative = models.BooleanField(default=False)
 	
@@ -486,6 +487,12 @@ class Project(models.Model):
 	
 	def __unicode__(self):
 		return self.name
+
+	def save(self, force_insert=False, force_update=False, using=None):
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
+		super(Project, self).save(force_insert, force_update, using)
 
 
 class Group(models.Model):
@@ -541,7 +548,8 @@ class ShinyReport(models.Model):
 	description = models.CharField(max_length=350, blank=True, help_text="Optional description text")
 	author = ForeignKey(User)
 	created = models.DateTimeField(auto_now_add=True)
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 
 	custom_header = models.TextField(blank=True, default=shiny_header(),
 		help_text="Use R Shiny code here to customize the header of the dashboard<br />"
@@ -1071,6 +1079,9 @@ class ShinyReport(models.Model):
 		pass
 
 	def save(self, *args, **kwargs):
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
 		super(ShinyReport, self).save(*args, **kwargs) # Call the "real" save() method.
 		self.regen_report()
 
@@ -1103,7 +1114,7 @@ class ReportType(FolderObj, models.Model):
 
 	type = models.CharField(max_length=17, unique=True)
 	description = models.CharField(max_length=5500, blank=True)
-	search = models.BooleanField(default=False, help_text="NB : LEAVE THIS UN-CHECKED")
+	search = models.BooleanField(default=False, help_text="NB : LEAVE THIS UN-CHECKED", editable=False)
 	access = models.ManyToManyField(User, null=True, blank=True, default=None,
 									related_name='pipeline_access')  # share list
 	# tags = models.ManyToManyField(Rscripts, blank=True)
@@ -1111,7 +1122,8 @@ class ReportType(FolderObj, models.Model):
 	# who creates this report
 	author = ForeignKey(User)
 	# store the institute info of the user who creates this report
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, editable=False)
 	
 	def file_name(self, filename):
 		# FIXME check for FolderObj property fitness
@@ -1169,12 +1181,20 @@ class ReportType(FolderObj, models.Model):
 		return self.__prev_shiny_report != self.shiny_report_id
 
 	def save(self, *args, **kwargs):
+		
+		# set the institute for this ReportType :
+		if self.author_id:
+			print self.author
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
+		else:
+			self.institute = UserProfile().institute_info
+		
 		obj = super(ReportType, self).save(*args, **kwargs) # Call the "real" save() method.
 
 		if self.__shiny_changed:
 			if self.__prev_shiny_report:
 				ShinyReport.objects.get(pk=self.__prev_shiny_report).regen_report()
-			if self.shiny_report:
+			if self.shiny_report_id:
 				self.shiny_report.regen_report()
 
 		try:
@@ -1426,7 +1446,8 @@ class UserProfile(models.Model):
 	
 	fimm_group = models.CharField(max_length=75, blank=True)
 	logo = models.FileField(upload_to=file_name, blank=True)
-	institute_info = models.ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute_info = models.ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute_info = models.ForeignKey(Institute, default=1)
 	# if user accepts the agreement or not
 	db_agreement = models.BooleanField(default=False)
 	last_active = models.DateTimeField(default=timezone.now)
@@ -2825,7 +2846,8 @@ class ShinyTag(models.Model):
 	description = models.CharField(max_length=350, blank=True, help_text="Optional description text")
 	author = ForeignKey(OrderedUser)
 	created = models.DateTimeField(auto_now_add=True)
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 	order = models.PositiveIntegerField(default=0, help_text="sorting index number (0 is the topmost)")
 	menu_entry = models.TextField(default=DEFAULT_MENU_ITEM,
 		help_text="Use menuItem or other Shiny  Dashboard items to customize the menu entry "
@@ -2960,6 +2982,10 @@ class ShinyTag(models.Model):
 					os.chmod(path, ACL.RW_RW_)
 			# removes the zip from temp upload folder
 			self._zip_clean()
+
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
 
 		super(ShinyTag, self).save(*args, **kwargs) # Call the "real" save() method.
 

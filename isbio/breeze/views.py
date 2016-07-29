@@ -2472,7 +2472,7 @@ def new_rtype_dialog(request):
 	form = breezeForms.NewRepTypeDialog(request.POST or None)
 
 	if form.is_valid():
-		rshell.init_pipeline(form)
+		rshell.init_pipeline(form, request.user)
 		return HttpResponse(True)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
