@@ -7,7 +7,8 @@ if(R.Version()$$major < 3){
 	save.image()
 	# lauching sub-script
 	print("Running $tag_name from R3...")
-	system('$sub_script_path')
+	#system('$sub_script_path')
+	system('$r3_path $r3_cmd $sub_script_path')
 	print("DONE !")
 	# restoring modified environement
 	load(".RData")
