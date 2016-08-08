@@ -2670,7 +2670,7 @@ class Report(Runnable):
 	_path_r3_container_template = settings.R3_CONTAINER_TEMPLATE_PATH
 	_path_r3_bootstrap = settings.R3_BOOTSTRAP_PATH
 	_path_r3_bin = settings.R3_BIN_PATH
-	_cmd_r3 = settings.R3_BIN_PATH
+	_cmd_r3 = settings.R_GENERAL_CMD
 
 	# TODO : use clean or save ?
 	# def generate_r_file(self, sections, request_data):
