@@ -2707,9 +2707,13 @@ class Report(Runnable):
 				gen_params = rshell.gen_params_string(tree, request_data.POST, self,
 					request_data.FILES)
 				# clem 26/07/2016 added specific code to bootstrap individual script in R3
-				full_script_code = tag.get_R_code(gen_params)
 				location = self.home_folder_full_path[:-1]
-
+				# same as full script code but with added Nozzle entry
+				full_tag_code = Template(report_specific).substitute(
+					{ 'loc': location,
+					'full_script_code': tag.get_R_code(gen_params)
+					})
+				# TODO FIXME logic of boxing up templates
 				# add specific bootstrap for external R3 run
 				if tag.r3:
 					r3_tag = open(self._path_tag_r3_template).read()
@@ -2717,22 +2721,21 @@ class Report(Runnable):
 					r3_script_file_path = '%s/r3_%s.r' % (location, tag.name)
 					# dict for tag_r3 template
 					a_dict = {'tag_name': tag.name,
-						'full_script_code': full_script_code,
+						'full_script_code': full_tag_code,
 						'sub_script_path': r3_script_file_path,
 						'r3_path': self._path_r3_bin,
 						'r3_cmd': self._cmd_r3,
 					}
 					# dict for r3_script_container template
-					b_dict = {'full_script_code': full_script_code, 'loc': location, 'r3_path': self._path_r3_bootstrap }
+					b_dict = {'full_script_code': full_tag_code, 'loc': location, 'r3_path': self._path_r3_bootstrap }
 					# create the external file
 					with open(r3_script_file_path, 'w') as r3_script_file_obj:
 						r3_script_file_obj.write(Template(r3_container).substitute(b_dict))
-					utils.chmod(r3_script_file_path, ACL.RWX_RX_)
+					# utils.chmod(r3_script_file_path, ACL.RWX_RX_)
 					# assemble special R3 code
-					full_script_code = Template(r3_tag).substitute(a_dict)
+					full_tag_code = Template(r3_tag).substitute(a_dict)
 				# assemble the whole script + tag code
-				tag_list.append(full_script_code + Template(report_specific).substitute(
-					{ 'loc': location }))
+				tag_list.append(full_tag_code)
 
 		d = { 'loc': self.home_folder_full_path[:-1],
 			'report_name': self.title,

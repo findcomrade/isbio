@@ -1,4 +1,6 @@
-
+$full_script_code
+### BREEZE GENERATED ###
+# including data in the Nozzle report
 if(!exists("section_name")){
 	section_name <- report_name
 }
@@ -8,7 +10,5 @@ if(exists("section_body")){
 	REPORT <- addTo( REPORT, tag_section )
 }
 
-##### END OF TAG #####
-
-# setwd(the_path)
 setwd("$loc") # restore path to work dir (just in case)
+### END OF BREEZE GENERATED ###

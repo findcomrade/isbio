@@ -6,7 +6,6 @@ load(".RData")
 saving_libpath <- .libPaths()
 
 $full_script_code
-##### END OF TAG #####
 
 .libPaths(saving_libpath)
 # saves the environnement
