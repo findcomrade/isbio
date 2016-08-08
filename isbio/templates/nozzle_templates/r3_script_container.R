@@ -1,4 +1,4 @@
-#!$r3_path
+##!$r3_path
 # set the current folder to the work folder, just to be sure.
 setwd("$loc")
 # load saved environement

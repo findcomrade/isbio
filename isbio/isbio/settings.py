@@ -461,6 +461,8 @@ class DevSettings(BreezeSettings):
 	TAGS_R3_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'tag_r3.R'
 	R3_CONTAINER_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'r3_script_container.R'
 	R3_BOOTSTRAP_PATH = '/apps/statistics2/R-3.2.1/bin/Rscript'
+	R3_BIN_PATH = '/apps/statistics2/R-3.2.1/bin/R'
+	R_GENERAL_CMD = 'CMD BATCH --no-save'
 	NOZZLE_REPORT_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'report.R'
 	NOZZLE_REPORT_FN = 'report'
 

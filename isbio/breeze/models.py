@@ -1478,7 +1478,7 @@ class Runnable(FolderObj, models.Model):
 	R_OUT_EXT = settings.R_OUT_EXT					# '.Rout'
 	R_OUT_FILE_NAME = R_FILE_NAME + R_OUT_EXT
 	R_FULL_PATH = settings.R_ENGINE_PATH			# 'R '
-	R_CMD = 'CMD BATCH --no-save'
+	R_CMD = settings.R_GENERAL_CMD
 	RQ_SPECIFICS = ['request_data', 'sections']
 	FAILED_TEXT = 'Execution halted'
 
@@ -2668,7 +2668,9 @@ class Report(Runnable):
 	_path_tag_r_template = settings.TAGS_TEMPLATE_PATH
 	_path_tag_r3_template = settings.TAGS_R3_TEMPLATE_PATH
 	_path_r3_container_template = settings.R3_CONTAINER_TEMPLATE_PATH
-	_path_r3_bin = settings.R3_BOOTSTRAP_PATH
+	_path_r3_bootstrap = settings.R3_BOOTSTRAP_PATH
+	_path_r3_bin = settings.R3_BIN_PATH
+	_cmd_r3 = settings.R3_BIN_PATH
 
 	# TODO : use clean or save ?
 	# def generate_r_file(self, sections, request_data):
@@ -2716,10 +2718,12 @@ class Report(Runnable):
 					# dict for tag_r3 template
 					a_dict = {'tag_name': tag.name,
 						'full_script_code': full_script_code,
-						'sub_script_path': r3_script_file_path
+						'sub_script_path': r3_script_file_path,
+						'r3_path': self._path_r3_bin,
+						'r3_cmd': self._cmd_r3,
 					}
 					# dict for r3_script_container template
-					b_dict = {'full_script_code': full_script_code, 'loc': location, 'r3_path': self._path_r3_bin}
+					b_dict = {'full_script_code': full_script_code, 'loc': location, 'r3_path': self._path_r3_bootstrap }
 					# create the external file
 					with open(r3_script_file_path, 'w') as r3_script_file_obj:
 						r3_script_file_obj.write(Template(r3_container).substitute(b_dict))
