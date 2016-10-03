@@ -2020,6 +2020,10 @@ class Runnable(FolderObj, CustomModelAbstract):
 	# SHARED CONCRETE METHODS (SGE_JOB MANAGEMENT RELATED)
 	##
 	# deleted abort on 21/06/2016
+	def abort(self):
+		if not self.read_only:
+			# TODO check if running
+			self.compute_if.abort()
 
 	def write_sh_file(self):
 		""" Generate the SH file that will be executed on the compute target to configure and run the job """
@@ -2330,7 +2334,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 	def delete(self, using=None):
 		if not self.read_only:
 			# if self._breeze_stat != JobStat.DONE:
-			self.compute_if.abort()
+			self.abort()
 			txt = str(self)
 			super(Runnable, self).delete(using=using) # Call the "real" delete() method.
 			get_logger().info("%s has been deleted" % txt)

@@ -582,6 +582,8 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 			code = e.code
 		if hasattr(e, 'headers'):
 			mime = e.headers.typeheader
+		print "'%s' '%s'" % (url, data)
+		print proxied_request
 		logger.getChild('shiny_server').warning('%s : %s %s%s\n%s' % (e, request.method, path, str(qs), more))
 		rep = HttpResponse(content, status=code, mimetype=mime)
 	except urllib2.URLError as e:

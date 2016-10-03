@@ -1014,8 +1014,7 @@ def report_overview(request, rtype, iname=None, iid=None, mod=None):
 		if property_form.is_valid() and sections_valid and mod != 'reload':
 			# lunches the script generation in a separate thread in order to avoid long blocking operation
 			# thread.start_new_thread(rshell.build_report, (overview, request, property_form, tags))
-			rshell.build_report(overview, request, property_form, tags)
-			return HttpResponse(True)
+			return HttpResponse(rshell.build_report(overview, request, property_form, tags))
 		else:
 			for x in tags_data_list:
 				x['value'] = request.POST.get('Section_dbID_' + str(x['id']))
@@ -1142,9 +1141,15 @@ def resources(request):
 			'html_title': 'This is an example of another graph',
 			'legend': 'This is an example of another graph', }
 	)
+	
+	# print advanced_pretty_print(ObjectCache.dump())
 
-	return render_to_response('resources.html', RequestContext(request, {'resources_status': 'active',
-								'usage_graph': usage_graph, 'resources': get_template_check_list()}))
+	return render_to_response('resources.html', RequestContext(request, {
+		'resources_status': 'active',
+		'usage_graph': usage_graph,
+		'resources': get_template_check_list(),
+		'cache': ObjectCache.dump()
+	}))
 
 
 @login_required(login_url='/')

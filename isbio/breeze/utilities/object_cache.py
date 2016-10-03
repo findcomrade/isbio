@@ -127,6 +127,10 @@ class ObjectCache(object):
 	_cache = dict()
 	_DEBUG = False
 	data_mutex = Lock()
+	
+	@classmethod
+	def dump(cls):
+		return cls._cache
 
 	@classmethod
 	def get_cached(cls, key, default=None):
