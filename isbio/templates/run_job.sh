@@ -5,7 +5,7 @@
 # Target is $target
 
 # Non language specific, non target specific, job bootstrap file
-# breeze run_job.sh version 0.2.1 clement.fiere@helsinki.fi 03/10/2016
+# breeze run_job.sh version 0.2.2 clement.fiere@helsinki.fi 03/10/2016
 # compatible with :
 # 	compute targets : sge, docker
 # 	language 	: R (possibly others)
@@ -40,7 +40,8 @@ echo 'host    : '`hostname`' @ '`hostname -i`
 echo 'os      : '${PRETTY_NAME}
 echo 'kernel  : '`uname -mrs`
 echo 'arch    : '${ARCH}
-echo 'cores   : '${PHY_CORES}' physical, '${LOG_CORES}' logical'
+echo 'CPUs    : '${LOG_CORES}
+echo 'cores   : '${PHY_CORES}
 echo 'dir     : '`pwd`
 echo 'target  : '${TARGET}
 echo 'exec    : '${RUN_LINE}
