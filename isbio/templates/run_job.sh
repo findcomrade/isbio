@@ -5,7 +5,7 @@
 # Target is $target
 
 # Non language specific, non target specific, job bootstrap file
-# breeze run_job.sh version 0.2 clement.fiere@helsinki.fi 03/10/2016
+# breeze run_job.sh version 0.2.1 clement.fiere@helsinki.fi 03/10/2016
 # compatible with :
 # 	compute targets : sge, docker
 # 	language 	: R (possibly others)
@@ -25,8 +25,8 @@ POKE_URL="$poke_url"
 TARGET="$target"
 ARCH=$arch_cmd
 VERSION=$version_cmd
-LOG_CORES=`$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.logicalcpu_max || lscpu -p | egrep -v '^#' | wc -l)`
-PHY_CORES=`$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.physicalcpu_max || lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l)`
+LOG_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.logicalcpu_max || lscpu -p | egrep -v '^#' | wc -l)
+PHY_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.physicalcpu_max || lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l)
 ## END OF CONFIGURATION
 RELEASE='/etc/os-release'
 if [ -f "$RELEASE" ];
