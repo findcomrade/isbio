@@ -2024,6 +2024,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 		if not self.read_only:
 			# TODO check if running
 			self.compute_if.abort()
+		return True
 
 	def write_sh_file(self):
 		""" Generate the SH file that will be executed on the compute target to configure and run the job """

@@ -1819,6 +1819,7 @@ def run_script(request, jid):
 	return HttpResponseRedirect('/jobs/') # FIXME hardcoded url
 
 
+# FIXME obsolete
 @login_required(login_url='/')
 def abort_sge(request, id, type):
 	log = logger.getChild('abort_sge')
@@ -1837,13 +1838,13 @@ def abort_sge(request, id, type):
 	try:
 		s = item.abort()
 	except Exception as e:
-		console_print('Exception in abort sge : %s' % e)
+		console_print('Exception in aborting : %s' % e)
 		pass
 
 	if s:
 		return HttpResponseRedirect('/jobs/') # FIXME hardcoded url
 	else:
-		log.error("aborting job/report  %s failed" % id)
+		log.error("aborting job/report %s failed" % id)
 		return jobs(request, error_msg="%s\nOn DRMAA job/report id  %s\nPlease contact Breeze support" % (s, id))
 
 
