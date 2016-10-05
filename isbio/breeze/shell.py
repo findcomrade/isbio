@@ -234,8 +234,8 @@ def gen_params_string(docxml, data, runnable_inst, files):
 	for item in docxml.getroot().iter('inputItem'):
 		# item.set('val', str(data.cleaned_data[item.attrib['comment']])) # FIXME
 		if item.attrib['type'] == 'CHB':
-			params += str(item.attrib['rvarname']) + ' <- ' + str(
-				data.get(item.attrib['comment'], "NA")).upper() + '\n'
+			params += str(item.attrib['rvarname']) + ' <- "' + str(
+				data.get(item.attrib['comment'], "NA")).upper() + '"\n'
 		elif item.attrib['type'] == 'NUM':
 			params += str(item.attrib['rvarname']) + ' <- ' + str(data.get(item.attrib['comment'], "NA")) + '\n'
 		elif item.attrib['type'] == 'TAR':
