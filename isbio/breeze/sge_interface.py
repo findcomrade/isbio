@@ -5,7 +5,7 @@ import StringIO
 import copy
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __author__ = 'clem'
 __date__ = '06/05/2016'
 
@@ -37,7 +37,7 @@ class SGEInterface(ComputeInterface):
 		
 	# clem 06/10/2016
 	def name(self):
-		return self.config_queue_name
+		return "sge queue %s" % self.config_queue_name
 
 	# clem 09/05/2016
 	def write_config(self):

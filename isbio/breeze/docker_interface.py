@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -103,7 +103,8 @@ class DockerInterface(ComputeInterface):
 	
 	# clem 06/10/2016
 	def name(self):
-		return self.config_container
+		img = self.client.get_image(self.config_container)
+		return "docker image %s (%s)" % (self.config_container, img.Id)
 		
 	##########################
 	#  CONFIG FILE SPECIFIC  #
