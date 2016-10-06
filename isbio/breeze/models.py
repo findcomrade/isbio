@@ -2048,7 +2048,6 @@ class Runnable(FolderObj, CustomModelAbstract):
 			'tz'           : time.tzname[time.daylight],
 			'url'          : 'http://%s' % settings.FULL_HOST_NAME,
 			'target'       : str(self.target_obj),
-			'engine'       : str(self.target_obj.compute_interface.name),
 		}
 
 		conf_file_dict = {
@@ -2066,6 +2065,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 			'poke_url'     : self.poke_url,
 			'arch_cmd'     : self.target_obj.exec_obj.exec_arch_cmd,
 			'version_cmd'  : self.target_obj.exec_obj.exec_version_cmd,
+			'engine': str(self.target_obj.compute_interface.name()),
 		}
 		conf_file_dict.update(base_var_dict)
 		
