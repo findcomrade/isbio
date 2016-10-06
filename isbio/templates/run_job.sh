@@ -33,7 +33,7 @@ echo
 # removing possibly existing files generated from a previous run
 rm *~ ${OUT} ${FAILED_FN} ${INCOMPLETE_FN} ${SUCCESS_FN} ${DONE_FN} > /dev/null 2>&1
 wget -qO- ${POKE_URL}'starting' > /dev/null
-echo `date`
+echo `date --rfc-3339=second | sed 's/ /T/'`
 echo -n 'Running '${IN}'...'
 # Running the job
 touch ./${INCOMPLETE_FN} && `${RUN_LINE}`
@@ -43,7 +43,7 @@ if [ ${CODE} -eq 0 ];
 then
 	touch ./${SUCCESS_FN}
 fi
-echo `date`
+echo `date --rfc-3339=second | sed 's/ /T/'`
 # Removes incomplete run file flag
 rm ./${INCOMPLETE_FN} > /dev/null 2>&1
 CMD=`tail -n1<./${OUT}`
