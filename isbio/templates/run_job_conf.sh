@@ -7,20 +7,21 @@
 # Non language specific, non target specific, job bootstrap configuration file
 # breeze run_job_conf.sh version 0.1 clement.fiere@helsinki.fi 06/10/2016
 # Configuration variables, parsed and filled from Breeze
-LOG_PATH=$log_folder
-FAILED_FN=$failed_fn
-INCOMPLETE_FN=$inc_run_fn
-SUCCESS_FN=$success_fn
-DONE_FN=$done_fn
-IN=$in_file_name
-OUT=$out_file_name
-EXEC_PATH=$full_path
+LOG_FOLDER="$log_folder"
+FAILED_FN="$failed_fn"
+INCOMPLETE_FN="$inc_run_fn"
+SUCCESS_FN="$success_fn"
+DONE_FN="$done_fn"
+IN="$in_file_name"
+OUT="$out_file_name"
+EXEC_PATH="$full_path"
 EXEC_ARGS="$args"
 EXEC_CMD="$cmd"
 RUN_LINE="$EXEC_PATH $EXEC_CMD"
 FAILED_TEXT="$failed_txt"
 POKE_URL="$poke_url"
 TARGET="$target"
+ENGINE_NAME="$engine"
 ARCH=$arch_cmd
 VERSION=$version_cmd
 LOG_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.logicalcpu_max || lscpu -p | egrep -v '^#' | wc -l)
