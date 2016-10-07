@@ -122,7 +122,10 @@ def gen_file_from_template(template_path, sub_dict, output_path=None, safe=True)
 	"""
 	from os.path import exists, expanduser
 	assert isinstance(template_path, (str, unicode))
-	assert exists(template_path)
+	try:
+		assert exists(template_path)
+	except AssertionError:
+		logger.error('Not found: %s' % template_path)
 	assert output_path is None or isinstance(output_path, (str, unicode))
 	assert isinstance(sub_dict, dict)
 
@@ -151,7 +154,6 @@ def gen_file_from_template(template_path, sub_dict, output_path=None, safe=True)
 def get_key(name=''):
 	CONFIG_ROOT = recur(4, os.path.dirname, os.path.realpath(__file__)) + '/configs/'
 	full_path = '%s.%s_secret' % (CONFIG_ROOT, name)
-	# FIXME doesn't work
 	logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
 	# print 'get_key', full_path
 	try:

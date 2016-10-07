@@ -989,7 +989,7 @@ class RunServer(object):
 	def _sub_parsers(self, file_obj):
 		assert isinstance(file_obj, FileParser)
 		if not self.already_parsed(file_obj):
-			file_obj.parse(self.LIBS_PATTERN, self._parser_libs_call_back) # library()/require()
+			# file_obj.parse(self.LIBS_PATTERN, self._parser_libs_call_back) # library()/require()
 			file_obj.parse(self.ABS_PATH_PATTERN, self._parser_abs_call_back) # plain absolute paths
 
 	def _parser_libs_call_back(self, file_obj, match, pattern):

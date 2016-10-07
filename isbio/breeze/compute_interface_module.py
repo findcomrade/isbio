@@ -2,7 +2,7 @@ from utilities import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
@@ -65,6 +65,13 @@ class ComputeInterface:
 		if self.target_obj and self.target_obj.exec_obj:
 			return self.target_obj.exec_obj
 		return None
+		
+	# clem 06/10/2016
+	@abc.abstractmethod
+	def name(self):
+		""" This method should return the name of the engine/version executing the workload
+		"""
+		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
 
 	# clem 23/05/2016
 	@abc.abstractmethod

@@ -150,6 +150,15 @@
 					</small>
 
 				</div>
+				<div class="well">
+					{% for element in cache %}
+						{{ element }}<br />
+						<!--
+						<span style="margin-left: 15px">{{ element.object }}</span>
+						
+						<br/><br/>-->
+					{% endfor %}
+				</div>
 				{% for graph in usage_graph %}
 					<div class="well">
 						<label> {{ graph.legend }} <br />

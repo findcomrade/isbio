@@ -1,4 +1,5 @@
 # from __future__ import unicode_literals
+from __builtin__ import property
 from django.template.defaultfilters import slugify
 from django.db.models.fields.related import ForeignKey
 from django.contrib.auth.models import User # as DjangoUser
@@ -1086,12 +1087,15 @@ class Runnable(FolderObj, CustomModelAbstract):
 	SUCCESS_FN = settings.SUCCESS_FN                # '.done'
 	SUB_DONE_FN = settings.R_DONE_FN                # '.sub_done'
 	SH_NAME = settings.GENERAL_SH_NAME                # 'run_job.sh'
+	SH_CONF_NAME = settings.GENERAL_SH_CONF_NAME      # 'run_job_conf.sh'
 	FILE_MAKER_FN = settings.REPORTS_FM_FN            # 'transfer_to_fm.txt'
 	INC_RUN_FN = settings.INCOMPLETE_RUN_FN            # '.INCOMPLETE_RUN'
+	LOG_FOLDER = settings.SH_LOG_FOLDER
 	# output file name (without extension) for nozzle report. MIGHT not be enforced everywhere
 	REPORT_FILE_NAME = settings.NOZZLE_REPORT_FN    # 'report'
 	RQ_SPECIFICS = ['request_data', 'sections']
 	FAILED_TEXT = 'Execution halted'
+	
 
 	HIDDEN_FILES = [SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ? #
 	SYSTEM_FILES = HIDDEN_FILES + [INC_RUN_FN, FAILED_FN]
@@ -1295,6 +1299,16 @@ class Runnable(FolderObj, CustomModelAbstract):
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.SH_NAME)
+	
+	# clem 06/10/2016
+	@property
+	def sh_conf_file_path(self):
+		"""
+		the full path of the sh conf file used to run the job on the cluster.
+		This is the file that SGE has to instruct the cluster to run.
+		:rtype: str
+		"""
+		return '%s%s' % (self.home_folder_full_path, self.SH_CONF_NAME)
 
 	# clem 11/09/2015
 	@property
@@ -1425,12 +1439,25 @@ class Runnable(FolderObj, CustomModelAbstract):
 	# SHARED CONCRETE METHODS (SGE_JOB MANAGEMENT RELATED)
 	##
 	# deleted abort on 21/06/2016
+	def abort(self): # FIXME buggy
+		if not self.read_only and not self._breeze_stat != JobStat.DONE:
+			self.compute_if.abort()
+		return True
 
 	def write_sh_file(self):
 		""" Generate the SH file that will be executed on the compute target to configure and run the job """
 		from os import chmod
 
-		conf_dict = {
+		base_var_dict = { # header variables common to both files
+			'user'         : self._author,
+			'date'         : datetime.now(),
+			'tz'           : time.tzname[time.daylight],
+			'url'          : 'http://%s' % settings.FULL_HOST_NAME,
+			'target'       : str(self.target_obj),
+		}
+
+		conf_file_dict = {
+			'log_folder'   : self.LOG_FOLDER,
 			'failed_fn'    : self.FAILED_FN,
 			'inc_run_fn'   : self.INC_RUN_FN,
 			'success_fn'   : self.SUCCESS_FN,
@@ -1441,17 +1468,22 @@ class Runnable(FolderObj, CustomModelAbstract):
 			'args'         : self.target_obj.exec_obj.exec_args,
 			'cmd'          : self.target_obj.exec_obj.exec_run,
 			'failed_txt'   : self.FAILED_TEXT,
-			'user'         : self._author,
-			'date'         : datetime.now(),
-			'tz'           : time.tzname[time.daylight],
 			'poke_url'     : self.poke_url,
-			'url'          : 'http://%s' % settings.FULL_HOST_NAME,
-			'target'       : str(self.target_obj),
 			'arch_cmd'     : self.target_obj.exec_obj.exec_arch_cmd,
 			'version_cmd'  : self.target_obj.exec_obj.exec_version_cmd,
+			'engine': str(self.target_obj.compute_interface.name()),
 		}
+		conf_file_dict.update(base_var_dict)
+		
+		run_file_dict = {
+			'conf_file'    : self.SH_CONF_NAME
+		}
+		run_file_dict.update(base_var_dict)
 
-		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, conf_dict, self.sh_file_path)
+		# conf file
+		gen_file_from_template(settings.BOOTSTRAP_SH_CONF_TEMPLATE, conf_file_dict, self.sh_conf_file_path)
+		# run file
+		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, run_file_dict, self.sh_file_path)
 
 		# config should be readable and executable but not writable, same for script.R
 		chmod(self.sh_file_path, ACL.RX_RX_)
@@ -1734,8 +1766,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 
 	def delete(self, using=None):
 		if not self.read_only:
-			# if self._breeze_stat != JobStat.DONE:
-			self.compute_if.abort()
+			self.abort()
 			txt = str(self)
 			super(Runnable, self).delete(using=using) # Call the "real" delete() method.
 			get_logger().info("%s has been deleted" % txt)

@@ -5,29 +5,11 @@
 # Target is $target
 
 # Non language specific, non target specific, job bootstrap file
-# breeze run_job.sh version 0.2.2 clement.fiere@helsinki.fi 03/10/2016
+# breeze run_job.sh version 0.3.1 clement.fiere@helsinki.fi 06/10/2016
 # compatible with :
 # 	compute targets : sge, docker
 # 	language 	: R (possibly others)
-# Configuration variables, parsed and filled from Breeze
-FAILED_FN=$failed_fn
-INCOMPLETE_FN=$inc_run_fn
-SUCCESS_FN=$success_fn
-DONE_FN=$done_fn
-IN=$in_file_name
-OUT=$out_file_name
-EXEC_PATH=$full_path
-EXEC_ARGS="$args"
-EXEC_CMD="$cmd"
-RUN_LINE="$EXEC_PATH $EXEC_CMD"
-FAILED_TEXT="$failed_txt"
-POKE_URL="$poke_url"
-TARGET="$target"
-ARCH=$arch_cmd
-VERSION=$version_cmd
-LOG_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.logicalcpu_max || lscpu -p | egrep -v '^#' | wc -l)
-PHY_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.physicalcpu_max || lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l)
-## END OF CONFIGURATION
+source $conf_file
 RELEASE='/etc/os-release'
 if [ -f "$RELEASE" ];
 then
@@ -44,13 +26,14 @@ echo 'CPUs    : '${LOG_CORES}
 echo 'cores   : '${PHY_CORES}
 echo 'dir     : '`pwd`
 echo 'target  : '${TARGET}
+echo 'engine  : '${ENGINE_NAME}
 echo 'exec    : '${RUN_LINE}
 echo 'version : '${VERSION}
 echo
 # removing possibly existing files generated from a previous run
 rm *~ ${OUT} ${FAILED_FN} ${INCOMPLETE_FN} ${SUCCESS_FN} ${DONE_FN} > /dev/null 2>&1
 wget -qO- ${POKE_URL}'starting' > /dev/null
-echo `date`
+echo `date --rfc-3339=second | sed 's/ /T/'`
 echo -n 'Running '${IN}'...'
 # Running the job
 touch ./${INCOMPLETE_FN} && `${RUN_LINE}`
@@ -60,7 +43,7 @@ if [ ${CODE} -eq 0 ];
 then
 	touch ./${SUCCESS_FN}
 fi
-echo `date`
+echo `date --rfc-3339=second | sed 's/ /T/'`
 # Removes incomplete run file flag
 rm ./${INCOMPLETE_FN} > /dev/null 2>&1
 CMD=`tail -n1<./${OUT}`

@@ -988,8 +988,7 @@ def report_overview(request, rtype, iname=None, iid=None, mod=None):
 		if property_form.is_valid() and sections_valid and mod != 'reload':
 			# lunches the script generation in a separate thread in order to avoid long blocking operation
 			# thread.start_new_thread(rshell.build_report, (overview, request, property_form, tags))
-			rshell.build_report(overview, request, property_form, tags)
-			return HttpResponse(True)
+			return HttpResponse(rshell.build_report(overview, request, property_form, tags))
 		else:
 			for x in tags_data_list:
 				x['value'] = request.POST.get('Section_dbID_' + str(x['id']))
@@ -1116,9 +1115,15 @@ def resources(request):
 			'html_title': 'This is an example of another graph',
 			'legend': 'This is an example of another graph', }
 	)
+	
+	# print advanced_pretty_print(ObjectCache.dump())
 
-	return render_to_response('resources.html', RequestContext(request, {'resources_status': 'active',
-								'usage_graph': usage_graph, 'resources': get_template_check_list()}))
+	return render_to_response('resources.html', RequestContext(request, {
+		'resources_status': 'active',
+		'usage_graph': usage_graph,
+		'resources': get_template_check_list(),
+		'cache': ObjectCache.dump()
+	}))
 
 
 @login_required(login_url='/')
@@ -1788,6 +1793,7 @@ def run_script(request, jid):
 	return HttpResponseRedirect('/jobs/') # FIXME hardcoded url
 
 
+# FIXME obsolete
 @login_required(login_url='/')
 def abort_sge(request, id, type):
 	log = logger.getChild('abort_sge')
@@ -1806,13 +1812,13 @@ def abort_sge(request, id, type):
 	try:
 		s = item.abort()
 	except Exception as e:
-		console_print('Exception in abort sge : %s' % e)
+		console_print('Exception in aborting : %s' % e)
 		pass
 
 	if s:
 		return HttpResponseRedirect('/jobs/') # FIXME hardcoded url
 	else:
-		log.error("aborting job/report  %s failed" % id)
+		log.error("aborting job/report %s failed" % id)
 		return jobs(request, error_msg="%s\nOn DRMAA job/report id  %s\nPlease contact Breeze support" % (s, id))
 
 
@@ -2435,8 +2441,9 @@ def new_script_dialog(request):
 	if form.is_valid():
 		sname = str(form.cleaned_data.get('name', None))
 		sinline = str(form.cleaned_data.get('inline', None))
-		newpath = rshell.init_script(sname, sinline, request.user)
-		return manage_scripts(request)  # call back the list rendering function
+		newpath = rshell.init_script(sname, sinline, request.user) # FIXME broken
+		if newpath:
+			return manage_scripts(request)  # call back the list rendering function
 	# return HttpResponseRedirect('/resources/scripts/')
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
