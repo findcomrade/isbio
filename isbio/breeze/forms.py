@@ -741,11 +741,12 @@ class LoginForm(forms.Form):
 class NewScriptDialog(forms.Form):
 	name = forms.CharField(
 		max_length=35,
+		required=True,
 		label=u'Script Name'
 	)
 	
-	category = forms.Select(
-		
+	category = forms.ChoiceField(
+		choices=breeze.models.ScriptCategories.objects.all()
 	)
 
 	inline = forms.CharField(
