@@ -232,6 +232,8 @@ class DockerInterface(ComputeInterface):
 				return True
 			except Exception as e:
 				logger.exception('While establishing ssh tunnel : %s ' % str(e))
+				logger.info('ssh was : %s' % str(self._ssh_cmd_list))
+				
 		else:
 			raise AttributeError('Cannot establish ssh tunnel since no ssh_host provided during init')
 
