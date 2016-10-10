@@ -240,8 +240,9 @@ class FolderObj(object):
 		:rtype: str
 		"""
 		out = '%s%s' % (settings.MEDIA_ROOT, self.home_folder_rel)
-		if not isdir(out):
-			os.makedirs(out)
+		# disabled because it's problematic while testing non existence of target folder for new items
+		# if not isdir(out):
+		# 	os.makedirs(out)
 		return out
 
 	@property
