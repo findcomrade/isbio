@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 # TODO : integrate into script data model
 def init_script(name, inline, person, category):
+	
+	category = breeze.models.ScriptCategories.objects.get(pk=category)
 	dbitem = breeze.models.Rscripts(name=name,
 									category=category,
 									inln=inline, author=person, details="empty", order=0)

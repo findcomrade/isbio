@@ -2456,7 +2456,6 @@ def new_script_dialog(request):
 			return manage_scripts(request)  # call back the list rendering function
 		else:
 			sup = ' FAILURE'
-	# return HttpResponseRedirect('/resources/scripts/')
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
