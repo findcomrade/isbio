@@ -2456,7 +2456,8 @@ def new_script_dialog(request):
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
-		'action': reverse(this_function_own_object()), # FIXME hardcoded url
+		# 'action': reverse(this_function_own_object()), # FIXME not working, possibly same issue with many others
+		'action': '/scripts/new/', # FIXME not working, possibly same issue with many others
 		'header': 'Create New Script',
 		'layout': 'horizontal',
 		'submit': 'Add'
