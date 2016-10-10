@@ -42,18 +42,11 @@ def init_script(name, inline, person, category):
 		input_array.text = "empty"
 		root.append(input_array)
 		
-		# temp_file_path = '%sscript_%s.xml' % (settings.TEMP_FOLDER, person)
-
-		# new_xml = open(temp_file_path, 'w')
-		# xml.ElementTree(root).write(new_xml)
-		#new_xml.close()
-
-		# dbitem.docxml.save(settings.SCRIPT_FORM_FN, File(open(temp_file_path)))
-		# os.remove(temp_file_path)
 		target_path = settings.SCRIPT_FORM_FN
 				
 		dbitem.docxml.save(settings.SCRIPT_FORM_FN, base.ContentFile(''))
-		xml.ElementTree(dbitem.docxml.path).write(root)
+		with open(dbitem.docxml.path, 'w') as new_xml:
+			xml.ElementTree(root).write(new_xml)
 		
 		dbitem.save()
 		

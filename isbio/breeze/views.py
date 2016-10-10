@@ -2458,10 +2458,13 @@ def new_script_dialog(request):
 				# go directly to the script editor view of the newly created script
 				return script_editor(request, new_script.id)
 			else:
-				logger.error('Unable to create script %s, unknown error' % s_name)
-				sup = ' FAILURE'
+				error_msg = 'Unable to create script "%s", unknown error' % s_name
+				logger.error(error_msg)
+				form.add_error('category', error_msg)
 		except Exception as e:
-			logger.exception('Unable to create script %s : %s' % (s_name, str(e)))
+			error_msg = 'Unable to create script %s : %s' % (s_name, str(e))
+			logger.error(error_msg)
+			form.add_error('category', error_msg)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
