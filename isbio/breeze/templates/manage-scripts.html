@@ -26,8 +26,8 @@
   <div class="row-fluid">
     <div class="span10 offset1">
     {% if perms.breeze.add_rscripts %}
-      <a href="#" data-toggle="modal" class="btn btn-small btn-primary apply" data-target="#Apply"  data-param="{%
-        url 'scripts.new' %}">
+      <a href="#" data-toggle="modal" class="btn btn-small btn-primary apply" data-target="#Apply"
+         data-param="{% url 'scripts.new' %}">
         <i class="icon-plus"></i> &nbsp; &nbsp; <strong>Create New Script / Tag</strong> &nbsp; &nbsp; <i class="icon-plus"></i>
       </a>
     {% endif %}
