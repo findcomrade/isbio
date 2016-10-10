@@ -125,11 +125,11 @@ else:
 		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)?$', views.job_url_hook),
 		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)/(?P<code>\w+)?$', views.job_url_hook),
 		# url(r'^update-all-jobs/$', views.update_all_jobs), # DO NOT USE : TOOOOOOOO SLOW
-		url(r'^scripts/(?P<layout>[a-z]+)?$', views.scripts),
 		url(r'^scripts/new/?$', views.new_script_dialog, name='scripts.new'),
 		url(r'^scripts/delete/(?P<sid>\d+)$', views.delete_script),
 		url(r'^scripts/apply-script/(?P<sid>\d+)$', views.create_job, name="scripts.apply"),
 		url(r'^scripts/read-descr/(?P<sid>\d+)$', views.read_descr, name='scripts.read_desc'),
+		url(r'^scripts/(?P<layout>[a-z]+)?$', views.scripts),
 		url(r'^new/append/(?P<which>[A-Z]+)$', views.append_param),
 		url(r'^new/delete/(?P<which>.+)$', views.delete_param),
 		url(r'^new/?$', views.create_script),
