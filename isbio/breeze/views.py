@@ -1315,15 +1315,16 @@ def installreport(request, sid=None):
 ######################################
 
 @login_required(login_url='/')
-def script_editor(request, sid=None, tab=None):
+def script_editor(request, sid=None, tab=None, script=None):
 	assert isinstance(request.user, User)
 	# ACL
 	if not (request.user.is_superuser or request.user.is_staff):
 		raise PermissionDenied
-	try:
-		script = Rscripts.objects.secure_get(id=sid, user=request.user)
-	except ObjectDoesNotExist:
-		return aux.fail_with404(request, 'There is no Rscript with id ' + sid + ' in database')
+	if not script:
+		try:
+			script = Rscripts.objects.secure_get(id=sid, user=request.user)
+		except ObjectDoesNotExist:
+			return aux.fail_with404(request, 'There is no Rscript with id ' + sid + ' in database')
 
 	assert isinstance(script, Rscripts)
 
@@ -2450,14 +2451,17 @@ def new_script_dialog(request):
 	if form.is_valid():
 		s_name = str(form.cleaned_data.get('name', None))
 		s_inline = str(form.cleaned_data.get('inline', None))
-		print 'cat: ' + str(form.data.get('category', None))
-		s_category = str(form.cleaned_data.get('category', None))
-		print 's_cat: ' + s_category
-		new_path = rshell.init_script(s_name, s_inline, request.user, s_category)
-		if new_path:
-			return manage_scripts(request)  # call back the list rendering function
-		else:
-			sup = ' FAILURE'
+		s_category = int(form.data.get('category', None))
+		try:
+			new_script = rshell.init_script(s_name, s_inline, request.user, s_category)
+			if new_script:
+				# go directly to the script editor view of the newly created script
+				return script_editor(request, new_script.id)
+			else:
+				logger.error('Unable to create script %s, unknown error' % s_name)
+				sup = ' FAILURE'
+		except Exception as e:
+			logger.exception('Unable to create script %s : %s' % (s_name, str(e)))
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,

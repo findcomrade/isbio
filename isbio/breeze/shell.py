@@ -57,7 +57,8 @@ def init_script(name, inline, person, category):
 		
 		dbitem.save()
 		
-		return dbitem.home_folder_full_path
+		# return dbitem.home_folder_full_path
+		return dbitem
 	
 	return False
 
