@@ -2444,7 +2444,9 @@ def new_script_dialog(request):
 		Name, Category, Creation Date, Author and Script's root folder.
 	"""
 	form = breezeForms.NewScriptDialog(request.POST or None)
-
+	
+	sup = ''
+	
 	if form.is_valid():
 		s_name = str(form.cleaned_data.get('name', None))
 		s_inline = str(form.cleaned_data.get('inline', None))
@@ -2452,13 +2454,15 @@ def new_script_dialog(request):
 		new_path = rshell.init_script(s_name, s_inline, request.user, s_category)
 		if new_path:
 			return manage_scripts(request)  # call back the list rendering function
+		else:
+			sup = ' FAILURE'
 	# return HttpResponseRedirect('/resources/scripts/')
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
 		# 'action': reverse(this_function_own_object()), # FIXME not working, possibly same issue with many others
 		'action': '/scripts/new/', # FIXME not working, possibly same issue with many others
-		'header': 'Create New Script',
+		'header': 'Create New Script' + sup,
 		'layout': 'horizontal',
 		'submit': 'Add'
 	}))
