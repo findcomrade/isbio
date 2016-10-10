@@ -743,6 +743,10 @@ class NewScriptDialog(forms.Form):
 		max_length=35,
 		label=u'Script Name'
 	)
+	
+	category = forms.Select(
+		
+	)
 
 	inline = forms.CharField(
 		max_length=150,
