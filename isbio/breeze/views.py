@@ -2450,7 +2450,9 @@ def new_script_dialog(request):
 	if form.is_valid():
 		s_name = str(form.cleaned_data.get('name', None))
 		s_inline = str(form.cleaned_data.get('inline', None))
+		print 'cat: ' + str(form.data.get('category', None))
 		s_category = str(form.cleaned_data.get('category', None))
+		print 's_cat: ' + s_category
 		new_path = rshell.init_script(s_name, s_inline, request.user, s_category)
 		if new_path:
 			return manage_scripts(request)  # call back the list rendering function
