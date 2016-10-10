@@ -23,5 +23,6 @@ admin.site.register(breeze.models.ComputeTarget) # 19/04/2016
 admin.site.register(breeze.models.EngineConfig) # 13/05/2016
 admin.site.register(breeze.models.ExecConfig) # 13/05/2016
 admin.site.register(breeze.models.Institute) # 23/06/2016
+admin.site.register(breeze.models.ScriptCategories) # 10/10/2016
 
 
