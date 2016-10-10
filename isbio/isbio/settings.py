@@ -426,6 +426,11 @@ R_OUT_EXT = '.Rout'
 ##
 # Jobs configs
 ##
+SCRIPT_CODE_HEADER_FN = 'header.R'
+SCRIPT_HEADER_DEF_CONTENT = '# write your header here...'
+SCRIPT_CODE_BODY_FN = 'body.R'
+SCRIPT_BODY_DEF_CONTENT = '# copy and paste main code here...'
+SCRIPT_FORM_FN = 'form.xml'
 SCRIPT_TEMPLATE_FOLDER = TEMPLATE_FOLDER + 'script_templates/'
 SCRIPT_TEMPLATE_PATH = SCRIPT_TEMPLATE_FOLDER + 'script.R'
 JOBS_FN = 'jobs/'

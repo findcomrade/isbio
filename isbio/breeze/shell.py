@@ -23,37 +23,40 @@ logger = logging.getLogger(__name__)
 
 
 # TODO : integrate into script data model
-def init_script(name, inline, person):
-	# spath = str(settings.MEDIA_ROOT) + str(get_folder_name("scripts", name, None))
-
+def init_script(name, inline, person, category):
 	dbitem = breeze.models.Rscripts(name=name,
-									category=breeze.models.ScriptCategories.objects.get(category="general"),
+									category=category,
 									inln=inline, author=person, details="empty", order=0)
-	spath = dbitem.home_folder_full_path
-	if not os.path.isdir(spath):
-		os.makedirs(spath)
+	if not os.path.isdir(dbitem.home_folder_full_path):
+		os.makedirs(dbitem.home_folder_full_path)
 		# create empty files for header, code and xml
-		dbitem.header.save('name.txt', base.ContentFile('# write your header here...'))
-		dbitem.code.save('name.r', base.ContentFile('# copy and paste main code here...'))
-		dbitem.save()
+		dbitem.header.save(settings.SCRIPT_CODE_HEADER_FN, base.ContentFile(settings.SCRIPT_HEADER_DEF_CONTENT))
+		dbitem.code.save(settings.SCRIPT_CODE_BODY_FN, base.ContentFile(settings.SCRIPT_BODY_DEF_CONTENT))
+		# dbitem.save()
 
 		root = xml.Element('rScript')
 		root.attrib['ID'] = str(dbitem.id)
 		input_array = xml.Element('inputArray')
 		input_array.text = "empty"
 		root.append(input_array)
+		
+		# temp_file_path = '%sscript_%s.xml' % (settings.TEMP_FOLDER, person)
 
-		newxml = open(str(settings.TEMP_FOLDER) + 'script_%s.xml' % (person), 'w')
-		xml.ElementTree(root).write(newxml)
-		newxml.close()
+		# new_xml = open(temp_file_path, 'w')
+		# xml.ElementTree(root).write(new_xml)
+		#new_xml.close()
 
-		dbitem.docxml.save('script.xml', File(open(str(settings.TEMP_FOLDER) + 'script_%s.xml' % (person))))
+		# dbitem.docxml.save(settings.SCRIPT_FORM_FN, File(open(temp_file_path)))
+		# os.remove(temp_file_path)
+		target_path = settings.SCRIPT_FORM_FN
+				
+		dbitem.docxml.save(settings.SCRIPT_FORM_FN, base.ContentFile(''))
+		xml.ElementTree(dbitem.docxml.path).write(root)
+		
 		dbitem.save()
-		os.remove(str(settings.TEMP_FOLDER) + 'script_%s.xml' % (person))
-		# dbitem.docxml.save('name.xml', base.ContentFile(''))
-
-		return spath
-
+		
+		return dbitem.home_folder_full_path
+	
 	return False
 
 

@@ -910,8 +910,8 @@ class Rscripts(FolderObj, CustomModelAbstract):
 	must = models.BooleanField(default=False)  # defines wheather the tag is enabled by default
 	order = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0)
 	report_type = models.ManyToManyField(ReportType, blank=True,
-		default=None)  # assosiation with report type
-	# report_type = models.ForeignKey(ReportType, null=True, blank=True, default=None)  # assosiation with report type
+		default=None)  # association with report type
+	# report_type = models.ForeignKey(ReportType, null=True, blank=True, default=None)  # association with report type
 	access = models.ManyToManyField(User, blank=True, default=None, related_name="users")
 	# install date info
 	install_date = models.ManyToManyField(UserDate, blank=True, default=None, related_name="installdate")
@@ -959,10 +959,9 @@ class Rscripts(FolderObj, CustomModelAbstract):
 		"""
 		return is_non_empty_file(self.xml_path)
 
-	# _path_r_template = settings.TAGS_TEMPLATE_PATH
 	_path_r_template = settings.SCRIPT_TEMPLATE_PATH
 
-	def get_R_code(self, gen_params, template_file=None):
+	def get_R_code(self, gen_params):
 		"""
 		Generates the R code for the report generation of this tag, using the template
 		:param gen_params: the result of shell.gen_params_string
@@ -982,16 +981,14 @@ class Rscripts(FolderObj, CustomModelAbstract):
 
 		d = {
 			'tag_name'  : self.name,
-			'body'      : body,
-			'gen_params': gen_params,
 			'headers'   : headers,
+			'gen_params': gen_params,
+			'body'      : body,
+			'author'    : self.author,
+			'date'      : self.creation_date
 		}
 		# do the substitution
 		return src.substitute(d)
-
-	# def delete(self, using=None):
-	#	super(Rscripts, self).delete(using=using)
-	#	return True
 
 	class Meta:
 		ordering = ["name"]
