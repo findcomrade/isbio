@@ -1,12 +1,11 @@
 from threading import Thread, Lock
-from sys import _getframe as get_frame
 import json
 import os
 import copy
 import abc
 import subprocess as sp
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -68,15 +67,7 @@ def do_reboot():
 	return True
 
 
-# clem 08/04/2016
-def this_function_name(delta=0):
-	return this_function_caller_name(delta)
-
-
-# clem 08/04/2016
-def this_function_caller_name(delta=0):
-	return get_frame(2 + delta).f_code.co_name
-
+# clem 10/10/2016 moved this_function_* to pythonic
 
 # clem 20/06/2016
 def is_command_available(cmd_str):

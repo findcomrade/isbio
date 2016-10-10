@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datadog import util
+from social_auth.utils import setting
+
 import auxiliary as aux
 import forms as breezeForms
 import urllib
@@ -321,7 +323,7 @@ def jobs(request, state="", error_msg="", page=1):
 		state = 'current'
 
 	# from qstat import Qstat
-	from sge_interface import Qstat
+	# from sge_interface import Qstat
 
 	return render_to_response('jobs.html', RequestContext(request, {
 		str(tab): 'active',
@@ -452,11 +454,12 @@ def reports(request):
 
 @login_required(login_url='/')
 def send_report(request, rid):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	report_inst = Report.objects.get(id=rid)  # only for auth
 	assert isinstance(report_inst, Report)
 	# offsite_u = OffsiteUser.objects.filter(belongs_to=request.user)
-	form_action = reverse(__self__, kwargs={'rid': rid})  # we need the email since the form is AJAX loaded, and thus cannot just send to url #
+	# we need the email since the form is AJAX loaded, and thus cannot just send to url #
+	form_action = reverse(__self__, kwargs={'rid': rid})
 	# form_action = "get_form(" + str(rid) + ", 'Send', 'Send');"
 	form_title = 'Send "' + report_inst.name + ' to Off-Site users'
 
@@ -516,7 +519,7 @@ def send_report(request, rid):
 # Modal view to add an off-site user email address, and either attach it to the user or go to the add off-site user page
 @login_required(login_url='/')
 def add_offsite_user_dialog(request, rid=None):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
 	form_title = 'Add an offsite user'
 
@@ -562,7 +565,7 @@ def add_offsite_user_dialog(request, rid=None):
 # Form to add an user
 @login_required(login_url='/')
 def add_offsite_user(request, email=None):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	form_action = reverse(__self__)
 
 	if request.method == 'POST' and email is None:
@@ -602,7 +605,7 @@ def add_offsite_user(request, email=None):
 # TODO fusion with add
 @login_required(login_url='/')
 def edit_offsite_user(request, uid):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	form_action = reverse(__self__, kwargs={'uid': uid})
 	try:
 		edit_u = OffsiteUser.objects.filter(belongs_to=request.user).get(id=uid)
@@ -1579,7 +1582,7 @@ def runnable_del(request, page=1, state=None):
 @login_required(login_url='/')
 def edit_report_access(request, rid):
 	report_inst = Report.objects.get(id=rid)
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
 	form_title = 'Edit "' + report_inst.name + '" access'
 
@@ -1904,7 +1907,7 @@ def append_param(request, which):
 
 
 @login_required(login_url='/')
-@permission_required('breeze.add_rscripts', login_url="/")
+@permission_required('breeze.add_rscripts', login_url="/") # TODO use everywhere
 def create_script(request):
 	tab = 'general'
 	if request.method == 'POST':
@@ -1942,31 +1945,37 @@ def create_script(request):
 	}))
 
 
+# TODO : find out usage
+# FIXE : most likely broken
 @login_required(login_url='/')
-def save(request): # TODO : WTF is this ??
+def save(request):
+	logger.warning("Function views.save was called but it's probably BROKEN")
 	# validate form_details also somehow in the IF below
 	if storage.form_general.is_valid() and storage.form_sources.is_valid():
 		# .xml_from_form() - creates doc in tmp for now
 		breezeForms.xml_from_form(storage.form_general, storage.form_details, storage.form_sources)
 		rshell.build_header(storage.form_sources.cleaned_data['header'])
 
-		dbinst = storage.form_general.save(commit=False)
+		db_inst = storage.form_general.save(commit=False)
 
-		dbinst.author = request.user
-		dbinst.code = storage.code
-		dbinst.docxml.save('name.xml', File(open(str(settings.TEMP_FOLDER) + 'test.xml')))
-		dbinst.header.save('name.txt', File(open(str(settings.TEMP_FOLDER) + 'header.txt')))
+		db_inst.author = request.user
+		db_inst.code = storage.code
+		
+		tmp_xml = str(settings.TEMP_FOLDER) + settings.SCRIPT_FORM_FN
+		tmp_header = str(settings.TEMP_FOLDER) + settings.SCRIPT_CODE_HEADER_FN
+		db_inst.docxml.save(settings.SCRIPT_FORM_FN, File(open(tmp_xml)))
+		db_inst.header.save(settings.SCRIPT_CODE_HEADER_FN, File(open(tmp_header)))
 
-		dbinst.save()
+		db_inst.save()
 
-		# improve the manipulation with XML - tmp folder not a good idea!
-		os.remove(str(settings.TEMP_FOLDER) + 'test.xml')
-		os.remove(str(settings.TEMP_FOLDER) + 'header.txt')
+		# TODO improve the manipulation with XML - tmp folder not a good idea!
+		os.remove(tmp_xml)
+		os.remove(tmp_header)
 
-		return HttpResponseRedirect('/scripts/') # FIXME hardcoded url
+		return HttpResponseRedirect(reverse(scripts))
 	else:
-		# need an error handler here!
-		return HttpResponseRedirect('/scripts/') # FIXME hardcoded url
+		# TODO need an error handler here!
+		return HttpResponseRedirect(reverse(scripts))
 
 
 def show_rcode(request, jid):
@@ -2124,7 +2133,7 @@ def report_shiny_view_tab(request, rid):
 
 # Shiny tab access from outside (with the key)
 def report_shiny_view_tab_out(request, s_key, u_key):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	try:  # TODO merge ACL with out wrapper in a new func
 		# Enforces access control
 		# both request will fail if the object is not found
@@ -2439,16 +2448,17 @@ def new_script_dialog(request):
 	form = breezeForms.NewScriptDialog(request.POST or None)
 
 	if form.is_valid():
-		sname = str(form.cleaned_data.get('name', None))
-		sinline = str(form.cleaned_data.get('inline', None))
-		newpath = rshell.init_script(sname, sinline, request.user) # FIXME broken
-		if newpath:
+		s_name = str(form.cleaned_data.get('name', None))
+		s_inline = str(form.cleaned_data.get('inline', None))
+		s_category = str(form.cleaned_data.get('category', None))
+		new_path = rshell.init_script(s_name, s_inline, request.user, s_category)
+		if new_path:
 			return manage_scripts(request)  # call back the list rendering function
 	# return HttpResponseRedirect('/resources/scripts/')
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
-		'action': '/new-script/', # FIXME hardcoded url
+		'action': reverse(this_function_own_object()), # FIXME hardcoded url
 		'header': 'Create New Script',
 		'layout': 'horizontal',
 		'submit': 'Add'
@@ -2490,6 +2500,7 @@ def user_list(request):
 	return HttpResponse(data, content_type=c_t.JSON)
 
 
+# hardcoded url fixing done from bottom until here
 @login_required(login_url='/')
 def edit_rtype_dialog(request, pid=None, mod=None):
 	"""
@@ -2497,7 +2508,7 @@ def edit_rtype_dialog(request, pid=None, mod=None):
 		@type request: django.db.models.query.QuerySet
 		@type pid: int
 	"""
-	# file_data = ""
+	__self__ = this_function_own_object()  # instance to self
 	instance = ReportType.objects.get(id=pid)
 	if request.method == "POST":
 		#
@@ -2515,7 +2526,7 @@ def edit_rtype_dialog(request, pid=None, mod=None):
 	# TODO add multiple file management for tutorials
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
-		'action': '/resources/pipes/pipe-editor/',
+		'action': reverse(__self__),
 		'header': 'Edit Report Type',
 		'layout': 'horizontal',
 		'submit': 'Save'
@@ -2527,15 +2538,16 @@ def new_project_dialog(request):
 	"""
 		This view provides a dialog to create a new Project in DB.
 	"""
+	__self__ = this_function_own_object()  # instance to self
 	project_form = breezeForms.NewProjectForm(request.POST or None)
 
 	if project_form.is_valid():
 		aux.save_new_project(project_form, request.user)
-		return HttpResponseRedirect('/home/projects')  # FIXME hardcoded url
+		return HttpResponseRedirect(reverse(home, kwargs={ 'state': 'projects' }))
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': project_form,
-		'action': '/projects/create',
+		'action': reverse(__self__),
 		'header': 'Create New Project',
 		'layout': 'horizontal',
 		'submit': 'Save'
@@ -2547,12 +2559,12 @@ def new_group_dialog(request):
 	"""
 		This view provides a dialog to create a new Group in DB.
 	"""
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	group_form = breezeForms.GroupForm(request.POST or None)
 
 	if group_form.is_valid():
 		aux.save_new_group(group_form, request.user, request.POST)
-		return HttpResponseRedirect('/home/groups')  # FIXME hardcoded url
+		return HttpResponseRedirect(reverse(home, kwargs={ 'state': 'groups' }))
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': group_form,
@@ -2569,7 +2581,7 @@ def edit_project_dialog(request, pid):
 	"""
 		This view provides a dialog to create a new Project in DB.
 	"""
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	project_data = Project.objects.get(id=pid)
 	form_action = reverse(__self__, kwargs={'pid': pid})  # '/projects/edit/' + str(pid)
 	form_title = 'Edit Project: ' + str(project_data.name)
@@ -2600,7 +2612,7 @@ def edit_group_dialog(request, gid):
 		This view provides a dialog to edit an existing Group in DB.
 	"""
 	group_data = Group.objects.get(id=gid)
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	form_action = reverse(__self__, kwargs={'gid': gid})
 	form_title = 'Edit Group: ' + str(group_data.name)
 
@@ -2627,7 +2639,7 @@ def edit_group_dialog(request, gid):
 
 @login_required(login_url='/')
 def update_user_info_dialog(request):
-	__self__ = globals()[sys._getframe().f_code.co_name]  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	# user_info = User.objects.get(username=request.user)
 	user_info = OrderedUser.objects.get(id=request.user.id)
 
@@ -2778,39 +2790,6 @@ def report_search(request):
 	}))
 
 
-@login_required(login_url='/')
-def home_paginate(request):
-	if request.is_ajax() and request.method == 'GET':
-		page = request.GET.get('page')
-		table = request.GET.get('table')
-
-		if table == 'screens':
-			tag_symbol = 'screens'
-			paginator = Paginator(rora.get_screens_info(), 15) # TODO check ref
-			# paginator = Paginator(rora.get_dtm_screens(), 15)
-			template = 'screens-paginator.html'
-		elif table == 'datasets':
-			tag_symbol = 'datasets'
-			paginator = Paginator(rora.get_screens_info(), 15) # TODO check ref
-			template = 'datasets-paginator.html'
-		elif table == 'screen_groups':
-			tag_symbol = 'screen_groups'
-			paginator = Paginator(rora.get_screens_info(), 15) # TODO check ref
-			# paginator = Paginator(rora.get_dtm_screen_groups(), 15)
-			template = 'screen-groups-paginator.html'
-
-		try:
-			items = paginator.page(page)
-		except PageNotAnInteger:  # if page isn't an integer
-			items = paginator.page(1)
-		except EmptyPage:  # if page out of bounds
-			items = paginator.page(paginator.num_pages)
-
-		return render_to_response(template, RequestContext(request, {tag_symbol: items}))
-	else:
-		return False
-
-
 @csrf_exempt
 @login_required(login_url='/')
 def proxy_to(request, path, target_url, query_s=''):
@@ -2859,7 +2838,6 @@ def qstat_live(request):
 	:return: json
 	:rtype: HttpResponse
 	"""
-	from sge_interface import Qstat
 	# return HttpResponse(Qstat().html, content_type='text/html')
 	# TODO : fix
 	return HttpResponse('', content_type=c_t.HTML)
@@ -2874,7 +2852,6 @@ def qstat_json(request):
 	:return: json
 	:rtype: HttpResponse
 	"""
-	from sge_interface import Qstat
 	# obj = Qstat()
 	# return HttpResponse(simplejson.dumps({ 'md5': obj.md5, 'html': obj.html }), content_type=c_t.JSON)
 	return HttpResponse(simplejson.dumps({ 'md5': '', 'html': '' }), content_type=c_t.JSON)
@@ -2914,7 +2891,7 @@ def qstat_lp(request, md5_t=None):
 @login_required(login_url='/')
 def check_file_system_coherent(request):
 	not_changed, not_broken, errors = check.check_is_file_system_unchanged()
-	return status_button_json(not_broken, ['Valid', '%s error(s)' % errors], ['#', '/status/fs_info/'] )
+	return status_button_json(not_broken, ['Valid', '%s error(s)' % errors], ['#', reverse(file_system_info)] )
 
 
 # clem on 21/08/2015
@@ -2998,13 +2975,13 @@ def fix_file_acl(request, fid):
 # clem on 08/10/2015
 @login_required(login_url='/')
 def restart_breeze(request):
-	restart_reboot_wrap(request, sys._getframe(0).f_code.co_name, utils.do_restart)
+	restart_reboot_wrap(request, this_function_name(), utils.do_restart)
 
 
 # clem on 08/01/2016
 @login_required(login_url='/')
 def restart_vm(request):
-	return restart_reboot_wrap(request, sys._getframe(0).f_code.co_name, utils.do_reboot)
+	return restart_reboot_wrap(request, this_function_name(), utils.do_reboot)
 
 
 # clem on 19/02/2016

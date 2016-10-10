@@ -114,7 +114,7 @@ else:
 		url(r'^jobs/show-code/(?P<jid>\d+)$', views.show_rcode),
 		url(r'^jobs/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.send_zipfile_j),
 		url(r'^report/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.send_zipfile_r),
-		url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', views.update_jobs), # FIXME DEPRECATED
+		# url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', views.update_jobs), # FIXME DEPRECATED
 		url(r'^jobs/info/(?P<jid>\d+)-(?P<item>[a-z]+)$', views.update_jobs), # FIXME DEPRECATED
 		url(r'^jobs/info/(?P<item>[a-z]+)/(?P<jid>\d+)$', views.update_jobs),
 		url(r'^jobs/info/(?P<jid>\d+)$', views.update_jobs, { 'item': 'script' }),
@@ -126,13 +126,14 @@ else:
 		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)/(?P<code>\w+)?$', views.job_url_hook),
 		# url(r'^update-all-jobs/$', views.update_all_jobs), # DO NOT USE : TOOOOOOOO SLOW
 		url(r'^scripts/(?P<layout>[a-z]+)?$', views.scripts),
+		url(r'^scripts/new/?$', views.new_script_dialog),
 		url(r'^scripts/delete/(?P<sid>\d+)$', views.delete_script),
 		url(r'^scripts/apply-script/(?P<sid>\d+)$', views.create_job),
 		url(r'^scripts/read-descr/(?P<sid>\d+)$', views.read_descr),
 		url(r'^new/append/(?P<which>[A-Z]+)$', views.append_param),
 		url(r'^new/delete/(?P<which>.+)$', views.delete_param),
 		url(r'^new/?$', views.create_script),
-		url(r'^new-script/?$', views.new_script_dialog),
+		url(r'^pipelines/new/?$', views.new_rtype_dialog), # TODO
 		url(r'^new-rtype/?$', views.new_rtype_dialog),
 		url(r'^projects/create/?$', views.new_project_dialog),
 		url(r'^projects/edit/(?P<pid>\d+)$', views.edit_project_dialog),
@@ -161,8 +162,6 @@ else:
 		url(r'^resources/datasets/?$', views.manage_scripts),
 		url(r'^resources/files/?$', views.manage_scripts),
 		url(r'^resources/integration/?$', views.manage_scripts),
-		url(r'^pagination/home/?$', views.home_paginate),
-
 		url(r'^media/scripts/(?P<path>[^.]*(\.(jpg|jpeg|gif|png)))?$', serve,
 			{'document_root': settings.MEDIA_ROOT + 'scripts/'}),
 		url(r'^media/pipelines/(?P<path>[^.]*(\.(pdf)))$', serve,

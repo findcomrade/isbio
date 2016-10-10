@@ -1,5 +1,8 @@
-from . import this_function_caller_name, Thread
-__version__ = '0.1'
+from . import Thread
+import gc
+import inspect
+
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -31,6 +34,7 @@ def is_from_cli():
 
 # clem 08/04/2016
 def get_named_tuple(class_name, a_dict):
+	# noinspection PyCompatibility
 	assert isinstance(class_name, basestring) and isinstance(a_dict, dict)
 	from collections import namedtuple
 	return namedtuple(class_name, ' '.join(a_dict.keys()))(**a_dict)
@@ -59,5 +63,50 @@ def not_imp(self): # writing shortcut for abstract classes
 
 # clem 27/05/2016
 class ClassProperty(property):
-	def __get__(self, cls, owner):
+	def __get__(self, cls, owner=None):
 		return classmethod(self.fget).__get__(None, owner)()
+
+
+# clem 10/10/2016 from http://stackoverflow.com/a/4506081/5094389
+def this_function_own_object():
+	""" Return the function object of the caller
+	
+	:rtype: function
+	"""
+	frame = inspect.currentframe(1)
+	code = frame.f_code
+	globs = frame.f_globals
+	functype = type(lambda: 0)
+	funcs = []
+	for func in gc.get_referrers(code):
+		if type(func) is functype:
+			if getattr(func, "func_code", None) is code:
+				if getattr(func, "func_globals", None) is globs:
+					funcs.append(func)
+					if len(funcs) > 1:
+						return None
+	return funcs[0] if funcs else None
+
+
+# clem 08/04/2016
+def this_function_name(delta=0):
+	""" Return the name of the calling function
+	
+	:param delta: change the depth of the call stack inspection
+	:type delta: int
+	
+	:rtype: str
+	"""
+	return this_function_caller_name(delta)
+
+
+# clem 08/04/2016 + 10/10/2016
+def this_function_caller_name(delta=0):
+	""" Return the name of the calling function's caller
+	
+	:param delta: change the depth of the call stack inspection
+	:type delta: int
+	
+	:rtype: str
+	"""
+	return inspect.currentframe(2 + delta).f_code.co_name

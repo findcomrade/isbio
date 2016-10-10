@@ -195,7 +195,7 @@ def update_script_logo(script, pic):
 
 # TODO : job related find out what is this
 def build_header(data):
-	header = open(str(settings.TEMP_FOLDER) + 'header.txt', 'w')
+	header = open(str(settings.TEMP_FOLDER) + settings.SCRIPT_CODE_HEADER_FN, 'w')
 	string = str(data)
 	header.write(string)
 	header.close()
