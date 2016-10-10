@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from datadog import util
-from social_auth.utils import setting
-
 import auxiliary as aux
 import forms as breezeForms
 import urllib
