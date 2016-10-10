@@ -32,7 +32,7 @@
 	<div class="row-fluid">
 		<div class="span10 offset1">
 			<ul class="breadcrumb pull-left" style="background-color: transparent;">
-				<li><a href="/home/">Breeze</a> <span class="divider">/</span></li>
+				<li><a href="{% url 'home' %}">Breeze</a> <span class="divider">/</span></li>
 				<li class="active"> Scripts</li>
 			</ul>
 		</div>
@@ -87,23 +87,25 @@
 							{% if thumbnails %}
 								<div>
 									<ul class="thumbnails">
-										{% for scr in script_list %}
-											<li class="span4">
-												<div class="thumbnail">
-													<img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="95" height="95" class="img-rounded">
-													<div class="caption">
-														<h4 class="text-info" align="center"><strong>{{ scr.name }}</strong></h4>
-														<p align="center"><i>{{ scr.inln }};</i></p>
-														<p style="height: 81px; overflow: hidden" align="justify">{{ scr.details }}</p>
-														<p align="right">
-															<a href="#" data-toggle="modal" class="btn btn-inverse describe" data-target="#Describe" data-param={{ scr.id }}>View More >></a>
-															<a a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="/scripts/apply-script/{{ scr.id }}/">Apply</a></p>
-													</div>
-												</div>
-											</li>
-											{% empty %}
-											<p>Please go to <a href="/store">Makrt</a> to choose scripts you need !</p>
-										{% endfor %}
+									{% for scr in script_list %}
+<li class="span4">
+	<div class="thumbnail">
+		<img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="95" height="95" class="img-rounded">
+		<div class="caption">
+			<h4 class="text-info" align="center"><strong>{{ scr.name }}</strong></h4>
+			<p align="center"><i>{{ scr.inln }};</i></p>
+			<p style="height: 81px; overflow: hidden" align="justify">{{ scr.details }}</p>
+			<p align="right">
+				<a href="#" data-toggle="modal" class="btn btn-inverse describe" data-target="#Describe" data-param={{ scr.id }}>View More >></a>
+				<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="
+				  {% url 'scripts.apply' scr.id %}">Apply</a>
+			</p>
+		</div>
+	</div>
+</li>
+									{% empty %}
+									<p>Please go to <a href="{% url 'store' %}">Market</a> to choose scripts you need !</p>
+									{% endfor %}
 									</ul>
 								</div>
 							{% else %}
@@ -112,41 +114,39 @@
 										<tr>
 											<th>Logo</th> <th>Name</th> <th>Inline Description</th>
 											<th>
-
-												<a href="/store/"   class="btn btn-mini btn-primary">
+												<a href="{% url 'store' %}"   class="btn btn-mini btn-primary">
 													<i class="icon-plus"></i> Add a Script
 												</a>
-
 												{% if perms.breeze.add_rscripts %}
-													<a href="/resources/scripts/" class="btn btn-mini btn-primary">
-														<i class="icon-plus"></i> Create a Script
-													</a>
+												<a href="{% url 'res.scripts' %}" class="btn btn-mini btn-primary">
+													<i class="icon-plus"></i> Create a Script
+												</a>
 												{% endif %}
 											</th><th></th>
 										</tr>
 									</head>
 									<tbody>
 									{% for scr in script_list %}
-										<tr>
-											<td style="vertical-align: middle"><img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="55" height="55" class="img-rounded"></td>
-											<td style="vertical-align: middle"><strong>{{ scr.name }} <br /> <span class="subscript"> (author: {%  firstof scr.author.get_full_name scr.author %}) </span> </strong></td>
-											<td style="vertical-align: middle"><i>{{ scr.inln|truncatewords:9|default:"No Inline" }}</i></td>
-											<td style="vertical-align: middle">
-												<a href="#" data-toggle="modal" class="btn btn-primary describe" data-target="#Describe" data-param={{ scr.id }}>
-													<i class="icon-info-sign icon-white"></i>
-												</a>
-											</td>
-											<td style="vertical-align: middle">
-												<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="/scripts/apply-script/{{ scr.id }}">
-													<strong>Create&nbsp;Job&nbsp;&nbsp;<i class="icon-tasks icon-white"></i></strong>
-												</a>
-											</td>
-										</tr>
-										{% empty %}
-										<tr>
-											<td></td><td>
-											<p>Please go to <a href="/store">Market (app store)</a> to choose scripts you need !</p></td><td></td><td></td><td></td><td></td><td></td>
-										</tr>
+<tr>
+	<td style="vertical-align: middle"><img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="55" height="55" class="img-rounded"></td>
+	<td style="vertical-align: middle"><strong>{{ scr.name }} <br /> <span class="subscript"> (author: {%  firstof scr.author.get_full_name scr.author %}) </span> </strong></td>
+	<td style="vertical-align: middle"><i>{{ scr.inln|truncatewords:9|default:"No Inline" }}</i></td>
+	<td style="vertical-align: middle">
+		<a href="#" data-toggle="modal" class="btn btn-primary describe" data-target="#Describe" data-param={{ scr.id }}>
+			<i class="icon-info-sign icon-white"></i>
+		</a>
+	</td>
+	<td style="vertical-align: middle">
+		<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="{% url 'scripts.apply' scr.id %}">
+			<strong>Create&nbsp;Job&nbsp;&nbsp;<i class="icon-tasks icon-white"></i></strong>
+		</a>
+	</td>
+</tr>
+{% empty %}
+<tr>
+	<td></td><td>
+	<p>Please go to <a href="{% url 'store' %}">Market (app store)</a> to choose scripts you need !</p></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
 									{% endfor %}
 									</tbody>
 								</table>
@@ -158,55 +158,55 @@
 						{% for cat, scr_list in cat_list %}
 							<div class="tab-pane" id="{{ cat }}">
 								{% if thumbnails %}
-									<div>
-										<ul class="thumbnails">
-											{% for scr in scr_list %}
-												<li class="span4">
-													<div class="thumbnail well">
-														<img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="95" height="95" class="img-rounded">
-														<div class="caption">
-															<h4 class="text-info" align="center"><strong>{{ scr.name }}</strong></h4>
-															<p align="center"><i>{{ scr.inln }};</i></p>
-															<p style="height: 81px; overflow: hidden" align="justify">{{ scr.details }}</p>
-															<p align="right">
-																<a href="#" data-toggle="modal" class="btn btn-inverse describe" data-target="#Describe" data-param={{ scr.id }}>View More >></a>
-																<a a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="/scripts/apply-script/{{ scr.id }}">Apply</a></p>
-														</div>
-													</div>
-												</li>
-												{% empty %}
-												<p>No resources available!</p>
-											{% endfor %}
-										</ul>
-									</div>
+<div>
+	<ul class="thumbnails">
+		{% for scr in scr_list %}
+			<li class="span4">
+				<div class="thumbnail well">
+					<img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="95" height="95" class="img-rounded">
+					<div class="caption">
+						<h4 class="text-info" align="center"><strong>{{ scr.name }}</strong></h4>
+						<p align="center"><i>{{ scr.inln }};</i></p>
+						<p style="height: 81px; overflow: hidden" align="justify">{{ scr.details }}</p>
+						<p align="right">
+							<a href="#" data-toggle="modal" class="btn btn-inverse describe" data-target="#Describe" data-param="{{ scr.id }}">View More</a>
+							<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="{% url 'scripts.apply' scr.id %}">Apply</a></p>
+					</div>
+				</div>
+			</li>
+			{% empty %}
+			<p>No resources available!</p>
+		{% endfor %}
+	</ul>
+</div>
 								{% else %}
-									<table class="table table-striped">
-										<head>
-											<tr>
-												<th>Logo</th> <th>Name</th> <th>Inline Description</th>
-												<th></th><th></th>
-											</tr>
-										</head>
-										<tbody>
-										{% for scr in scr_list %}
-											<tr>
-												<td style="vertical-align: middle"><img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="55" height="55" class="img-rounded"></td>
-												<td style="vertical-align: middle"><strong>{{ scr.name }} <br /> <span class="subscript"> (author: {%  firstof scr.author.get_full_name scr.author %}) </span> </strong></td>
-												<td style="vertical-align: middle"><i>{{ scr.inln|truncatewords:9|default:"No Inline" }}</i></td>
-												<td style="vertical-align: middle">
-													<a href="#" data-toggle="modal" class="btn btn-primary describe" data-target="#Describe" data-param={{ scr.id }}>
-														<i class="icon-info-sign icon-white"></i>
-													</a>
-												</td>
-												<td style="vertical-align: middle">
-													<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="/scripts/apply-script/{{ scr.id }}">
-														<strong>Create&nbsp;Job&nbsp;&nbsp;<i class="icon-tasks icon-white"></i></strong>
-													</a>
-												</td>
-											</tr>
-										{% endfor %}
-										</tbody>
-									</table>
+<table class="table table-striped">
+	<head>
+		<tr>
+			<th>Logo</th> <th>Name</th> <th>Inline Description</th>
+			<th></th><th></th>
+		</tr>
+	</head>
+	<tbody>
+	{% for scr in scr_list %}
+		<tr>
+			<td style="vertical-align: middle"><img {% if scr.logo %} src="/media/{{ scr.logo }}" {% else %} src="/static/logos/rlogo.jpg" {% endif %} width="55" height="55" class="img-rounded"></td>
+			<td style="vertical-align: middle"><strong>{{ scr.name }} <br /> <span class="subscript"> (author: {%  firstof scr.author.get_full_name scr.author %}) </span> </strong></td>
+			<td style="vertical-align: middle"><i>{{ scr.inln|truncatewords:9|default:"No Inline" }}</i></td>
+			<td style="vertical-align: middle">
+				<a href="#" data-toggle="modal" class="btn btn-primary describe" data-target="#Describe" data-param={{ scr.id }}>
+					<i class="icon-info-sign icon-white"></i>
+				</a>
+			</td>
+			<td style="vertical-align: middle">
+				<a href="#" data-toggle="modal" class="btn btn-inverse apply" data-target="#Apply"  data-param="{% url 'scripts.apply' scr.id %}">
+					<strong>Create&nbsp;Job&nbsp;&nbsp;<i class="icon-tasks icon-white"></i></strong>
+				</a>
+			</td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
 								{% endif %}
 							</div>
 						{% endfor %}
@@ -254,7 +254,9 @@
 				$("input:file").each(function () {
 					if ($(this).hasClass('TPL')) {
 						var which = $(this).attr('which');
-						$(this).after('<br/><a href="/get/template/' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
+						//$(this).after('<br/><a href="/get/template/' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
+						// var the_url = '';
+						$(this).after('<br/><a href="{% url 'get.template' %}' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
 					}
 				});
 				// bind to the submit function
@@ -294,7 +296,7 @@
 					if (form.html()) {
 						smartRender(formName, form, url);
 					} else {//form is not returned if form submission succeeded
-						window.location.href = '/jobs/';
+						window.location.href = '{% url 'jobs' %}';
 					}
 				},
 				error      : function (request, status, error) {
@@ -340,7 +342,7 @@
 			$(".describe").click(function(ev) {
 
 				var par = $(this).data("param");
-				$("#Describe").load("/scripts/read-descr/"+par, function() {
+				$("#Describe").load("{% url 'scripts.read_desc' %}"+par, function() {
 					$(this).modal('show');
 				});
 				return false; // prevent the click propagation
