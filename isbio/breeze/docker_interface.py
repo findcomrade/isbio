@@ -221,14 +221,17 @@ class DockerInterface(ComputeInterface):
 	# clem 06/04/2016 # FIXME change print to log
 	def _get_ssh(self):
 		if self.config_tunnel_host:
-			print 'Establishing ssh tunnel, running', self._ssh_cmd_list, '...',
-			self.ssh_tunnel = sp.Popen(self._ssh_cmd_list, stdout=sp.PIPE, stderr=sp.PIPE, preexec_fn=os.setsid)
-			print 'done,',
-			stat = self.ssh_tunnel.poll()
-			while stat is None:
+			try:
+				print 'Establishing ssh tunnel, running', self._ssh_cmd_list, '...',
+				self.ssh_tunnel = sp.Popen(self._ssh_cmd_list, stdout=sp.PIPE, stderr=sp.PIPE, preexec_fn=os.setsid)
+				print 'done,',
 				stat = self.ssh_tunnel.poll()
-			print 'bg PID :', self.ssh_tunnel.pid
-			return True
+				while stat is None:
+					stat = self.ssh_tunnel.poll()
+				print 'bg PID :', self.ssh_tunnel.pid
+				return True
+			except Exception as e:
+				logger.exception('While establishing ssh tunnel : %s ' % str(e))
 		else:
 			raise AttributeError('Cannot establish ssh tunnel since no ssh_host provided during init')
 

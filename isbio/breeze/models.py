@@ -887,7 +887,9 @@ def rscript_fn_spe(self, filename): # TODO check this
 	# TODO check for FolderObj fitness
 	fname, dot, extension = filename.rpartition('.')
 	slug = self.folder_name
-	return '%s%s/%s.%s' % (self.BASE_FOLDER_NAME, slug, slug, slugify(extension))
+	if not fname:
+		fname = slug
+	return '%s%s/%s.%s' % (self.BASE_FOLDER_NAME, slug, fname, slugify(extension))
 
 
 # TODO add a ManyToManyField Institute field
