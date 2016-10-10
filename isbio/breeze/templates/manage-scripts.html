@@ -16,8 +16,8 @@
   <div class="row-fluid">
     <div class="span10 offset1">
       <ul class="breadcrumb pull-left" style="background-color: transparent;">
-        <li><a href="/home/">Breeze</a> <span class="divider">/</span></li>
-        <li><a href="/resources/">Manage Resources</a> <span class="divider">/</span></li>
+        <li><a href="{% url 'home' %}">Breeze</a> <span class="divider">/</span></li>
+        <li><a href="{% url 'res' %}">Manage Resources</a> <span class="divider">/</span></li>
         <li class="active"> Manage Scripts </li>
       </ul>
     </div>
@@ -26,15 +26,16 @@
   <div class="row-fluid">
     <div class="span10 offset1">
     {% if perms.breeze.add_rscripts %}
-      <a href="#" data-toggle="modal" class="btn btn-small btn-primary apply" data-target="#Apply"  data-param="/new-script/">
+      <a href="#" data-toggle="modal" class="btn btn-small btn-primary apply" data-target="#Apply"  data-param="{%
+        url 'scripts.new' %}">
         <i class="icon-plus"></i> &nbsp; &nbsp; <strong>Create New Script / Tag</strong> &nbsp; &nbsp; <i class="icon-plus"></i>
       </a>
     {% endif %}
 	    <a class="btn btn-small btn-primary" {% if all %}disabled="disabled"{% else %}
-	       href="/resources/scripts/all/" {% endif %}>
+	       href="{% url 'res.scripts.all' %}" {% endif %}>
 		    View all</a>
 	    <a class="btn btn-small btn-primary" {% if not all %}disabled="disabled" {% else %}
-	       href="/resources/scripts/" {% endif %}>
+	       href="{% url 'res.scripts' %}" {% endif %}>
 		    View only my own</a>
     </div>
   </div>

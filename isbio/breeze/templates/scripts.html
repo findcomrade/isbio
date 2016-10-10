@@ -9,7 +9,7 @@
 	<script type="text/javascript" src="/static/js/bootstrap-multiselect.js"></script>
 	<link rel="stylesheet" href="/static/css/bootstrap-multiselect.css" type="text/css"/>
 
-	<style>
+	<style type="text/css">
 		.thumbnails .span4:nth-child(3n+1) {
 
 			margin-left:0;
@@ -254,9 +254,7 @@
 				$("input:file").each(function () {
 					if ($(this).hasClass('TPL')) {
 						var which = $(this).attr('which');
-						//$(this).after('<br/><a href="/get/template/' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
-						// var the_url = '';
-						$(this).after('<br/><a href="{% url 'get.template' %}' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
+						$(this).after('<br/><a href="/get/template/' + which.toString() + '" class="btn btn-mini btn-primary"> Click to download a template<a/>');
 					}
 				});
 				// bind to the submit function
@@ -340,9 +338,8 @@
 			}
 			//if ('.dotmatix_samples' in $()) $('.dotmatix_samples').multiselect(multiConfigurationSet);
 			$(".describe").click(function(ev) {
-
 				var par = $(this).data("param");
-				$("#Describe").load("{% url 'scripts.read_desc' %}"+par, function() {
+				$("#Describe").load("/scripts/read-descr/"+par, function() {
 					$(this).modal('show');
 				});
 				return false; // prevent the click propagation
