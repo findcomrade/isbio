@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 from breeze.utilities import git, TermColoring, recur, recur_rec, get_key, import_env
 
-ENABLE_DATADOG = True
+ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
 try:
 	from datadog import statsd
