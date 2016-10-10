@@ -745,9 +745,11 @@ class NewScriptDialog(forms.Form):
 		label=u'Script Name'
 	)
 	
-	category = forms.ChoiceField(
-		choices=breeze.models.ScriptCategories.objects.all(),
-		widget=forms.Select()
+	category = forms.ModelChoiceField(
+		queryset=breeze.models.ScriptCategories.objects.all(),
+		empty_label="Select one"
+		# choices=breeze.models.ScriptCategories.objects.all(),
+		# widget=forms.Select()
 	)
 
 	inline = forms.CharField(
