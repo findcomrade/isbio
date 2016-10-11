@@ -44,6 +44,8 @@ def process_login(request): # TODO : use / extend auth0.auth_helpers instead
 			user_url = url % (settings.AUTH0_DOMAIN, token_info['access_token'])
 			user_info = requests.get(user_url).json()
 			
+			print 'user:', str(user_info)
+			
 			# We're saving all user information into the session
 			request.session['profile'] = user_info
 			user = auth.authenticate(**user_info)
