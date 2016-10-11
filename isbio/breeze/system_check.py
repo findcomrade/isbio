@@ -1,6 +1,7 @@
 from breeze import utils
 from utils import Bcolors
 from utils import logger_timer
+from utils import test_url
 from django.conf import settings
 from breeze.b_exceptions import *
 from django.http import HttpRequest
@@ -679,36 +680,28 @@ def check_file_system_mounted():
 
 
 # clem on 20/08/2015
-def check_shiny(request):
-	"""
-	Check if Shiny server is responding
-	:type request:
+def check_shiny():
+	""" Check if Shiny server is responding
+	
+	
 	:rtype: bool
 	"""
-	from breeze.auxiliary import proxy_to
 	try:
-		r = proxy_to(request, '', settings.SHINY_LOCAL_LIBS_TARGET_URL, silent=True, timeout=2)
-		if r.status_code == 200:
-			return True
+		return test_url(settings.SHINY_LOCAL_LIBS_TARGET_URL)
 	except Exception:
 		pass
 	return False
 
 
 # clem on 22/09/2015
-def check_csc_shiny(request):
-	"""
-	Check if CSC Shiny server is responding
-	:type request:
+def check_csc_shiny():
+	""" Check if CSC Shiny server is responding
+	
+	
 	:rtype: bool
 	"""
-	from breeze.auxiliary import proxy_to
 	try:
-		r = proxy_to(request, '', settings.SHINY_REMOTE_LIBS_TARGET_URL, silent=True, timeout=4)
-		if r.status_code == 200:
-			return True
-		else:
-			print 'prox to', settings.SHINY_REMOTE_LIBS_TARGET_URL, r.status_code
+		return test_url(settings.SHINY_REMOTE_LIBS_TARGET_URL)
 	except Exception:
 		pass
 	return False
@@ -783,25 +776,22 @@ def check_sge_c():
 
 
 # clem 08/09/2015
-def check_cas(request):
-	"""
-	Check if CAS server is responding
-	:type request:
+def check_cas():
+	""" Check if CAS server is responding
+	
+	
 	:rtype: bool
 	"""
-	from breeze.auxiliary import proxy_to
 	if utils.is_host_online(settings.CAS_SERVER_IP, 2):
 		try:
-			r = proxy_to(request, '', settings.CAS_SERVER_URL, silent=True, timeout=3)
-			if r.status_code == 200:
-				return True
+			return test_url(settings.CAS_SERVER_URL)
 		except Exception:
 			pass
 	return False
 
 
 # clem 18/05/2015
-def check_urls():
+def check_urls_conf():
 	""" Check if the url file has no malformed url patterns
 
 	:rtype: bool
@@ -884,13 +874,12 @@ good_bad = ('Good', 'BAD')
 # Collection of system checks that is used to run all the test automatically, and display run-time status
 CHECK_LIST = [
 	SysCheckUnit(long_poll_waiter, 'breeze', 'Breeze HTTP', '', RunType.runtime, long_poll=True),
-	SysCheckUnit(check_urls, 'urls', 'URL file', 'URL FILE\t\t', RunType.boot_time, ex=UrlFileHasMalformedPatterns,
+	SysCheckUnit(check_urls_conf, 'urls', 'URL file', 'URL FILE\t\t', RunType.boot_time, ex=UrlFileHasMalformedPatterns,
 		mandatory=True),
 	# # SysCheckUnit(long_poll_waiter, 'breeze-dev', 'Breeze-dev HTTP', '', RunType.runtime, long_poll=True),
 	SysCheckUnit(save_file_index, 'fs_ok', '', 'saving file index...\t', RunType.boot_time, 25000,
 				supl=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True), fs_mount, db_conn,
-	SysCheckUnit(check_cas, 'cas', 'CAS server', 'CAS SERVER\t\t', RunType.both, arg=HttpRequest(), ex=CASUnreachable,
-				mandatory=True),
+	SysCheckUnit(check_cas, 'cas', 'CAS server', 'CAS SERVER\t\t', RunType.both, ex=CASUnreachable, mandatory=True),
 	SysCheckUnit(check_rora, 'rora', 'RORA db', 'RORA DB\t\t\t', RunType.both, ex=RORAUnreachable),
 	SysCheckUnit(check_rora_response, 'rora_ok', 'RORA data', 'RORA DATA\t\t', RunType.both, ex=RORAFailure,
 				ui_text=good_bad),
@@ -899,9 +888,9 @@ CHECK_LIST = [
 				mandatory=True),
 	SysCheckUnit(check_dotm, 'dotm', 'DotMatics server', 'DOTM DB\t\t\t', RunType.both, ex=DOTMUnreachable),
 	SysCheckUnit(check_shiny, 'shiny', 'Local Shiny HTTP server', 'LOC. SHINY HTTP\t\t', RunType.runtime,
-				arg=HttpRequest(), ex=ShinyUnreachable),
-	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto, RunType.runtime,
-				arg=HttpRequest(), ex=ShinyUnreachable),
+		ex=ShinyUnreachable),
+	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
+		RunType.runtime, ex=ShinyUnreachable),
 	SysCheckUnit(check_csc_mount, 'csc_mount', 'CSC Shiny File System', 'CSC SHINY FS\t\t', RunType.runtime,
 				ex=FileSystemNotMounted),
 	SysCheckUnit(check_csc_taito_mount, 'csc_taito_mount', 'CSC Taito File System', 'CSC TAITO FS\t\t', RunType.runtime,
