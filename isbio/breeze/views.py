@@ -1116,6 +1116,7 @@ def resources(request):
 			'html_title': 'This is an example of another graph',
 			'legend': 'This is an example of another graph', }
 	)
+	usage_graph = ()
 	
 	# print advanced_pretty_print(ObjectCache.dump())
 
