@@ -517,6 +517,8 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 		for each in request.POST.keys():
 			data = data + each + "=" + urllib.quote_plus(request.POST[each]) + "&"
 		data = data[:-1]
+	else:
+		request.method = 'GET'
 
 	log = '/var/log/shiny-server.log'
 	log_size = os.stat(log).st_size
@@ -575,7 +577,7 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 			code = e.code
 		if hasattr(e, 'headers'):
 			mime = e.headers.typeheader
-		logger.getChild('shiny_server').warning('%s : %s %s%s\n%s' % (e, request.method, path, str(qs), more))
+		logger.getChild('shiny_server').warning('%s : %s %s%s\n%s' % (e, request.method, url, str(qs), more))
 		rep = HttpResponse(content, status=code, mimetype=mime)
 	except urllib2.URLError as e:
 		log_obj.error(e)
