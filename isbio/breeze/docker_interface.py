@@ -154,7 +154,17 @@ class DockerInterface(ComputeInterface):
 	@property
 	def config_tunnel_host(self):
 		return self.target_obj.tunnel_host
-
+		
+	# clem 11/10/2016
+	@property
+	def config_tunnel_user(self):
+		return self.target_obj.tunnel_user
+		
+	# clem 11/10/2016
+	@property
+	def config_tunnel_port(self):
+		return self.target_obj.tunnel_port
+	
 	# clem 17/05/2016
 	@property
 	def docker_hub_pwd(self):
@@ -245,8 +255,11 @@ class DockerInterface(ComputeInterface):
 	# clem 17/05/2016
 	def __ssh_cmd_list(self, local_port):
 		assert isinstance(self.config_tunnel_host, basestring)
+		user = ''
+		if self.config_tunnel_user:
+			user = self.config_tunnel_user + '@'
 		return self.SSH_CMD_BASE + ['%s:%s:%s' % (local_port, self.config_daemon_ip, self.config_daemon_port)] + \
-			[self.config_tunnel_host]
+			[user + self.config_tunnel_host]
 
 	#####################
 	#  DOCKER SPECIFIC  #
