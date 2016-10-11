@@ -17,6 +17,7 @@ else:
 
 	urlpatterns = patterns('',
 		url(r'^user_list/?$', views.user_list),
+		url(r'^stats/analytics/?$', views.user_stats_analytics, name='stats.analytics'),
 		url(r'^test1/?', views.job_list),
 		url(r'^mail_list/?$', views.user_list_advanced),
 		url(r'^custom_list/?$', views.custom_list),
@@ -166,13 +167,15 @@ else:
 
 		# Uncomment/comment the next line to enable/disable the admin:
 		url(r'^admin/?', include(admin.site.urls)),
+		url(r'^graph/(?P<path>.*)$', views.proxy_to, { 'target_url': settings.GRAPH_URL, })
+		# testing
 	)
 
 	if settings.DEBUG and settings.DEV_MODE:
 		urlpatterns += patterns('django.contrib.staticfiles.views',
 			url(r'^closed$', 'serve', { 'document_root': settings.DJANGO_ROOT + '/index.html', }),
-			url(r'^static/(?P<path>.*)$', 'serve'),
-			url(r'^shiny/sample/(?P<path>.*)$', views.proxy_to, {'target_url': 'http://127.0.0.1:3838/sample-apps/', })  # testing
+			# url(r'^static/(?P<path>.*)$', 'serve'),
+			url(r'^shiny/sample/(?P<path>.*)$', views.proxy_to, {'target_url': settings.SHINY_LOCAL_TARGET_URL + '/sample-apps/', })  # testing
 		)
 		urlpatterns += patterns(
 			url(r'^shiny/rep/(?P<rid>\d+)/nozzle$', views.report_file_view_redir),

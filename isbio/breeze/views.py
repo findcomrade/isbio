@@ -95,7 +95,7 @@ def logout(request):
 
 def register_user(request):
 	if request.user.is_authenticated():
-		return HttpResponseRedirect('/home/')  # FIXME hardcoded url
+		return HttpResponseRedirect(settings.HOME_PAGE)  # FIXME hardcoded url
 	if request.method == 'POST':
 		form = breezeForms.RegistrationForm(request.POST)
 		if form.is_valid():
@@ -121,6 +121,26 @@ def base(request):
 
 
 @login_required(login_url='/')
+def user_stats_analytics(request):
+	r_type_stats = list()
+	for each in ReportType.objects.all():
+		# Users stats
+		a_user_list = each.get_all_users_ever_with_count()
+		tmp_lst = list()
+		for each_user, count in a_user_list.iteritems():
+			tmp_lst.append({
+				'name' : each_user.get_full_name() or each_user.username,
+				'email': each_user.email or 'N/A',
+				'count': count
+			})
+		r_type_stats.append({ 'name': each.type, 'user_lst': tmp_lst })
+	
+	return render_to_response('script_user_stats.html', RequestContext(request, {
+		'r_type_stats': r_type_stats
+	}))
+	
+
+@login_required(login_url='/') # FIXME : SLOOOOOOOOOOOW
 def home(request, state="feed"):
 	# user_info = User.objects.get(username=request.user)
 	user_info = request.user
@@ -203,17 +223,6 @@ def home(request, state="feed"):
 			count = Jobs.objects.filter(script=each).count()
 		analitics_stats.append({'script': each, 'author': each.author, 'istag': each.istag, 'times': count})
 
-	r_type_stats = list()
-	for each in ReportType.objects.all():
-		# Users stats
-		a_user_list = each.get_all_users_ever_with_count()
-		tmp_lst = list()
-		for each_user, count in a_user_list.iteritems():
-			tmp_lst.append({ 'name': each_user.get_full_name() or each_user.username , 'email': each_user.email or
-																								'N/A',
-				'count': count })
-		r_type_stats.append({ 'name': each.type, 'user_lst': tmp_lst})
-
 	# Get Screens
 	screens = dict()  # rora.get_screens_info()
 
@@ -256,7 +265,7 @@ def home(request, state="feed"):
 		'screens': screens,
 		'patients': patients,
 		'stats': analitics_stats,
-		'r_type_stats': r_type_stats,
+		# 'r_type_stats': r_type_stats,
 		'user_info': user_info_complete,
 		'server_info': server_info,
 		'server_status': server,
@@ -1134,9 +1143,9 @@ def search(request, what=None):
 def resources(request):
 	from breeze.system_check import get_template_check_list
 	usage_graph = (
-		{'url': 'http://192.168.0.225/S/D', 'html_alt': 'queue stats on the last 24h',
+		{'url': '/graph/S/D', 'html_alt': 'queue stats on the last 24h',
 			'html_title': 'queue stats on the last 24h', 'legend': 'queue stats on the last 24h', 'href': ''},
-		{'url': 'http://192.168.0.225/S/B', 'html_alt': 'This is an example of another graph',
+		{'url': '/graph/S/B', 'html_alt': 'This is an example of another graph',
 			'html_title': 'This is an example of another graph',
 			'legend': 'This is an example of another graph', }
 	)
