@@ -256,10 +256,13 @@ class DockerInterface(ComputeInterface):
 	def __ssh_cmd_list(self, local_port):
 		assert isinstance(self.config_tunnel_host, basestring)
 		user = ''
+		port = []
 		if self.config_tunnel_user:
 			user = self.config_tunnel_user + '@'
+		if self.config_tunnel_port:
+			port = ['-p', str(self.config_tunnel_port)]
 		return self.SSH_CMD_BASE + ['%s:%s:%s' % (local_port, self.config_daemon_ip, self.config_daemon_port)] + \
-			[user + self.config_tunnel_host]
+			[user + self.config_tunnel_host] + port
 
 	#####################
 	#  DOCKER SPECIFIC  #
