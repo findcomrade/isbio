@@ -207,7 +207,8 @@ AUTH0_DOMAIN = 'breeze.eu.auth0.com'
 AUTH0_CLIENT_ID = 'gIN83mLS4qcQqE99Bi5MqzRzU38KruR6'
 AUTH0_SECRET_FILE_N = 'auth0'
 AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
-AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
+# AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
+AUTH0_CALLBACK_URL = 'web-breeze.fimm.fi/login/'
 AUTH0_SUCCESS_URL = '/jobs/'
 AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
 AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
@@ -271,7 +272,7 @@ LOGGING = {
 }
 
 AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'breeze-www.cloudapp.net'] + AUTH0_IP_LIST
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'web-breeze.fimm.fi'] + AUTH0_IP_LIST
 
 DEBUG = False
 VERBOSE = False
