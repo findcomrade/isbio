@@ -5,7 +5,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from breeze.utilities import git_get_status, git_get_branch
+from breeze.utilities import git_get_status, git_get_branch, is_host_online, test_url
 
 ENABLE_DATADOG = True
 try:
@@ -97,6 +97,19 @@ log_fname = 'rotating.log'
 log_hit_fname = 'access.log'
 LOG_PATH = '%s%s' % (LOG_FOLDER, log_fname)
 LOG_HIT_PATH = '%s%s' % (LOG_FOLDER, log_hit_fname)
+
+
+def check_cas(server_ip, server_url):
+	""" Check if CAS server is responding
+	
+		imported code from system_check.check_cas
+	"""
+	if is_host_online(server_ip, 2):
+		try:
+			return test_url(server_url)
+		except Exception:
+			pass
+	return False
 
 
 class BreezeSettings(Settings):
@@ -225,12 +238,19 @@ class BreezeSettings(Settings):
 		'django_cas.backends.CASBackend',
 	)
 
+	HOME_PAGE = '/jobs/'
+	ROOT_URLCONF = 'isbio.urls'
+
 	# CAS_SERVER_IP = '192.168.0.218'
 	CAS_SERVER_IP = 'cas-prot.fimm.fi'
 	CAS_SERVER_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
+	# automatic CAS url
+	if not check_cas(CAS_SERVER_IP, CAS_SERVER_URL):
+		CAS_SERVER_URL = 'https://%s/cas/' % CAS_SERVER_IP
+	# CAS_SERVER_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
+	# CAS_SERVER_URL = 'https://%s/cas/' % CAS_SERVER_IP
 	CAS_REDIRECT_URL = '/home/'
-
-	ROOT_URLCONF = 'isbio.urls'
+	
 	APPEND_SLASH = True
 
 	# Python dotted path to the WSGI application used by Django's runserver.
@@ -517,8 +537,8 @@ class DevSettings(BreezeSettings):
 	SHINY_LOCAL_STANDALONE_BREEZE_URL = 'http://' + SHINY_ORIG_STANDALONE_URL % SHINY_LOCAL_IP
 	# remote Shiny
 	SHINY_REMOTE_ENABLE = True
-	# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
-	SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
+	SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
+	# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
 	SHINY_REMOTE_LOCAL_PATH = '/shiny-csc/'
 	SHINY_REMOTE_CSC_LOCAL_PATH = '/home/shiny/shiny/'
 	SHINY_REMOTE_BREEZE_REPORTS_PATH = SHINY_REMOTE_LOCAL_PATH + REPORTS_FN
@@ -527,7 +547,7 @@ class DevSettings(BreezeSettings):
 	SHINY_REMOTE_TAGS = '%s%s/' % (SHINY_REMOTE_LOCAL_PATH, SHINY_FN_TAGS)
 	SHINY_REMOTE_TAGS_INTERNAL = '%s%s/' % (SHINY_REMOTE_CSC_LOCAL_PATH, SHINY_FN_TAGS)
 	# SHINY_REMOTE_PROTOCOL = 'https'
-	SHINY_REMOTE_PROTOCOL = 'http'
+	SHINY_REMOTE_PROTOCOL = 'https'
 	SHINY_REMOTE_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_TARGET_URL % SHINY_REMOTE_IP
 	SHINY_REMOTE_LIBS_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_LIBS_TARGET_URL % SHINY_REMOTE_IP
 	SHINY_REMOTE_LIBS_BREEZE_URL = '/libs/'
@@ -559,6 +579,8 @@ class DevSettings(BreezeSettings):
 		NOZZLE_TEMPLATE_FOLDER, SCRIPT_TEMPLATE_FOLDER, JOBS_PATH, REPORT_TYPE_PATH, REPORTS_PATH, RSCRIPTS_PATH, MEDIA_ROOT,
 		PROJECT_FHRB_PM_PATH, RORA_LIB, STATIC_ROOT]
 
+	GRAPH_URL = 'http://192.168.0.225'
+	
 
 	##
 	# System Autocheck config
