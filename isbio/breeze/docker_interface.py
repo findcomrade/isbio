@@ -260,7 +260,7 @@ class DockerInterface(ComputeInterface):
 		if self.config_tunnel_user:
 			user = self.config_tunnel_user + '@'
 		if self.config_tunnel_port:
-			port = ['-p', str(self.config_tunnel_port)]
+			port = ['-p ' + str(self.config_tunnel_port)]
 		return self.SSH_CMD_BASE + ['%s:%s:%s' % (local_port, self.config_daemon_ip, self.config_daemon_port)] + \
 			[user + self.config_tunnel_host] + port
 
