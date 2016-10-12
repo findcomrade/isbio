@@ -32,6 +32,7 @@ class DockerInterface(ComputeInterface):
 	_container = None
 	_container_logs = ''
 	cat = DockerEventCategories
+	_connect_port = None
 
 	SSH_CMD_BASE = ['ssh', '-CfNnL']
 	SSH_KILL_ALL = 'killall ssh && killall ssh'
@@ -70,8 +71,9 @@ class DockerInterface(ComputeInterface):
 		if self._runnable.breeze_stat != self.js.INIT: # TODO improve
 			self._status = self._runnable.breeze_stat
 		self._container_lock = Lock()
-		self.config_local_port = self._get_a_port()
-		self.config_local_bind_address = (self.config_daemon_ip, self.config_local_port)
+		# self.config_local_port = self._get_a_port()
+		# TODO rework the ssh configuration vs daemon conf
+		self.config_local_bind_address = (self.config_daemon_ip, self.connect_port)
 		self._label = self.config_tunnel_host[0:2]
 
 		res = False
@@ -123,7 +125,7 @@ class DockerInterface(ComputeInterface):
 	# clem 17/06/2016
 	@property
 	def config_daemon_url_base(self):
-		return str(self.engine_obj.get(self.CONFIG_DAEMON_URL)) % self.config_local_port
+		return str(self.engine_obj.get(self.CONFIG_DAEMON_URL)) % self.connect_port
 
 	# clem 17/06/2016
 	@property
@@ -179,6 +181,23 @@ class DockerInterface(ComputeInterface):
 	#  CONNECTION SPECIFIC  #
 	#########################
 
+	# clem 12/10/2016
+	@property
+	def connect_port(self):
+		""" Tell which port to connect to.
+		
+		
+		for a ssh tunnel, its the locally mapped port, otherwise its the remote daemon port
+		
+		:rtype: int
+		"""
+		if not self._connect_port:
+			if self.target_obj.target_use_tunnel:
+				self._connect_port = self._get_a_port()
+			else:
+				self._connect_port = self.config_daemon_port
+		return self._connect_port
+		
 	# clem 10/05/2016
 	def _get_a_port(self):
 		""" Give the port number of an existing ssh tunnel, or return a free port if no (or more than 1) tunnel exists
@@ -250,7 +269,7 @@ class DockerInterface(ComputeInterface):
 	# clem 29/04/2016
 	@property
 	def _ssh_cmd_list(self):
-		return self.__ssh_cmd_list(self.config_local_port)
+		return self.__ssh_cmd_list(self.connect_port)
 
 	# clem 17/05/2016
 	def __ssh_cmd_list(self, local_port):

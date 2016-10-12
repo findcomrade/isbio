@@ -148,6 +148,7 @@ class DockerRepo:
 			isinstance(url, basestring)
 		except AssertionError as e:
 			print 'CRITICAL : %s' % e
+			print 'args: %s' % (str((login, pwd, email, url)))
 		self.login = login
 		self.pwd = pwd
 		self.email = email
