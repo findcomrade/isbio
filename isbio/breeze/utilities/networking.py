@@ -1,6 +1,6 @@
 import socket
-from . import sp
-__version__ = '0.1'
+from . import get_logger, sp
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -53,3 +53,65 @@ def get_free_port():
 	sock = socket.socket()
 	sock.bind(('', 0))
 	return sock.getsockname()[1]
+
+
+# clem 12/10/2016
+def get_http_response(target_url, timeout=5):
+	""" Return the urllib2 response object from target url
+	Warning : No exception management. Do it yourself
+	
+	
+	:param target_url: url to reach or request object
+	:type target_url: str | urllib2.Request
+	:param timeout: time out in seconds
+	:type timeout: int
+	:return: the response object
+	:rtype: urllib2.OpenerDirector
+	:raises: (urllib2.URLError, urllib2.HTTPError)
+	"""
+	import urllib2
+	
+	opener = urllib2.build_opener()
+	get_response = opener.open(target_url, None, timeout=timeout) or False
+	
+	return get_response
+
+
+# clem 12/10/2016
+def get_http_code(target_url, timeout=5):
+	""" Return the HTTP code returned from target url
+
+
+	:param target_url: url to reach or request object
+	:type target_url: str | urllib2.Request
+	:param timeout: time out in seconds
+	:type timeout: int
+	:return: the response HTTP code
+	:rtype: int
+	"""
+	from urllib2 import URLError, HTTPError
+	code = 520
+	
+	try:
+		response = get_http_response(target_url, timeout)
+		if hasattr(response, 'code'):
+			code = response.code
+	except (URLError, HTTPError) as e:
+		get_logger().warning('%s : %s' % (e, target_url))
+	
+	return code
+
+
+# clem 12/10/2016
+def test_url(target_url, timeout=5):
+	""" Tells whether or not the target_url is properly reachable (HTTP200 or HTTP302)
+
+
+	:param target_url: url to reach or request object
+	:type target_url: str | urllib2.Request
+	:param timeout: time out in seconds
+	:type timeout: int
+	:return: does it return a proper HTTP code ?
+	:rtype: bool
+	"""
+	return get_http_code(target_url, timeout) in [200, 302]
