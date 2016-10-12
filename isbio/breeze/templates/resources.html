@@ -111,11 +111,8 @@
 					<a href="/status/log/" class="btn btn-primary btn-large btn-block">
 						<strong><i class="icon-question-sign icon-white"></i> &nbsp;Breeze Log</strong>
 					</a>
-					<a href="#" onclick="restart('service', '/resources/restart/')" class="btn btn-primary btn-large btn-block">
-						<strong><i class="icon-refresh icon-white"></i> &nbsp;Restart Breeze service (~40s)</strong>
-					</a>
-					<a href="#" onclick="restart('vm', '/resources/restart-vm/')" class="btn btn-primary btn-large btn-block">
-						<strong><i class="icon-retweet icon-white"></i> &nbsp;Restart Breeze VM (~70s)</strong>
+					<a href="{% url 'cache.invalidate' %}" class="btn btn-primary btn-large btn-block">
+						<strong><i class="icon-refresh icon-white"></i> &nbsp;Clear cache</strong>
 					</a>
 				</div>
 			</div>
