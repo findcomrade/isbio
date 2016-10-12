@@ -1,8 +1,8 @@
-from logging import getLogger, getLoggerClass, LoggerAdapter
+from logging import getLogger, getLoggerClass, LoggerAdapter, Logger
 from time import time
-from . import this_function_name
+from . import this_function_caller_name
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -10,10 +10,16 @@ logger = getLogger(__name__)
 
 
 def get_logger(name=None, level=0):
+	""" Return a named logger object
+	
+	:type name: str
+	:type level: int
+	:return: a named Logger object
+	:rtype: Logger
+	"""
 	if name is None:
-		name = this_function_name(level)
+		name = this_function_caller_name(level)
 	log_obj = logger.getChild(name)
-	assert isinstance(log_obj, getLoggerClass())  # for code assistance only
 	return log_obj
 
 

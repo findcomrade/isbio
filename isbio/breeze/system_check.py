@@ -1,5 +1,5 @@
 from breeze import utils
-from utils import TermColoring, logger_timer
+from utils import TermColoring, logger_timer, test_url
 from django.conf import settings
 from breeze.b_exceptions import *
 from django.http import HttpRequest
@@ -593,60 +593,6 @@ def deep_fs_check(fix_file_perm=False): # TODO optimize (too slow)
 	return flag_changed, flag_invalid, files_state, folders_state, errors
 
 
-# clem on 20/08/2015
-def check_rora():
-	""" Check if RORA db host is online and RORA db connection is successful
-
-	:rtype: bool
-	"""
-	try:
-		if utils.is_host_online(settings.RORA_SERVER_IP, '2'):
-			from breeze import rora
-			return rora.test_rora_connect()
-	except Exception as e:
-		print e
-	return False
-
-
-# clem on 29/02/2016
-def check_rora_response():
-	from breeze import rora
-	from rpy2.robjects.vectors import ListVector
-	function = 'getPSSData'
-	args = ('patient', 1, 10, u'PK_ENTITY_ID', 'ASC', u'')
-	try:
-		result = rora.global_r_call(function, args, r_file='basic.R')
-		if type(result) is ListVector:
-			return True
-		else:
-			print type(result)
-	except Exception:
-		pass
-	return False
-
-
-# clem on 20/08/2015
-def check_dotm():
-	""" Check if Dotmatix db host is online and Dotmatix db connection is successful
-
-	:rtype: bool
-	"""
-	# return status_button(rora.test_dotm_connect())
-	if utils.is_host_online(settings.DOTM_SERVER_IP, 2):
-		from breeze import rora
-		return rora.test_dotm_connect()
-	return False
-
-
-# clem on 21/08/2015
-def check_file_server():
-	""" Check if file server host is online
-
-	:rtype: bool
-	"""
-	return utils.is_host_online(settings.FILE_SERVER_IP, 2)
-
-
 # clem 19/02/2016
 def check_db_connection():
 	from django.db import connections
@@ -667,71 +613,32 @@ def check_file_system_mounted():
 	:rtype: bool
 	"""
 	from utils import exists
-	return check_file_server() and exists(settings.MEDIA_ROOT)
+	return exists(settings.MEDIA_ROOT)
 
 
 # clem on 20/08/2015
-def check_shiny(request):
+def check_shiny():
 	""" Check if Shiny server is responding
 
-	:type request:
+
 	:rtype: bool
 	"""
-	from breeze.auxiliary import proxy_to
 	try:
-		r = proxy_to(request, '', settings.SHINY_LOCAL_LIBS_TARGET_URL, silent=True, timeout=2)
-		if r.status_code == 200:
-			return True
+		return test_url(settings.SHINY_LOCAL_LIBS_TARGET_URL)
 	except Exception:
 		pass
 	return False
 
 
 # clem on 22/09/2015
-def check_csc_shiny(request):
+def check_csc_shiny():
 	""" Check if CSC Shiny server is responding
 
-	:type request:
-	:rtype: bool
-	"""
-	from breeze.auxiliary import proxy_to
-	try:
-		r = proxy_to(request, '', settings.SHINY_REMOTE_LIBS_TARGET_URL, silent=True, timeout=4)
-		if r.status_code == 200:
-			return True
-		else:
-			print 'prox to', settings.SHINY_REMOTE_LIBS_TARGET_URL, r.status_code
-	except Exception:
-		pass
-	return False
-
-
-# clem on 23/09/2015
-def check_csc_mount():
-	""" Check if remote Shiny is mounted as part of the FS
 
 	:rtype: bool
 	"""
-	from os import path
 	try:
-		if path.exists(settings.SHINY_REMOTE_LOCAL_PATH) and path.isdir(settings.SHINY_REMOTE_REPORTS):
-			return True
-	except Exception:
-		pass
-	return False
-
-
-# clem on 20/10/2015
-def check_csc_taito_mount():
-	""" Check if remote Shiny is mounted as part of the FS
-
-	:rtype: bool
-	"""
-	from os import path
-	try:
-		if path.exists(settings.TMP_CSC_TAITO_MOUNT) and path.isdir(
-			settings.TMP_CSC_TAITO_MOUNT + settings.TMP_CSC_TAITO_REPORT_PATH):
-			return True
+		return test_url(settings.SHINY_REMOTE_LIBS_TARGET_URL)
 	except Exception:
 		pass
 	return False
@@ -743,51 +650,32 @@ def check_watcher():
 	return JobKeeper.p and JobKeeper.p.is_alive()
 
 
-# clem on 20/08/2015
-def check_sge():
-	""" Check if SGE queue master server host is online, and drmaa can initiate a valid session
-
-	:rtype: bool
-	"""
-	if utils.is_host_online(settings.SGE_MASTER_IP, 2):
-		try:
-			import drmaa
-			s = drmaa.Session()
-			s.initialize()
-			s.exit()
-			return True
-		except Exception as e:
-			raise e
-	return False
-
-
-# clem on 09/12/2015
-def check_sge_c():
-	""" Check if SGE has a non empty env configuration.
-
-	:rtype: bool
-	"""
-	if settings.Q_BIN != '' and settings.SGE_QUEUE_NAME != '':
-		return True
-
-	return False
-
-
 # clem 08/09/2015
-def check_cas(request):
+def check_cas():
 	""" Check if CAS server is responding
 
-	:type request:
+
 	:rtype: bool
 	"""
-	from breeze.auxiliary import proxy_to
 	if utils.is_host_online(settings.CAS_SERVER_IP, 2):
 		try:
-			r = proxy_to(request, '', settings.CAS_SERVER_URL, silent=True, timeout=3)
-			if r.status_code == 200:
-				return True
+			return test_url(settings.CAS_SERVER_URL)
 		except Exception:
 			pass
+	return False
+
+
+# clem 12/10/20016
+def check_auth0():
+	""" Check if Auth0 server is responding
+
+
+	:rtype: bool
+	"""
+	try:
+		return test_url(settings.AUTH0_UP_URL)
+	except Exception:
+		pass
 	return False
 
 
@@ -880,7 +768,7 @@ CHECK_LIST = [
 		mandatory=True),
 	SysCheckUnit(save_file_index, 'fs_ok', '', 'saving file index...\t', RunType.boot_time, 25000,
 				run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
-	db_conn,
+	db_conn, fs_mount,
 	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto, RunType.runtime,
 				arg=HttpRequest(), ex=ShinyUnreachable),
 	SysCheckUnit(check_watcher, 'watcher', 'JobKeeper', 'JOB_KEEPER\t\t', RunType.runtime, ex=WatcherIsNotRunning),
