@@ -55,7 +55,7 @@ else:
 		url(r'^status/qstat/?$', views.qstat_live),
 		url(r'^status_lp/qstat/(?P<md5_t>[a-z0-9_]{32})?$', views.qstat_lp),
 		# All others system check in a wrapper
-		url(r'^status/(?P<what>[a-z_]+)?/?$', views.checker),
+		url(r'^status/(?P<what>[a-z_-]+)?/?$', views.checker),
 		url(r'^home/(?P<state>[a-z]+)?$', views.home, name='home'),
 		url(r'^ajax-rora-patients/(?P<which>[a-z]+)?$', views.ajax_patients_data),
 		url(r'^ajax-rora/action/?$', views.ajax_rora_action),
