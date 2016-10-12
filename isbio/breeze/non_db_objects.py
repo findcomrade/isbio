@@ -980,8 +980,8 @@ class RunServer(object):
 				  (len(match), self.count['lib'], self.count['load'], imp_text)
 		file_obj.add_on_top(
 			'##### BREEZE SUMMARY of file parsing to run on %s :\n' % self.target_name +
-			'## Parsed on %s (org. modified on %s) for %s (%s) \n' %
-			(d, file_obj.mod_dt, str(self._user.get_full_name()), self._user) + dep +
+			u'## Parsed on %s (org. modified on %s) for %s (%s) \n' %
+			(d, file_obj.mod_dt, self._user.get_full_name(), self._user) + dep +
 			'##### END OF BREEZE SUMMARY #####'
 		)
 		# save !important to save here because of lower-lever call-backs
