@@ -135,19 +135,6 @@
 					</small>
 				</div>
 				<div class="well">
-					<h4>Qstat <small id="qstat_title"></small></h4>
-					<span id="qstat_checked"> <!-- status/qstat/ -->
-						<script type="text/javascript">
-							document.write(LOADING_CONTENT);
-						</script>
-					</span>
-
-					<small class="">
-						Refreshed every <script type="text/javascript">document.write(QSTAT_REFRESH);</script> seconds
-					</small>
-
-				</div>
-				<div class="well">
 					{% for element in cache %}
 						{{ element }}<br />
 						<!--
@@ -156,13 +143,6 @@
 						<br/><br/>-->
 					{% endfor %}
 				</div>
-				{% for graph in usage_graph %}
-					<div class="well">
-						<label> {{ graph.legend }} <br />
-							<img src="{{ graph.url }}" alt="{{ graph.html_alt }}" title="{{ graph.html_title }}">
-						</label>
-					</div>
-				{% endfor %}
 			</div>
 		</div>
 	</div>
