@@ -137,14 +137,17 @@ class DockerRun:
 
 # clem 10/03/2016
 class DockerRepo:
-	url = ''
+	# url = ''
 	login = ''
 	pwd = ''
 	email = ''
 
 	def __init__(self, login, pwd, email='', url=DOCKER_HUB_URL):
-		assert isinstance(login, basestring) and isinstance(pwd, basestring) and isinstance(email, basestring) and \
+		try:
+			assert isinstance(login, basestring) and isinstance(pwd, basestring) and isinstance(email, basestring) and \
 			isinstance(url, basestring)
+		except AssertionError as e:
+			print 'CRITICAL : %s' % e
 		self.login = login
 		self.pwd = pwd
 		self.email = email
