@@ -6,6 +6,8 @@ from utils import *
 
 if settings.ENABLE_DATADOG:
 	from datadog import statsd
+else:
+	statsd = False
 
 DB_REFRESH = settings.WATCHER_DB_REFRESH
 PROC_REFRESH = settings.WATCHER_PROC_REFRESH
