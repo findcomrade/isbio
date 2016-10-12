@@ -9,13 +9,14 @@ from breeze.utilities import git, TermColoring, recur, recur_rec, get_key, impor
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
+statsd = False
 try:
 	from datadog import statsd
 	if ENABLE_DATADOG:
 		ENABLE_DATADOG = True
 except Exception:
 	ENABLE_DATADOG = False
-	pass
+	
 ENABLE_REMOTE_FW = False
 
 # TODO : redesign
