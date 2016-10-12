@@ -279,7 +279,7 @@ LOGGING = {
 AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'web-breeze.fimm.fi'] + AUTH0_IP_LIST
 
-DEBUG = False
+DEBUG = True
 VERBOSE = False
 SQL_DUMP = False
 # APPEND_SLASH = True
