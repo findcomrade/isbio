@@ -204,6 +204,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 AUTH0_DOMAIN = 'breeze.eu.auth0.com'
+AUTH0_TEST_URL = 'https://%s/test' % AUTH0_DOMAIN
 AUTH0_CLIENT_ID = 'gIN83mLS4qcQqE99Bi5MqzRzU38KruR6'
 AUTH0_SECRET_FILE_N = 'auth0'
 AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
@@ -212,6 +213,9 @@ AUTH0_CALLBACK_URL = 'https://web-breeze.fimm.fi/login/'
 AUTH0_SUCCESS_URL = '/jobs/'
 AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
 AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
+
+SSH_TUNNEL_HOST = 'breeze-ssh'
+# SSH_TUNNEL_TEST_URL = 'breeze-ssh'
 
 # ROOT_URLCONF = 'isbio.urls'
 APPEND_SLASH = True

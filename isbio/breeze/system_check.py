@@ -749,6 +749,16 @@ def long_poll_waiter():
 	return 'ok'
 
 
+# clem 12/10/20016
+def check_ssh_tunnel():
+	""" Check if ssh-tunnel container is responding (linked and up)
+
+
+	:rtype: bool
+	"""
+	return utils.is_host_online(settings.SSH_TUNNEL_HOST, 2)
+
+
 # TODO FIXME runtime fs_check slow and memory leak ?
 fs_mount = SysCheckUnit(check_file_system_mounted, 'fs_mount', 'File server', 'FILE SYSTEM\t\t ', RunType.runtime,
 						ex=FileSystemNotMounted, mandatory=True)
@@ -767,10 +777,11 @@ CHECK_LIST = [
 	SysCheckUnit(check_urls, 'urls', 'URL config', 'URL CONFIG\t\t', RunType.boot_time, ex=UrlFileHasMalformedPatterns,
 		mandatory=True),
 	SysCheckUnit(save_file_index, 'fs_ok', '', 'saving file index...\t', RunType.boot_time, 25000,
-				run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
+		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
-	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto, RunType.runtime,
-				arg=HttpRequest(), ex=ShinyUnreachable),
+	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
+	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
+		RunType.runtime, ex=ShinyUnreachable),
 	SysCheckUnit(check_watcher, 'watcher', 'JobKeeper', 'JOB_KEEPER\t\t', RunType.runtime, ex=WatcherIsNotRunning),
 ]
 
