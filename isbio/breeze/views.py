@@ -3098,7 +3098,7 @@ def job_url_hook(request, i_type, rid, md5, status='', code=0):
 # clem 17/05/2016
 @login_required(login_url='/')
 def invalidate_cache(request):
-	if not (request.user.is_superuser):
+	if not request.user.is_superuser:
 		raise PermissionDenied
 	ObjectCache.clear()
 	return HttpResponse('ok', content_type=c_t.PLAIN)
@@ -3106,8 +3106,8 @@ def invalidate_cache(request):
 
 # clem 17/05/2016
 @login_required(login_url='/')
-def invalidate_cache(request):
-	if not (request.user.is_superuser):
+def invalidate_cache_view(request):
+	if not request.user.is_superuser:
 		raise PermissionDenied
 	ObjectCache.clear()
 	destination = request.META.get('HTTP_REFERER', reverse(resources))
