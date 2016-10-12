@@ -152,7 +152,11 @@ def gen_file_from_template(template_path, sub_dict, output_path=None, safe=True)
 # TODO make a generator
 # FIXME Django Specific ?
 def get_key(name=''):
-	CONFIG_ROOT = recur(4, os.path.dirname, os.path.realpath(__file__)) + '/configs/'
+	CONFIG_ROOT = recur(4, os.path.dirname, os.path.realpath(__file__)) + '/configs/' # FIXME hardcoded setting string
+	if name.endswith('_secret'):
+		name = name[:-7]
+	if name.startswith('.'):
+		name = name[1:]
 	full_path = '%s.%s_secret' % (CONFIG_ROOT, name)
 	logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
 	# print 'get_key', full_path
