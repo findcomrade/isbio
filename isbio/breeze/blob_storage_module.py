@@ -40,6 +40,7 @@ ACT_CONT_MAPPING = {
 }
 
 
+# TODO throw an error if key is invalid, otherwise azure keeps on returning "ressource not found" error
 # clem 22/09/2016 duplicated from utilities/__init__
 def get_key_bis(name=''):
 	if name.endswith('_secret'):
@@ -47,7 +48,9 @@ def get_key_bis(name=''):
 	if name.startswith('.'):
 		name = name[1:]
 	try:
-		with open('%s.%s_secret' % (__dir_path__, name)) as f:
+		full_path = '%s/.%s_secret' % (__dir_path__, name)
+		print 'accessing key at %s' % full_path
+		with open(full_path) as f:
 			return str(f.read())[:-1]
 	except Exception:
 		pass
