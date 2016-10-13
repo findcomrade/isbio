@@ -165,7 +165,7 @@ def get_key(name=''):
 			return str(f.read())[:-1]
 	except Exception:
 		pass
-	return None
+	return ''
 
 
 from django.contrib.auth.decorators import login_required, user_passes_test

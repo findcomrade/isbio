@@ -2,28 +2,10 @@ import os
 import sys
 import abc
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 __author__ = 'clem'
 __date__ = '28/04/2016'
 
-
-# clem 22/09/2016 duplicated from utilities/pythonic
-def recur(nb, function, args):
-	while nb > 0:
-		args = function(args)
-		nb -= 1
-	return args
-
-
-# clem 22/09/2016 duplicated from utilities/__init__
-def get_key(name=''):
-	config_root = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/configs/'
-	try:
-		with open('%s.%s_secret' % (config_root, name)) as f:
-			return str(f.read())[:-1]
-	except Exception:
-		pass
-	return None
 
 # TODO set this configs :
 SERVICE_BLOB_BASE_URL = '' # format 'proto://%s.domain/%s/' % (container_name, url)
@@ -56,6 +38,20 @@ ACT_CONT_MAPPING = {
 	ACTION_LIST[2]: MNGT_CONTAINER,
 	ACTION_LIST[3]: MNGT_CONTAINER,
 }
+
+
+# clem 22/09/2016 duplicated from utilities/__init__
+def get_key_bis(name=''):
+	if name.endswith('_secret'):
+		name = name[:-7]
+	if name.startswith('.'):
+		name = name[1:]
+	try:
+		with open('%s.%s_secret' % (__dir_path__, name)) as f:
+			return str(f.read())[:-1]
+	except Exception:
+		pass
+	return ''
 
 
 # clem 08/04/2016 (from utilities)

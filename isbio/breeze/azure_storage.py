@@ -16,7 +16,7 @@ __file_name__ = os.path.basename(__file__)
 
 AZURE_ACCOUNT = 'breezedata'
 AZURE_PWD_FILE = 'azure_pwd_%s' % AZURE_ACCOUNT
-AZURE_KEY = get_key(AZURE_PWD_FILE)
+AZURE_KEY = get_key_bis(AZURE_PWD_FILE)
 
 
 # clem 14/04/2016
