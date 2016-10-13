@@ -1,5 +1,5 @@
 *.pyc
 *.py~
 *.html~
-azure_blob_pwd
-azure_pwd_*
+!.azure_*
+
