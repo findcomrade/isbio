@@ -600,7 +600,7 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 
 
 # clem 02/10/2015
-def html_auto_content_cache(path_to_file):
+def html_auto_content_cache(path_to_file, convert_img=True):
 	"""
 	Figure out if an HTML file has been cached or not, and return file content.
 	If file was not cached, checks for image content and return <i>image_embedding()</i> processed markup
@@ -616,7 +616,7 @@ def html_auto_content_cache(path_to_file):
 	file_name, file_ext = splitext(basename(path_to_file))
 	file_ext = slugify(file_ext)
 
-	if file_ext != 'html' and file_ext != 'htm':
+	if not convert_img or file_ext != 'html' and file_ext != 'htm':
 		f = open(path_to_file)
 		return f.read()
 

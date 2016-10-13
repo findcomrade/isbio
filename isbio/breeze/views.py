@@ -2355,7 +2355,7 @@ def report_file_server_sub(request, rid, type, fitem=None, fname=None):
 	mime_type = mime_type or 'application/octet-stream'
 
 	try:
-		my_html = aux.html_auto_content_cache(path_to_file)
+		my_html = aux.html_auto_content_cache(path_to_file, False)
 
 		response = HttpResponse(my_html, mimetype=mime_type)
 		folder, slash, a_file = local_path.rpartition('/')
