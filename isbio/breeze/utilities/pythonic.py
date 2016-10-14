@@ -68,7 +68,7 @@ class ClassProperty(property):
 
 
 # clem 10/10/2016 from http://stackoverflow.com/a/4506081/5094389
-def this_function_own_object():
+def this_function_own_object_old():
 	""" Return the function object of the caller
 	
 	:rtype: function
@@ -86,6 +86,18 @@ def this_function_own_object():
 					if len(funcs) > 1:
 						return None
 	return funcs[0] if funcs else None
+
+
+lambda_cache = { }
+
+
+def this_function_own_object(*args, **kw):
+	from types import FunctionType
+	caller_frame = currentframe(1)
+	code = caller_frame.f_code
+	if not code in lambda_cache:
+		lambda_cache[code] = FunctionType(code, caller_frame.f_globals)
+	return lambda_cache[code](*args, **kw)
 
 
 # clem 08/04/2016
