@@ -258,40 +258,6 @@
 	<div id="content" class="container-fluid">
 		<div class="row-fluid" style="display: none;">&nbsp;</div>
 		<div class="row-fluid">
-			<div class="span10 offset1 alert alert-danger" style="display: none; padding-bottom: 12px;padding-top: 12px;">
-				<script type="text/javascript">
-					function toggler() {
-						$("#notice_extend").toggle();
-						$("#notice_more").toggle();
-					}
-				</script>
-				<h4 style="text-decoration: underline;padding-bottom: 8px;">Maintenance Break notice</h4>
-				Breeze web server is <span style="font-weight: bold">currently under maintenance</span>
-				<span id="notice_extend" onclick="toggler();"> [...]
-				<a style="font-size: small; float: right;" href="#" >read more
-					<span style="font-size: smaller;">(important notice following)</span></a>
-				</span><span id="notice_more" style="display:none;">.
-					<br/>The break should be short, and Breeze should be back as soon as possible.<br /><br/>
-					<span style="text-decoration: underline; font-weight: bold">N.B. :</span>
-					Jobs/Reports launched before the beginning of the break won't be impacted, but they might not
-				show up
-					in the dashboard after the update (if so, please <a href="mailto:clement.fiere@helsinki.fi">contact
-					me</a>).<br>In the mean time, if you need to run urgent/critical work you may use the development
-					server : <a href="http://breeze-dev.giu.fi/">breeze-dev.giu.fi</a> (Note that this is a totally
-					different server, and you will have to re-authenticate)
-					<a style="font-size: small; float: right;" onclick="toggler();" href="#">Hide</a>
-				</span>
-			</div>
-			<div class="span8 offset2 alert alert-danger"
-			     style="display: block; padding-bottom: 12px;padding-top: 12px;">
-				<h4 style="text-decoration: underline;padding-bottom: 8px;">Breeze new address notice :</h4>
-				Breeze main server at fimm has moved to the address <u>breeze<strong>-fimm</strong>.fimm.fi
-				</u> .<br>
-				The old address ( breeze.fimm.fi ) currently redirects to the new address ( breeze-fimm.fimm.fi )
-				, however the old address will <strong>stop working</strong> after <u>friday 14/10/2016 18:00</u> EET<br>
-				Please take good note of this change, and update your bookmarks accordingly.<br>
-				<span style="text-align: right; float: right;">Thank you, the Breeze team.</span>
-			</div>
 		</div>
 		{% block content %}
 
