@@ -61,7 +61,7 @@ else:
 		url(r'^ajax-rora/action/?$', breeze.views.ajax_rora_action, name='breeze.views.ajax_rora_action'),
 		url(r'^ajax-rora-plain-screens/(?P<gid>\d+)$', breeze.views.ajax_rora_screens, name='breeze.views.ajax_rora_screens'),
 		url(r'^ajax-rora-groupname/?$', breeze.views.group_name, name='breeze.views.group_name'),
-		url(r'^update-user-info/?$', breeze.views.update_user_info_dialog, name='breeze.views.update_user_info_dialog'),
+		url(r'^update-user-info/?$', breeze.views.update_user_info_dialog, name='update_user_info_dialog'),
 		url(r'^update-server/?$', breeze.views.update_server, name='breeze.views.update_server'),
 		url(r'^help/?$', breeze.views.dochelp, name='breeze.views.dochelp'),
 		# url(r'^db-policy/?$', breeze.views.db_policy, name='breeze.views.db_policy'),
