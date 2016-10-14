@@ -2653,7 +2653,8 @@ def edit_group_dialog(request, gid):
 
 @login_required(login_url='/')
 def update_user_info_dialog(request):
-	__self__ = this_function_name()  # instance to self
+	# __self__ = this_function_name()  # instance to self
+	__self__ = this_function_own_object()  # instance to self
 	# user_info = User.objects.get(username=request.user)
 	user_info = OrderedUser.objects.get(id=request.user.id)
 
