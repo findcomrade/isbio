@@ -62,6 +62,7 @@ class DockerRun:
 	created_container_id = ''
 	created_container = None
 	event_listener = None
+	env = None
 
 	# clem 11/03/2016
 	@property
@@ -72,9 +73,11 @@ class DockerRun:
 	# _check_if_volume_exists deleted 14/03/2016 (last git commit 32844a2)
 	# _volume_exists deleted 14/03/2016 (last git commit 32844a2)
 
-	def __init__(self, image_full_name_tag, cmd='', volumes=None, ev_listener=None, stream=False, auto_rm=False):
+	def __init__(self, image_full_name_tag, cmd='', volumes=None, ev_listener=None, stream=False, auto_rm=False, env=None):
 		assert isinstance(image_full_name_tag, (DockerImage, basestring)) and isinstance(cmd, basestring) and\
-			(volumes is None or isinstance(volumes, (list, DockerVolume))) and type(auto_rm) is bool
+			(volumes is None or isinstance(volumes, (list, DockerVolume))) and type(auto_rm) is bool and\
+			(env is None or isinstance(env, dict))
+		self.env = env
 		self.image_full_name = image_full_name_tag
 		self.cmd = cmd
 		self.stream = stream # TODO #notImplemented
@@ -1119,13 +1122,13 @@ class DockerClient:
 		a_dict = run.config_dict() # get the volume config
 		vol_config = self.cli.create_host_config(binds=a_dict) if a_dict else dict()
 		if a_dict:
-			self._log('docker run %s %s -v %s' % (image_name, run.cmd, run.volumes))
+			self._log('docker run %s %s -v %s -e %s' % (image_name, run.cmd, run.volumes, run.env))
 		else:
 			self._log('docker run %s %s' % (image_name, run.cmd))
-
+		
 		# Create the container
-		container = self.get_container(self.cli.create_container(image_name, run.cmd, volumes=a_dict.keys(),
-																	host_config=vol_config)['Id'])
+		container = self.get_container(self.cli.create_container(image_name, run.cmd, volumes=a_dict.keys(), \
+			environment=run.env, host_config=vol_config)['Id'], envi)
 		if container: # container was successfully created and acquired
 			run.container_created(container)
 			return container

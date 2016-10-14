@@ -39,6 +39,7 @@ class DockerInterface(ComputeInterface):
 	SSH_LOOKUP_BASE = 'ps aux|grep "%s"|grep -v grep'
 	# CONTAINER SPECIFIC
 	NORMAL_ENDING = ['Running R script... done !', 'Success !', 'done']
+	AZURE_KEY_VAR = 'AZURE_KEY'
 
 	LINE3 = '\x1b[34mCreating archive /root/out.tar.xz'
 	LINE2 = '\x1b[1m''create_blob_from_path\x1b[0m(' # FIXME NOT ABSTRACT
@@ -683,6 +684,7 @@ class DockerInterface(ComputeInterface):
 	def send_job(self):
 		self._set_global_status(self.js.PREPARE_RUN) # TODO change
 		if self._upload_assembly():
+			env = { 'AZURE_KEY': self.storage_backend.ACCOUNT_KEY } # passing the blob storage secret key to the cont
 			self.my_run = DockerRun(self.config_container, self.config_cmd % self.run_id, self.my_volume)
 			self._attach_event_manager()
 			if self._run():

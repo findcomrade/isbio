@@ -2691,8 +2691,7 @@ def update_user_info_dialog(request):
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': personal_form,
-		# 'action': '/update-user-info/', update_user_info_dialog
-		'action': reverse(__self__, current_app='breeze'),
+		'action': reverse(__self__),
 		'header': 'Update Personal Info',
 		'layout': 'horizontal',
 		'submit': 'Save'
