@@ -1128,7 +1128,7 @@ class DockerClient:
 		
 		# Create the container
 		container = self.get_container(self.cli.create_container(image_name, run.cmd, volumes=a_dict.keys(), \
-			environment=run.env, host_config=vol_config)['Id'], envi)
+			environment=run.env, host_config=vol_config)['Id'])
 		if container: # container was successfully created and acquired
 			run.container_created(container)
 			return container
