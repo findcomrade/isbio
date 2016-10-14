@@ -100,6 +100,8 @@ def base(request):
 	return render_to_response('base.html')
 
 
+# FIXME obsolete
+# TODO rewrite
 @login_required(login_url='/')
 def home(request, state="feed"):
 	# user_info = User.objects.get(username=request.user)
@@ -218,8 +220,8 @@ def home(request, state="feed"):
 		user_profile.last_active = timezone.now()
 		user_profile.save()
 
-	from django.contrib import messages
-	messages.add_message(request, messages.INFO, 'Hello world.')
+	# from django.contrib import messages
+	# messages.add_message(request, messages.INFO, 'Hello world.')
 
 	return render_to_response('home.html', RequestContext(request, {
 		'home_status': 'active',
@@ -452,7 +454,7 @@ def reports(request):
 
 @login_required(login_url='/')
 def send_report(request, rid):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	report_inst = Report.objects.get(id=rid)  # only for auth
 	assert isinstance(report_inst, Report)
 	# offsite_u = OffsiteUser.objects.filter(belongs_to=request.user)
@@ -517,7 +519,7 @@ def send_report(request, rid):
 # Modal view to add an off-site user email address, and either attach it to the user or go to the add off-site user page
 @login_required(login_url='/')
 def add_offsite_user_dialog(request, rid=None):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
 	form_title = 'Add an offsite user'
 
@@ -563,7 +565,7 @@ def add_offsite_user_dialog(request, rid=None):
 # Form to add an user
 @login_required(login_url='/')
 def add_offsite_user(request, email=None):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__)
 
 	if request.method == 'POST' and email is None:
@@ -603,7 +605,7 @@ def add_offsite_user(request, email=None):
 # TODO fusion with add
 @login_required(login_url='/')
 def edit_offsite_user(request, uid):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'uid': uid})
 	try:
 		edit_u = OffsiteUser.objects.filter(belongs_to=request.user).get(id=uid)
@@ -1582,7 +1584,7 @@ def runnable_del(request, page=1, state=None):
 @login_required(login_url='/')
 def edit_report_access(request, rid):
 	report_inst = Report.objects.get(id=rid)
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
 	form_title = 'Edit "' + report_inst.name + '" access'
 
@@ -2133,7 +2135,7 @@ def report_shiny_view_tab(request, rid):
 
 # Shiny tab access from outside (with the key)
 def report_shiny_view_tab_out(request, s_key, u_key):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	try:  # TODO merge ACL with out wrapper in a new func
 		# Enforces access control
 		# both request will fail if the object is not found
@@ -2469,7 +2471,7 @@ def new_script_dialog(request):
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': form,
-		# 'action': reverse(this_function_own_object()), # FIXME not working, possibly same issue with many others
+		# 'action': reverse(this_function_name()), # FIXME not working, possibly same issue with many others
 		'action': '/scripts/new/', # FIXME not working, possibly same issue with many others
 		'header': 'Create New Script' + sup,
 		'layout': 'horizontal',
@@ -2520,7 +2522,7 @@ def edit_rtype_dialog(request, pid=None, mod=None):
 		@type request: django.db.models.query.QuerySet
 		@type pid: int
 	"""
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	instance = ReportType.objects.get(id=pid)
 	if request.method == "POST":
 		#
@@ -2550,7 +2552,7 @@ def new_project_dialog(request):
 	"""
 		This view provides a dialog to create a new Project in DB.
 	"""
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	project_form = breezeForms.NewProjectForm(request.POST or None)
 
 	if project_form.is_valid():
@@ -2571,7 +2573,7 @@ def new_group_dialog(request):
 	"""
 		This view provides a dialog to create a new Group in DB.
 	"""
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	group_form = breezeForms.GroupForm(request.POST or None)
 
 	if group_form.is_valid():
@@ -2593,7 +2595,7 @@ def edit_project_dialog(request, pid):
 	"""
 		This view provides a dialog to create a new Project in DB.
 	"""
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	project_data = Project.objects.get(id=pid)
 	form_action = reverse(__self__, kwargs={'pid': pid})  # '/projects/edit/' + str(pid)
 	form_title = 'Edit Project: ' + str(project_data.name)
@@ -2624,7 +2626,7 @@ def edit_group_dialog(request, gid):
 		This view provides a dialog to edit an existing Group in DB.
 	"""
 	group_data = Group.objects.get(id=gid)
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'gid': gid})
 	form_title = 'Edit Group: ' + str(group_data.name)
 
@@ -2651,7 +2653,7 @@ def edit_group_dialog(request, gid):
 
 @login_required(login_url='/')
 def update_user_info_dialog(request):
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
 	# user_info = User.objects.get(username=request.user)
 	user_info = OrderedUser.objects.get(id=request.user.id)
 

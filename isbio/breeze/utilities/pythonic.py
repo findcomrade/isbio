@@ -93,7 +93,7 @@ lambda_cache = { }
 
 # clem 14/10/2016 from http://metapython.blogspot.fi/2010/11/recursive-lambda-functions.html
 # http://stackoverflow.com/a/4492828
-def this_function_own_object(*args, **kw):
+def this_function_own_object():
 	from types import FunctionType
 	caller_frame = inspect.currentframe(1)
 	code = caller_frame.f_code
