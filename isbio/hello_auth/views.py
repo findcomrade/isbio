@@ -16,9 +16,11 @@ def index(request, template='hello_auth/base.html'):
 		return redirect(settings.AUTH0_SUCCESS_URL)
 
 
-def process_login(request): # TODO : use / extend auth0.auth_helpers instead
-	"""
-	Default handler to login user
+# TODO : use / extend auth0.auth_helpers instead
+def process_login(request):
+	""" Default handler to login user
+	
+	
 	:param request: HttpRequest
 	"""
 	
@@ -64,15 +66,12 @@ def process_login(request): # TODO : use / extend auth0.auth_helpers instead
 		print request.GET.__dict__
 	
 	return index(request)
-	# if request.user.is_authenticated():
-	#	return redirect(settings.AUTH0_SUCCESS_URL)
-	
-	# return HttpResponse(status=400)
 
 
 def trigger_logout(request):
-	"""
-	Default handler to login user
+	""" Default handler to login user
+	
+	
 	:param request: HttpRequest
 	"""
 	if request.user.is_authenticated():
