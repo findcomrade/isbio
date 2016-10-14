@@ -99,7 +99,7 @@ def this_function_own_object(*args, **kw):
 	code = caller_frame.f_code
 	if code not in lambda_cache:
 		lambda_cache[code] = FunctionType(code, caller_frame.f_globals)
-	return lambda_cache[code](*args, **kw)
+	return lambda_cache[code]
 
 
 # clem 08/04/2016
