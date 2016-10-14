@@ -2653,8 +2653,8 @@ def edit_group_dialog(request, gid):
 
 @login_required(login_url='/')
 def update_user_info_dialog(request):
-	# __self__ = this_function_name()  # instance to self
-	__self__ = this_function_own_object()  # instance to self
+	__self__ = this_function_name()  # instance to self
+	# __self__ = this_function_own_object()  # instance to self
 	# user_info = User.objects.get(username=request.user)
 	user_info = OrderedUser.objects.get(id=request.user.id)
 
@@ -2693,7 +2693,7 @@ def update_user_info_dialog(request):
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': personal_form,
 		# 'action': '/update-user-info/', update_user_info_dialog
-		'action': reverse(__self__),
+		'action': reverse(__self__, current_app='breeze'),
 		'header': 'Update Personal Info',
 		'layout': 'horizontal',
 		'submit': 'Save'
