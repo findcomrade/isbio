@@ -91,11 +91,13 @@ def this_function_own_object_old():
 lambda_cache = { }
 
 
+# clem 14/10/2016 from http://metapython.blogspot.fi/2010/11/recursive-lambda-functions.html
+# http://stackoverflow.com/a/4492828
 def this_function_own_object(*args, **kw):
 	from types import FunctionType
-	caller_frame = currentframe(1)
+	caller_frame = inspect.currentframe(1)
 	code = caller_frame.f_code
-	if not code in lambda_cache:
+	if code not in lambda_cache:
 		lambda_cache[code] = FunctionType(code, caller_frame.f_globals)
 	return lambda_cache[code](*args, **kw)
 
