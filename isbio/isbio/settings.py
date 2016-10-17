@@ -175,6 +175,7 @@ INSTALLED_APPS = [
 	'mathfilters',
 	'django_auth0',
 	'hello_auth.apps.Config',
+	'api.apps.Config',
 	'django_requestlogging',
 	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',
