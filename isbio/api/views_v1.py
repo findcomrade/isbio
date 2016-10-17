@@ -46,6 +46,7 @@ def hook(_):
 
 
 # clem 17/10/2016
+@csrf_exempt
 def reload_sys(_):
 	data = {  }
 	import os
