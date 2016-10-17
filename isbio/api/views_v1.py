@@ -49,7 +49,10 @@ def hook(_):
 
 # clem 17/10/2016
 @csrf_exempt
-def reload_sys(_):
+def reload_sys(request):
+	# TODO filter json request
+	print (str( request.POST ))
+	print (str( request.GET ))
 	data = {  }
 	import subprocess
 	subprocess.Popen('sleep 2 && git pull', shell=True)
