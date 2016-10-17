@@ -87,7 +87,7 @@ def advanced_pretty_print(d, indent=0, open_obj=False, get_output=False):
 			else:
 				buff += out('\t' * (indent + 1) + multi_line_ident(str(repr(value))))
 	else:
-		buff += out('\t' * (indent + 1) + multi_line_ident(str(iterable)))
+		buff += out(u'\t' * (indent + 1) + multi_line_ident(unicode(iterable)))
 
 	# if get_output:
 	return buff
