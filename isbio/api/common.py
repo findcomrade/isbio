@@ -17,4 +17,4 @@ def get_response(data=empty_dict, result=200):
 	}
 	result.update(data)
 	
-	return HttpResponse(json.dumps(data), content_type=CT_JSON)
+	return HttpResponse(json.dumps(result), content_type=CT_JSON)

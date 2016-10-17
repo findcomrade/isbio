@@ -17,18 +17,18 @@ VERSION = '1.0'
 
 
 # clem 17/10/2016
-def get_response(data=empty_dict, result=200):
+def get_response(data=empty_dict, result=200, message=''):
 	assert isinstance(data, dict)
 	result = {
 		'api'    :
 			{ 'version': VERSION, },
 		'result' : result,
-		'message': '',
+		'message': message,
 		'time'   : timezone.now()
 	}
 	result.update(data)
 	
-	return HttpResponse(json.dumps(data), content_type=CT_JSON)
+	return HttpResponse(json.dumps(result), content_type=CT_JSON)
 
 
 # clem 17/10/2016
