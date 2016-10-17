@@ -105,12 +105,12 @@ class MyWSGIReq(WSGIRequest):
 			if self.signature.endswith(self.hmac(key)):
 				success_msg = 'VERIFIED' + msg
 				logger.info(success_msg)
-				print (TermColoring.OK_GREEN(success_msg))
+				print (TermColoring.ok_green(success_msg))
 				return self.body
 			else:
 				error_msg = 'FAILED' + msg
 				logger.error(error_msg)
-				print (TermColoring.FAIL(error_msg))
+				print (TermColoring.fail(error_msg))
 		return False
 
 
@@ -157,7 +157,7 @@ def reload_sys(request):
 			subprocess.Popen('sleep 1 && git pull', shell=True)
 			
 			logger.info('Received system reload from GitHub, pulling and reloading ...')
-			print (TermColoring.OK_BLUE('sleep 1 && git pull'))
+			print (TermColoring.ok_blue('sleep 1 && git pull'))
 			
 			return get_response(payload, message='ok')
 		
