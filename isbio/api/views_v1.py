@@ -45,7 +45,7 @@ def hmac(data, key):
 	import hmac
 	import hashlib
 	
-	digest_maker = hmac.new(key, data, hashlib.sha1)
+	digest_maker = hmac.new(key, unicode(data), hashlib.sha1)
 	# digest_maker.update(data)
 	return digest_maker.hexdigest()
 
