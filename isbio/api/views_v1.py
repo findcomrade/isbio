@@ -111,7 +111,9 @@ class MyWSGIReq(WSGIRequest):
 				return self.body
 			else:
 				error_msg = 'FAILED' + msg
-				logger.error(error_msg)
+				logger.warning(error_msg)
+				logger.info('computed HMAC:%s mismatch header HMAC:%s, key length was %s' % (self.hmac(key),
+					self.signature, len(key))
 				print (TermColoring.fail(error_msg))
 		return False
 
@@ -158,7 +160,8 @@ def reload_sys(request):
 			import subprocess
 			subprocess.Popen('sleep 1 && git pull', shell=True)
 			
-			logger.info('Received system reload from GitHub, pulling and reloading ...')
+			logger.info('Received system reload from GitHub, pulling (django should reload itself if any change '
+						'occurs) ...')
 			print (TermColoring.ok_blue('sleep 1 && git pull'))
 			
 			return get_response(payload, message='ok')
@@ -174,7 +177,7 @@ def git_hook(request):
 		if True: # TODO filter json request
 			logger.info('Received git push event for R code')
 			logger.warning('NOT_IMPLEMENTED')
-			print ('NOT_IMPLEMENTED : R PULL')
+			print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
 			
 			return get_response(payload, message='ok')
 	
