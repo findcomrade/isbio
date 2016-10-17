@@ -116,7 +116,7 @@ class MyWSGIReq(WSGIRequest):
 
 # clem 17/10/2016
 def get_json(request_init):
-	request = MyWSGIReq(request_init, 1)
+	request = MyWSGIReq(request_init, 0)
 	# key = get_key_magic(1)
 	try:
 		json_data = request.check_sig()
