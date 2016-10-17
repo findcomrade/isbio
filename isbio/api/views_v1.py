@@ -47,7 +47,7 @@ class MyWSGIReq(WSGIRequest):
 	import hashlib
 	import hmac as _hmac_lib
 	H_SIG = 'HTTP_X_HUB_SIGNATURE'
-	H_DELIVERY_ID = 'X_GitHub_Delivery'
+	H_DELIVERY_ID = 'HTTP_X_GitHub_Delivery'
 	H_REQ_METHOD = 'REQUEST_METHOD'
 	H_C_T = 'CONTENT_TYPE'
 	H_HOST = 'HTTP_X_Forwarded_For' # X-Forwarded-For # HTTP_HOST
