@@ -14,6 +14,13 @@ import json
 
 CT_JSON = 'application/json'
 
+empty_dict = dict()
+
+
+# clem 17/10/2016
+def get_response(data=empty_dict):
+	return HttpResponse(json.dumps(data), content_type=CT_JSON)
+
 
 # clem 17/10/2016
 # copied from breeze
@@ -34,5 +41,5 @@ def show_templates(_, content, iid=None):
 	if c_list:
 		for item in c_list:
 			response[item.name] = item.description
-	
-	return HttpResponse(json.dumps(response), content_type=CT_JSON)
+		
+	return get_response(response)
