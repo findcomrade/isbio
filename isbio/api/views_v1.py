@@ -42,8 +42,10 @@ def get_response(data=empty_dict, result=200, message=''):
 # clem 17/10/2016
 def hmac(data, key):
 	import hmac
-	digest_maker = hmac.new(key)
-	digest_maker.update(data)
+	import hashlib
+	
+	digest_maker = hmac.new(key, data, hashlib.sha1)
+	# digest_maker.update(data)
 	return digest_maker.hexdigest()
 
 
@@ -51,14 +53,14 @@ def hmac(data, key):
 def check_signature(request):
 	assert isinstance(request, HttpRequest)
 	# X-Hub-Signature: sha1=*
-	print ('META', str(request.META))
-	print ('X-Hub-Signature', request.META.get('X-Hub-Signature', None))
-	
-	key = get_key_magic(1)
-	print ('key for %s : %s' % (this_function_caller_name(), key))
-	
+	sig = request.META.get('HTTP_X_HUB_SIGNATURE', None)
 	payload = request.REQUEST.get('payload', None)
-	if payload:
+	if sig and payload:
+		print('sig:', sig)
+		
+		key = get_key_magic(1)
+		print ('key for %s : %s' % (this_function_caller_name(), key))
+
 		digest = hmac(payload, key)
 		print ('digest:', digest)
 		
