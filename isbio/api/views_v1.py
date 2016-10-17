@@ -49,10 +49,8 @@ def hook(_):
 @csrf_exempt
 def reload_sys(_):
 	data = {  }
-	import os
-	os.system('pwd')
-	os.system('git pull')
-	os.system('touch /root/code/isbio/manage.py')
+	import subprocess
+	subprocess.Popen('sleep 2 && git pull', shell=True)
 	
 	return get_response(data, message='ok')
 
