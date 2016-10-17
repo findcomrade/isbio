@@ -26,7 +26,7 @@ else:
 	from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 	import breeze
 	import breeze.views
-	from api import views_legacy as legacy
+	from api import views_legacy as legacy # forward
 	# Uncomment/comment the next two lines to enable/disable the admin:
 	from django.contrib import admin
 	admin.autodiscover()
