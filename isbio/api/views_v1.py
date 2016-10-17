@@ -45,7 +45,7 @@ def hmac(data, key):
 	import hmac
 	import hashlib
 	
-	digest_maker = hmac.new(key, data.encode('utf-8'), hashlib.sha1)
+	digest_maker = hmac.new(bytearray(key, 'utf-8'), bytearray(data, 'utf-8'), hashlib.sha1) #  data.encode('utf-8')
 	# digest_maker.update(data)
 	return digest_maker.hexdigest()
 
@@ -60,13 +60,16 @@ def check_signature(request):
 		print('sig:', sig)
 		
 		key = get_key_magic(1)
-		print ('key for %s : %s' % (this_function_caller_name(), key))
+		print ('key for %s : "%s"' % (this_function_caller_name(), key))
 
 		digest = hmac(payload, key)
 		print ('digest:', digest)
 		
 		print('payload :')
-		pp(payload)
+		try:
+			print(json.loads(payload))
+		except Exception as e:
+			print e
 	return payload
 	
 
