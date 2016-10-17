@@ -113,7 +113,7 @@ class MyWSGIReq(WSGIRequest):
 				error_msg = 'FAILED' + msg
 				logger.warning(error_msg)
 				logger.info('computed HMAC:%s mismatch header HMAC:%s, key length was %s' % (self.hmac(key),
-					self.signature, len(key))
+					self.signature, len(key)))
 				print (TermColoring.fail(error_msg))
 		return False
 
