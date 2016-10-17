@@ -55,22 +55,24 @@ def check_signature(request):
 	assert isinstance(request, WSGIRequest)
 	# X-Hub-Signature: sha1=*
 	sig = request.META.get('HTTP_X_HUB_SIGNATURE', None)
-	payload = request.POST.get('payload', None)
-	if sig and payload:
+	raw_body = request.body
+	#  = json.loads(request.body)
+	# payload = request.POST.get('payload', None)
+	if sig and raw_body:
 		print('sig:', sig)
 		
 		key = get_key_magic(1)
 		print ('key for %s : "%s"' % (this_function_caller_name(), key))
 
-		digest = hmac(payload, key)
+		digest = hmac(raw_body, key)
 		print ('digest:', digest)
 		
 		print('payload :')
 		try:
-			print(json.loads(payload))
+			print(json.loads(raw_body))
 		except Exception as e:
 			print e
-	return payload
+	return raw_body
 	
 
 #########
@@ -98,10 +100,10 @@ def reload_sys(request):
 	payload = check_signature(request)
 	if payload:
 		# TODO filter json request
-		data = { 'msg': 'ok' }
+		obj = json.loads(payload)
 		import subprocess
 		subprocess.Popen('sleep 2 && git pull', shell=True)
-		return get_response(data, message='ok')
+		return get_response(obj, message='ok')
 		
 	return get_response(result=400, )
 	
@@ -112,7 +114,7 @@ def git_hook(request):
 	payload = check_signature(request)
 	if payload:
 		# TODO filter json request
-		data = { 'msg': 'ok' }
+		data = json.loads(payload)
 		return get_response(data, message='ok')
 	
 	return get_response(result=400)
