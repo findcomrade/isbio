@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
+from django.core.exceptions import SuspiciousOperation
 from breeze.utilities import *
 import json
 import time
@@ -160,7 +161,7 @@ def reload_sys(request):
 			
 			return get_response(payload, message='ok')
 		
-	return get_response(result=400)
+		raise SuspiciousOperation('Invalid request or handling error')
 	
 	
 # clem 17/10/2016
@@ -175,4 +176,4 @@ def git_hook(request):
 			
 			return get_response(payload, message='ok')
 	
-	return get_response(result=400)
+	raise SuspiciousOperation('Invalid request or handling error')
