@@ -21,10 +21,12 @@ from breeze.middlewares import is_on
 if not is_on():
 	from down import views
 
-	urlpatterns = [url(r'^.*$', breeze.views.down, name='down')]
+	urlpatterns = [url(r'^.*$', views.down, name='down')]
 else:
 	from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 	import breeze
+	import breeze.views
+	from api import views_legacy as legacy
 	# Uncomment/comment the next two lines to enable/disable the admin:
 	from django.contrib import admin
 	admin.autodiscover()
@@ -34,6 +36,7 @@ else:
 
 	urlpatterns = [
 		url(r'^', include('hello_auth.urls')),
+		url(r'^api/', include('api.urls')),
 		url(r'^auth/', include('django_auth0.urls')),
 		url(r'^user_list/?$', breeze.views.user_list, name='user_list'),
 		url(r'^test1/?', breeze.views.job_list, name='job_list'),
@@ -84,17 +87,20 @@ else:
 		url(r'^reports/search$', breeze.views.report_search, name='report_search'),
 		url(r'^reports/view/(?P<rid>\d+)/(?P<fname>.+)?$', breeze.views.report_file_view, name='report.view'),
 		url(r'^reports/get/(?P<rid>\d+)/(?P<fname>.+)?$', breeze.views.report_file_get, name='report_file_get'),
-		url(r'^media/reports/(?P<rid>\d+)_(?P<rest>[^/]+)/(?P<fname>.+)?$', breeze.views.report_file_wrap, name='report_file_wrap'),
+		url(r'^media/reports/(?P<rid>\d+)_(?P<rest>[^/]+)/(?P<fname>.+)?$', breeze.views.report_file_wrap,
+			name='report_file_wrap'),
 		url(r'^media/reports/(?P<rid>\d+)/(?P<fname>.+)?$', breeze.views.report_file_wrap2, name='report_file_wrap2'),
 		url(r'^reports/delete/(?P<rid>\d+)(?P<redir>-[a-z]+)?$', breeze.views.delete_report, name='delete_report'),
 		url(r'^reports/edit_access/(?P<rid>\d+)$', breeze.views.edit_report_access, name='edit_report_access'),
-		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/-]+)-(?P<iid>[^/-]+)$', breeze.views.report_overview, name='report_overview'),
+		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/-]+)-(?P<iid>[^/-]+)$', breeze.views.report_overview,
+			name='report_overview'),
 		url(r'^reports/edit/(?P<jid>\d+)?$', breeze.views.edit_report, name='edit_report'),  # Re Run report
 		url(r'^reports/check/?$', breeze.views.check_reports, name='check_reports'),  # Re Run report
 		url(r'^reports/send/(?P<rid>\d+)$', breeze.views.send_report, name='send_report'),
 		url(r'^off_user/add/?$', breeze.views.add_offsite_user_dialog, name='add_offsite_user_dialog'),
 		url(r'^off_user/add/(?P<rid>\d*)$', breeze.views.add_offsite_user_dialog, name='add_offsite_user_dialog'),
-		url(r'^off_user/add/form/(?P<email>' + email_pattern + ')$', breeze.views.add_offsite_user, name='add_offsite_user'),
+		url(r'^off_user/add/form/(?P<email>' + email_pattern + ')$', breeze.views.add_offsite_user,
+			name='add_offsite_user'),
 		url(r'^off_user/add/form/?$', breeze.views.add_offsite_user, name='add_offsite_user'),
 		url(r'^off_user/edit/(?P<uid>\d*)$', breeze.views.edit_offsite_user, name='edit_offsite_user'),
 		url(r'^off_user/del/(?P<uid>\d*)$', breeze.views.delete_off_site_user, name='delete_off_site_user'),
@@ -102,28 +108,41 @@ else:
 		# url(r'^reports/shiny-tab/(?P<rid>\d+)/?$', breeze.views.report_shiny_view_tab, name='report_shiny_view_tab'),
 		url(r'^runnable/delete/?', breeze.views.runnable_del, name='runnable_del'),
 		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?$', breeze.views.jobs, name='jobs'),
-		url(r'^jobs/delete/(?P<jid>\d+)(?P<state>[a-z]+)?$', breeze.views.delete_job, name='delete_job'), # FIXME DEPRECATED
-		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?delete/(?P<jid>\d+)$', breeze.views.delete_job, name='delete_job'),
-		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?group-delete/?$', breeze.views.runnable_del, name='runnable_del'),
+		# FIXME DEPRECATED
+		url(r'^jobs/delete/(?P<jid>\d+)(?P<state>[a-z]+)?$', breeze.views.delete_job, name='delete_job'),
+		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?delete/(?P<jid>\d+)$', breeze.views.delete_job,
+			name='delete_job'),
+		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?group-delete/?$', breeze.views.runnable_del,
+			name='runnable_del'),
 		url(r'^jobs/run/(?P<jid>\d+)$', breeze.views.run_script, name='run_script'), # FIXME DEPRECATED
-		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?run/(?P<jid>\d+)$', breeze.views.run_script, name='run_script'),
-		url(r'^jobs/edit/jobs/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'), # FIXME DEPRECATED
-		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?edit/jobs/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'),
-		url(r'^jobs/edit/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'), # FIXME DEPRECATED
-		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?edit/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'),
+		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?run/(?P<jid>\d+)$', breeze.views.run_script,
+			name='run_script'),
+		# FIXME DEPRECATED
+		url(r'^jobs/edit/jobs/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'),
+		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?edit/jobs/(?P<jid>\d+)(?P<mod>-[a-z]+)?$',
+			breeze.views.edit_job, name='edit_job'),
+		url(r'^jobs/edit/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job, name='edit_job'),
+		# FIXME DEPRECATED
+		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?edit/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.edit_job,
+			name='edit_job'),
 		url(r'^jobs/show-code/(?P<jid>\d+)$', breeze.views.show_rcode, name='show_rcode'),
 		url(r'^jobs/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.send_zipfile_j, name='send_zipfile_j'),
 		url(r'^report/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.send_zipfile_r, name='send_zipfile_r'),
-		# url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'), # FIXME DEPRECATED
-		url(r'^jobs/info/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'), # FIXME DEPRECATED
+		# url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'),
+		#  FIXME DEPRECATED
+		url(r'^jobs/info/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'),
 		url(r'^jobs/info/(?P<item>[a-z]+)/(?P<jid>\d+)$', breeze.views.update_jobs, name='update_jobs'),
 		url(r'^jobs/info/(?P<jid>\d+)$', breeze.views.update_jobs, { 'item': 'script' }, name='update_jobs'),
 		url(r'^reports/info/(?P<jid>\d+)$', breeze.views.update_jobs, { 'item': 'report' }, name='update_jobs'),
 		# new
-		url(r'^jobs/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', breeze.views.update_jobs_lp, { 'item': 'script' }, name='update_jobs_lp'),
-		url(r'^reports/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', breeze.views.update_jobs_lp, { 'item': 'report' }, name='update_jobs_lp'),
-		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)?$', breeze.views.job_url_hook, name='job_url_hook'),
-		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)/(?P<code>\w+)?$', breeze.views.job_url_hook, name='job_url_hook'),
+		url(r'^jobs/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', breeze.views.update_jobs_lp,
+			{ 'item': 'script' }, name='update_jobs_lp'),
+		url(r'^reports/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', breeze.views.update_jobs_lp,
+			{ 'item': 'report' }, name='update_jobs_lp'),
+		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)?$', breeze.views.job_url_hook,
+			name='job_url_hook'),
+		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)/(?P<code>\w+)?$',
+			breeze.views.job_url_hook, name='job_url_hook'),
 		# url(r'^update-all-jobs/$', breeze.views.update_all_jobs, name='update_all_jobs'), # DO NOT USE : TOOOOOOOO SLOW
 		url(r'^scripts/new/?$', breeze.views.new_script_dialog, name='scripts.new'),
 		url(r'^scripts/delete/(?P<sid>\d+)$', breeze.views.delete_script, name='delete_script'),
@@ -151,11 +170,18 @@ else:
 		url(r'^resources/?$', breeze.views.resources, name='res'),
 		url(r'^resources/invalidate_cache/?$', breeze.views.invalidate_cache_view, name='cache.invalidate'),
 		url(r'^resources/scripts/(?P<page>\d+)?$', breeze.views.manage_scripts, name='res.scripts'),
-		url(r'^resources/scripts/all/(?P<page>\d+)?$', breeze.views.manage_scripts, { 'view_all': True }, name='res.scripts.all'),
-		url(r'^resources/scripts/(all/)?script-editor/(?P<sid>\d+)(?P<tab>-[a-z_]+)?$', breeze.views.script_editor, name='script_editor'),
-		url(r'^resources/scripts/(all/)?script-editor/update/(?P<sid>\d+)$', breeze.views.script_editor_update, name='script_editor_update'),
-		url(r'^resources/scripts/(all/)?script-editor/get-content/(?P<content>[^/-]+)(?P<iid>-\d+)?$', breeze.views.send_dbcontent, name='send_dbcontent'),
-		url(r'^resources/scripts/(all/)?script-editor/get-code/(?P<sid>\d+)/(?P<sfile>[^/-]+)$', breeze.views.get_rcode, name='get_rcode'),
+		url(r'^resources/scripts/all/(?P<page>\d+)?$', breeze.views.manage_scripts, { 'view_all': True },
+			name='res.scripts.all'),
+		url(r'^resources/scripts/(all/)?script-editor/(?P<sid>\d+)(?P<tab>-[a-z_]+)?$', breeze.views.script_editor,
+			name='script_editor'),
+		url(r'^resources/scripts/(all/)?script-editor/update/(?P<sid>\d+)$', breeze.views.script_editor_update,
+			name='script_editor_update'),
+		# url(r'^resources/scripts/(all/)?script-editor/get-content/(?P<content>[^/-]+)(?P<iid>-\d+)?$',
+		# breeze.views.send_dbcontent, name='send_dbcontent'),
+		url(r'^resources/scripts/(all/)?script-editor/get-content/(?P<content>[^/-]+)(?P<iid>-\d+)?$',
+			legacy.show_templates, name='send_dbcontent'),
+		url(r'^resources/scripts/(all/)?script-editor/get-code/(?P<sid>\d+)/(?P<sfile>[^/-]+)$', breeze.views.get_rcode,
+			name='get_rcode'),
 		url(r'^resources/scripts/(all/)?script-editor/get-form/(?P<sid>\d+)$', breeze.views.get_form, name='get_form'),
 		url(r'^resources/pipes/?$', breeze.views.manage_pipes, name='manage_pipes'),
 		url(r'^resources/pipes/pipe-editor/(?P<pid>\d+)$', breeze.views.edit_rtype_dialog, name='edit_rtype_dialog'),
