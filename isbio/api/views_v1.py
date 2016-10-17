@@ -45,7 +45,8 @@ def hmac(data, key):
 	import hmac
 	import hashlib
 	
-	digest_maker = hmac.new(bytearray(key, 'utf-8'), bytearray(data, 'utf-8'), hashlib.sha1) #  data.encode('utf-8')
+	# digest_maker = hmac.new(bytearray(key, 'utf-8'), bytearray(data, 'utf-8'), hashlib.sha1)
+	digest_maker = hmac.new(key, data, hashlib.sha1) #  data.encode('utf-8')
 	# digest_maker.update(data)
 	return digest_maker.hexdigest()
 
