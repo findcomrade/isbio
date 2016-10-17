@@ -54,7 +54,9 @@ def hmac(data, key):
 # clem 17/10/2016
 def check_signature(request):
 	assert isinstance(request, WSGIRequest)
-	sig = request.META.get('HTTP_X_HUB_SIGNATURE', '')
+	sig = str(request.META.get('HTTP_X_HUB_SIGNATURE', ''))
+	content_t = request.META.get('CONTENT_TYPE', '')
+	print content_t
 	host = request.META.get('REMOTE_HOST', '')
 	agent = request.META.get('HTTP_USER_AGENT', '')
 	this_id = '%s / %s' % (host, agent)
@@ -66,7 +68,7 @@ def check_signature(request):
 		# print('sig:', sig)
 		key = get_key_magic(1)
 		digest = hmac(raw_body, key)
-		if sig.startwith('sha1') and sig.endswith(digest):
+		if sig.startswith('sha1') and sig.endswith(digest):
 			logger.info('VERIFIED SIG FROM %s' % this_id)
 			return json.loads(raw_body)
 		else:
