@@ -46,6 +46,17 @@ def hook(_):
 
 
 # clem 17/10/2016
+def reload_sys(_):
+	data = {  }
+	import os
+	os.system('pwd')
+	os.system('git pull')
+	os.system('touch /root/code/isbio/manage.py')
+	
+	return get_response(data, message='ok')
+
+
+# clem 17/10/2016
 @csrf_exempt
 def git_hook(request):
 	if request.POST:
