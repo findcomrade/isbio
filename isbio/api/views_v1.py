@@ -161,7 +161,7 @@ def reload_sys(request):
 			
 			return get_response(payload, message='ok')
 		
-		raise SuspiciousOperation('Invalid request or handling error')
+	raise SuspiciousOperation('Invalid request or handling error')
 	
 	
 # clem 17/10/2016
