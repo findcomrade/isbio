@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse
+from django.core.handlers.wsgi import WSGIRequest
 from breeze.utilities import *
 import json
 import time
@@ -51,10 +52,10 @@ def hmac(data, key):
 
 # clem 17/10/2016
 def check_signature(request):
-	assert isinstance(request, HttpRequest)
+	assert isinstance(request, WSGIRequest)
 	# X-Hub-Signature: sha1=*
 	sig = request.META.get('HTTP_X_HUB_SIGNATURE', None)
-	payload = request.REQUEST.get('payload', None)
+	payload = request.POST.get('payload', None)
 	if sig and payload:
 		print('sig:', sig)
 		
