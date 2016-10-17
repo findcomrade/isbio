@@ -45,7 +45,8 @@ def get_response(data=empty_dict, result=200, message=''):
 class MyWSGIReq(WSGIRequest):
 	import hashlib
 	import hmac as _hmac_lib
-	H_SIG_HEADER = 'HTTP_X_HUB_SIGNATURE'
+	H_SIG = 'HTTP_X_HUB_SIGNATURE'
+	H_DELIVERY_ID = 'X_GitHub_Delivery'
 	H_REQ_METHOD = 'REQUEST_METHOD'
 	H_C_T = 'CONTENT_TYPE'
 	H_HOST = 'HTTP_X_Forwarded_For' # X-Forwarded-For # HTTP_HOST
@@ -71,7 +72,11 @@ class MyWSGIReq(WSGIRequest):
 
 	@property
 	def signature(self):
-		return self.get_meta(self.H_SIG_HEADER)
+		return self.get_meta(self.H_SIG)
+	
+	@property
+	def delivery_id(self):
+		return self.get_meta(self.H_DELIVERY_ID)
 	
 	@property
 	def has_sig(self):
@@ -94,15 +99,15 @@ class MyWSGIReq(WSGIRequest):
 		if self.is_json_post and self.has_sig and self.body:
 			if not key:
 				key = get_key_magic(self._call_depth)
+			args = (this_function_caller_name(self._call_depth), self.client_id, self.delivery_id)
+			msg = ' SIG_CHECK for %s FROM %s (delivery %s)' % args
 			if self.signature.endswith(self.hmac(key)):
-				success_msg = 'VERIFIED good sig for %s FROM %s' %\
-					(this_function_caller_name(self._call_depth), self.client_id)
+				success_msg = 'VERIFIED' + msg
 				logger.info(success_msg)
 				print (TermColoring.OK_GREEN(success_msg))
 				return self.body
 			else:
-				error_msg = 'HOOK SIG_CHECK for %s FAILED from %s' %\
-					(this_function_caller_name(self._call_depth), self.client_id)
+				error_msg = 'FAILED' + msg
 				logger.error(error_msg)
 				print (TermColoring.FAIL(error_msg))
 		return False
