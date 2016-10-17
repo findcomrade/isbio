@@ -3,6 +3,6 @@ from . import views as api_views
 
 urlpatterns = [
 	url(r'^$', api_views.api_home, name='api.home'),
-	url(r'^legacy/$', include('api.urls_legacy')),
-	url(r'^v1/$', include('api.urls_v1')),
+	url(r'^legacy/', include('api.urls_legacy')),
+	url(r'^v1/', include('api.urls_v1')),
 ]
