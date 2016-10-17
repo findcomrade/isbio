@@ -93,8 +93,10 @@ class MyWSGIReq(WSGIRequest):
 
 	@property
 	def client_id(self):
-		return '%s (%s) / %s' %\
-			(self.get_meta(self.H_HOST), self.get_meta(self.H_REMOTE_IP), self.get_meta(self.H_USER_AGENT))
+		host = self.get_meta(self.H_HOST)
+		remote_ip = self.get_meta(self.H_REMOTE_IP)
+		host_bloc = host if host == remote_ip else '%s (%s)' % (host, remote_ip)
+		return '%s / %s' % (host_bloc, self.get_meta(self.H_USER_AGENT))
 
 	def check_sig(self, key=None):
 		if self.is_json_post and self.has_sig and self.body:
