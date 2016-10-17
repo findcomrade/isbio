@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.utils import timezone
+import time
 import json
 
 CT_JSON = 'application/json'
@@ -13,7 +13,7 @@ def get_response(data=empty_dict, result=200):
 		{'version': '?', },
 		'result': result,
 		'message': '',
-		'time': timezone.now()
+		'time': time.time()
 	}
 	result.update(data)
 	

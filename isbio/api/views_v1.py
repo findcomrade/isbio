@@ -1,8 +1,10 @@
 from django.utils import timezone
-from breeze.utils import pp
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
+import time
+
+# from breeze.utils import pp
 # from django.core.urlresolvers import reverse
 # from django.conf import settings
 # from django import http
@@ -24,7 +26,7 @@ def get_response(data=empty_dict, result=200, message=''):
 			{ 'version': VERSION, },
 		'result' : result,
 		'message': message,
-		'time'   : timezone.now()
+		'time'   : time.time()
 	}
 	result.update(data)
 	
