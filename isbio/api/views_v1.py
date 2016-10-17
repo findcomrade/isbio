@@ -40,6 +40,14 @@ def get_response(data=empty_dict, result=200, message=''):
 
 
 # clem 17/10/2016
+def hmac(data, key):
+	import hmac
+	digest_maker = hmac.new(key)
+	digest_maker.update(data)
+	return digest_maker.hexdigest()
+
+
+# clem 17/10/2016
 def check_signature(request):
 	assert isinstance(request, HttpRequest)
 	# X-Hub-Signature: sha1=*
@@ -51,6 +59,9 @@ def check_signature(request):
 	
 	payload = request.REQUEST.get('payload', None)
 	if payload:
+		digest = hmac(payload, key)
+		print ('digest:', digest)
+		
 		print('payload :')
 		pp(payload)
 	return payload
