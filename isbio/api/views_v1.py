@@ -48,8 +48,8 @@ class MyWSGIReq(WSGIRequest):
 	H_SIG_HEADER = 'HTTP_X_HUB_SIGNATURE'
 	H_REQ_METHOD = 'REQUEST_METHOD'
 	H_C_T = 'CONTENT_TYPE'
-	H_HOST = 'HTTP_HOST'
-	H_REMOTE_IP = 'REMOTE_ADDR'
+	H_HOST = 'HTTP_X_Forwarded_For' # X-Forwarded-For # HTTP_HOST
+	H_REMOTE_IP = 'HTTP_X_Real_IP' # X-Real-IP #
 	H_USER_AGENT = 'HTTP_USER_AGENT'
 	
 	def __init__(self, request):
@@ -60,7 +60,7 @@ class MyWSGIReq(WSGIRequest):
 		return self._hmac_lib.new(key, self.body, algorithm).hexdigest() # data.encode('utf-8')
 
 	def get_meta(self, key, default=''):
-		return str(self.META.get(key, default))
+		return str(self.META.get(key.upper(), default))
 
 	def get_meta_low(self, key, default=''):
 		return self.get_meta(key, default).lower()
@@ -141,7 +141,7 @@ def reload_sys(request):
 	if payload:
 		# TODO filter json request
 		import subprocess
-		subprocess.Popen('sleep 2 && git pull', shell=True)
+		subprocess.Popen('sleep 1 && git pull', shell=True)
 		return get_response(payload, message='ok')
 		
 	return get_response(result=400)
