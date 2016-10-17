@@ -57,7 +57,7 @@ class MyWSGIReq(WSGIRequest):
 	def __init__(self, request, call_depth=0):
 		assert isinstance(request, WSGIRequest)
 		super(MyWSGIReq, self).__init__(request.environ)
-		self._call_depth = call_depth + 1
+		self._call_depth = call_depth
 	
 	def hmac(self, key, algorithm=hashlib.sha1):
 		return self._hmac_lib.new(key, self.body, algorithm).hexdigest() # data.encode('utf-8')
@@ -99,7 +99,7 @@ class MyWSGIReq(WSGIRequest):
 	def check_sig(self, key=None):
 		if self.is_json_post and self.has_sig and self.body:
 			if not key:
-				key = get_key_magic(self._call_depth)
+				key = get_key_magic(self._call_depth + 1)
 			args = (this_function_caller_name(self._call_depth), self.client_id, self.delivery_id)
 			msg = ' SIG_CHECK for %s FROM %s (delivery %s)' % args
 			if self.signature.endswith(self.hmac(key)):
@@ -116,7 +116,7 @@ class MyWSGIReq(WSGIRequest):
 
 # clem 17/10/2016
 def get_json(request_init):
-	request = MyWSGIReq(request_init, 0)
+	request = MyWSGIReq(request_init, 1)
 	# key = get_key_magic(1)
 	try:
 		json_data = request.check_sig()
