@@ -52,9 +52,10 @@ class MyWSGIReq(WSGIRequest):
 	H_REMOTE_IP = 'HTTP_X_Real_IP' # X-Real-IP #
 	H_USER_AGENT = 'HTTP_USER_AGENT'
 	
-	def __init__(self, request):
+	def __init__(self, request, call_depth=0):
 		assert isinstance(request, WSGIRequest)
 		super(MyWSGIReq, self).__init__(request.environ)
+		self._call_depth = call_depth + 1
 	
 	def hmac(self, key, algorithm=hashlib.sha1):
 		return self._hmac_lib.new(key, self.body, algorithm).hexdigest() # data.encode('utf-8')
@@ -92,21 +93,27 @@ class MyWSGIReq(WSGIRequest):
 	def check_sig(self, key=None):
 		if self.is_json_post and self.has_sig and self.body:
 			if not key:
-				key = get_key_magic(1)
+				key = get_key_magic(self._call_depth)
 			if self.signature.endswith(self.hmac(key)):
-				logger.info('VERIFIED sig FROM %s' % self.client_id)
+				success_msg = 'VERIFIED good sig for %s FROM %s' %\
+					(this_function_caller_name(self._call_depth), self.client_id)
+				logger.info(success_msg)
+				print (TermColoring.OK_GREEN(success_msg))
 				return self.body
 			else:
-				logger.error('!! SIGNATURE MISMATCH FROM %s' % self.client_id)
+				error_msg = 'HOOK SIG_CHECK for %s FAILED from %s' %\
+					(this_function_caller_name(self._call_depth), self.client_id)
+				logger.error(error_msg)
+				print (TermColoring.FAIL(error_msg))
 		return False
 
 
 # clem 17/10/2016
 def get_json(request_init):
-	request = MyWSGIReq(request_init)
-	key = get_key_magic(1)
+	request = MyWSGIReq(request_init, 1)
+	# key = get_key_magic(1)
 	try:
-		json_data = request.check_sig(key)
+		json_data = request.check_sig()
 		if json_data:
 			return json.loads(json_data)
 	except Exception as e:
@@ -139,10 +146,14 @@ def hook(_):
 def reload_sys(request):
 	payload = get_json(request)
 	if payload:
-		# TODO filter json request
-		import subprocess
-		subprocess.Popen('sleep 1 && git pull', shell=True)
-		return get_response(payload, message='ok')
+		if True:# TODO filter json request
+			import subprocess
+			subprocess.Popen('sleep 1 && git pull', shell=True)
+			
+			logger.info('Received system reload from GitHub, pulling and reloading ...')
+			print (TermColoring.OK_BLUE('sleep 1 && git pull'))
+			
+			return get_response(payload, message='ok')
 		
 	return get_response(result=400)
 	
@@ -152,7 +163,11 @@ def reload_sys(request):
 def git_hook(request):
 	payload = get_json(request)
 	if payload:
-		# TODO filter json request
-		return get_response(payload, message='ok')
+		if True: # TODO filter json request
+			logger.info('Received git push event for R code')
+			logger.warning('NOT_IMPLEMENTED')
+			print ('NOT_IMPLEMENTED : R PULL')
+			
+			return get_response(payload, message='ok')
 	
 	return get_response(result=400)
