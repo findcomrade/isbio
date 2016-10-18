@@ -216,13 +216,11 @@ class HookWSGIReq(WSGIRequest):
 		:rtype: bool
 		"""
 		if self.has_sig and self.body:
-			if not key:
-				key = get_key_magic(self._call_depth + 1 + call_depth)
 			msg = '' # IDE HACK suppressing buggy warnings only
 			if self.VERBOSITY:
 				args = (this_function_caller_name(self._call_depth + call_depth), self.client_id, self.delivery_id)
 				msg = ' SIG_CHECK for %s FROM %s (delivery %s)' % args
-			if self.signature.endswith(self._hmac(key)):
+			if self.signature.endswith(self._hmac(key or get_key_magic(self._call_depth + 1 + call_depth))):
 				if self.VERBOSITY:
 					success_msg = 'VERIFIED' + msg
 					logger.info(success_msg)
@@ -248,9 +246,8 @@ class HookWSGIReq(WSGIRequest):
 		:return: A json object
 		:rtype: object | None
 		"""
-		if not key:
-			key = get_key_magic(self._call_depth + 1 + call_depth)
-		if self.is_json_post and self.body and (not self.has_sig or self.check_sig(key, 1)):
+		if self.is_json_post and self.body and\
+			(not self.has_sig or self.check_sig(key or get_key_magic(self._call_depth + 1 + call_depth), 1)):
 			return json.loads(self.body)
 		return None
 
