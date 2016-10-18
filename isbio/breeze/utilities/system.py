@@ -99,3 +99,19 @@ def import_env():
 	pipe = sp.Popen(['/bin/bash', '-c', '%s && %s' % (source, dump)], stdout=sp.PIPE)
 	env = json.loads(pipe.stdout.read())
 	os.environ = env
+
+
+# Clem 18/10/2016
+def file_content(file_path):
+	""" Return the content of a single line file stripped from any space
+	
+	:param file_path: the full file path to read from
+	:type file_path: str
+	:return: the content
+	:rtype: str
+	"""
+	try:
+		return open(file_path).read().lower().replace('\n', '').replace('\r', '').replace('\f', '').replace(' ',
+			'')
+	except IOError: # HACK
+		return ''
