@@ -5,7 +5,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from breeze.utilities import git, TermColoring, recur, recur_rec, get_key, import_env
+from breeze.utilities import git, TermColoring, recur, recur_rec, get_key, import_env, file_content
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
@@ -289,6 +289,10 @@ ADMINS = (
 	('Clement FIERE', 'clement.fiere@helsinki.fi'),
 )
 
+# root of the Breeze django project folder, includes 'venv', 'static' folder copy, isbio, logs
+SOURCE_ROOT = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/'
+DJANGO_ROOT = recur(2, os.path.dirname, os.path.realpath(__file__)) + '/'
+
 # MANAGERS = ADMINS
 
 # import_env()
@@ -304,7 +308,9 @@ CONSOLE_DATE_F = "%d/%b/%Y %H:%M:%S"
 FULL_HOST_NAME = socket.gethostname()
 HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
 # automatically setting RUN_MODE depending on the host name
-RUN_MODE = 'dev' # if HOST_NAME.endswith('dev') else 'prod'
+MODE_FILE = SOURCE_ROOT + 'run_mode'
+MODE_FILE_CONTENT = file_content(MODE_FILE)
+RUN_MODE = 'dev' if MODE_FILE_CONTENT == 'dev' else 'prod'
 DEV_MODE = RUN_MODE == 'dev'
 MODE_PROD = RUN_MODE == 'prod'
 PHARMA_MODE = False
@@ -321,12 +327,6 @@ BREEZE_PROD_FOLDER = 'breeze'
 BREEZE_DEV_FOLDER = '%s-dev' % BREEZE_PROD_FOLDER
 # BREEZE_FOLDER = 'breeze' + ('-dev' if DEV_MODE else '') + '/'
 BREEZE_FOLDER = '%s/' % BREEZE_DEV_FOLDER if DEV_MODE else BREEZE_PROD_FOLDER
-if HOST_NAME.endswith('ph'):
-	BREEZE_FOLDER = '%s_new/' % BREEZE_PROD_FOLDER
-	DEBUG = False
-	VERBOSE = False
-	SQL_DUMP = False
-	PHARMA_MODE = True
 
 PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
 if not os.path.isdir(PROJECT_PATH):
@@ -342,11 +342,6 @@ if not os.path.isfile( R_ENGINE_PATH.strip()):
 PROJECT_FHRB_PM_PATH = '/%s/fhrb_pm/' % PROJECT_FOLDER_NAME
 JDBC_BRIDGE_PATH = PROJECT_FHRB_PM_PATH + 'bin/start-jdbc-bridge' # Every other path has a trailing /
 
-# root of the Breeze django project folder, includes 'venv', 'static' folder copy, isbio, logs
-SOURCE_ROOT = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/'
-DJANGO_ROOT = recur(2, os.path.dirname, os.path.realpath(__file__)) + '/'
-
-# R_ENGINE_PATH = PROJECT_PATH + 'R/bin/R '
 TEMP_FOLDER = SOURCE_ROOT + 'tmp/' # /homes/dbychkov/dev/isbio/tmp/
 ####
 # 'db' folder, containing : reports, scripts, jobs, datasets, pipelines, upload_temp
