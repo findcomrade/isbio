@@ -33,7 +33,7 @@ def reload_sys(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
 		print('GitReload event header: "%s"' % rq.event_name)
-		print('size of payload : %s, type : %s, repr : %s' % (len(payload), type(payload), repr(payload)))
+		print('size of payload : %s, type : %s' % (len(payload), type(payload)))
 		if True: # TODO filter json request
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
@@ -47,7 +47,7 @@ def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
 		print('GitHook event header: "%s"' % rq.event_name)
-		print('size of payload : %s, type : %s, repr : %s' % (len(payload), type(payload), repr(payload)))
+		print('size of payload : %s, type : %s' % (len(payload), type(payload)))
 		if True: # TODO filter json request
 			result = code.do_r_source_git_pull()
 			if not result:

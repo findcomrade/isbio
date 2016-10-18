@@ -8,7 +8,7 @@ def _get_abstract(request):
 	
 	:type request: hooker.HookWSGIReq
 	:return: (json, request) | (None, request)
-	:rtype: (object , hooker.HookWSGIReq)
+	:rtype: (dict , hooker.HookWSGIReq)
 	"""
 	assert issubclass(request.__class__, hooker.HookWSGIReq)
 	try:
@@ -27,7 +27,7 @@ def get_git_hub_json(request_init):
 	
 	:type request_init: WSGIRequest
 	:return: (json, request) | (None, request)
-	:rtype: (object , hooker.GitHubWSGIReq)
+	:rtype: (dict , hooker.GitHubWSGIReq)
 	"""
 	return _get_abstract(hooker.GitHubWSGIReq(request_init, 2, settings.GIT_HUB_IP_NETWORK))
 
