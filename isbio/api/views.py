@@ -1,8 +1,8 @@
-from common import get_response
+from common import *
 
 
 # clem 17/10/2016
 def api_home(request):
-	data = {'version': "1.0"}
+	data = { }
 	
 	return get_response(data)

@@ -1,6 +1,4 @@
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-import json
+from .common import *
 
 # from django.views.decorators.csrf import csrf_exempt
 # from django.utils import timezone
@@ -11,10 +9,6 @@ import json
 # from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 # from django.template.context import RequestContext
 # from django.core.urlresolvers import reverse
-
-CT_JSON = 'application/json'
-
-empty_dict = dict()
 
 
 # clem 17/10/2016
@@ -42,4 +36,4 @@ def show_templates(_, content, iid=None):
 		for item in c_list:
 			response[item.name] = item.description
 		
-	return get_response(response)
+	return get_response(response, version='legacy')

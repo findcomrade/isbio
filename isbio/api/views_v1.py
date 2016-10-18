@@ -1,12 +1,11 @@
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
-from django.core.handlers.wsgi import WSGIRequest
-from django.core.exceptions import SuspiciousOperation
-from breeze.utilities import *
-import json
-import time
+from .common import *
 
+# import json # included in common
+# import time # included in common
+# from django.http import HttpResponse # included in common
+# from django.core.handlers.wsgi import WSGIRequest # included in common
+# from django.core.exceptions import SuspiciousOperation # included in common
+# from breeze.utilities import * # included in common
 # from breeze.utils import pp
 # from django.core.urlresolvers import reverse
 # from django.conf import settings
@@ -16,30 +15,10 @@ import time
 # from django.contrib.auth.decorators import login_required
 # from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 
-CT_JSON = 'application/json'
-CT_TEXT = 'text/plain'
-empty_dict = dict()
-VERSION = '1.0'
-
 
 # clem 17/10/2016
 def get_key_magic(level=0):
 	return get_key('api_' + this_function_caller_name(level))
-
-
-# clem 17/10/2016
-def get_response(data=empty_dict, result=200, message=''):
-	assert isinstance(data, dict)
-	result = {
-		'api'    :
-			{ 'version': VERSION, },
-		'result' : result,
-		'message': message,
-		'time'   : time.time()
-	}
-	result.update(data)
-	
-	return HttpResponse(json.dumps(result), content_type=CT_JSON)
 
 
 # clem 17/10/2016
@@ -139,16 +118,16 @@ def get_json(request_init):
 
 # clem 17/10/2016
 def root(_):
-	data = { 'now': timezone.now()}
+	data = { }
 	
-	return get_response(data)
+	return get_response(data, message='ok')
 
 
 # clem 17/10/2016
 def hook(_):
-	data = { 'msg': 'ok' }
+	data = { }
 	
-	return get_response(data)
+	return get_response(data, message='ok')
 
 
 # clem 17/10/2016
@@ -158,11 +137,12 @@ def reload_sys(request):
 	if payload:
 		if True:# TODO filter json request
 			import subprocess
-			subprocess.Popen('sleep 1 && git pull', shell=True)
+			command = 'sleep 1 && ' + settings.API_PULL_COMMAND
+			subprocess.Popen(command, shell=True)
 			
 			logger.info('Received system reload from GitHub, pulling (django should reload itself if any change '
 						'occurs) ...')
-			print (TermColoring.ok_blue('sleep 1 && git pull'))
+			print (TermColoring.ok_blue(command))
 			
 			return get_response(payload, message='ok')
 		
