@@ -85,6 +85,19 @@ def default_suspicious(request):
 	len(request.body)))
 
 
+# clem 18/10/2016 # TODO path ref with .
+def check_filter(payload, filter_dict):
+	"""
+	
+	:type payload: dict
+	:type filter_dict:  dict
+	:rtype: bool
+	"""
+	for k, v in filter_dict.iteritems():
+		if payload.get(k, '') != v:
+			return False
+	return True
+
 ##############
 # COMMON VIEWS
 ##############
