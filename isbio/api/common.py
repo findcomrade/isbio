@@ -30,6 +30,8 @@ def get_response(result=True, data=empty_dict, version=settings.API_VERSION):
 # clem 17/10/2016
 def get_response_opt(data=empty_dict, http_code=HTTP_SUCCESS, version=settings.API_VERSION, message=''):
 	assert isinstance(data, dict)
+	if not message:
+		make_message(http_code=http_code)
 	result = { 'api':
 		{'version': version, },
 		'result'       : http_code,
@@ -45,8 +47,10 @@ def make_http_code(a_bool):
 	return HTTP_SUCCESS if a_bool else HTTP_FAILED
 
 
-def make_message(a_bool):
-	return CUSTOM_MSG[make_http_code(a_bool)]
+def make_message(a_bool=True, http_code=None):
+	if not http_code:
+		http_code = make_http_code(a_bool)
+	return CUSTOM_MSG[http_code]
 
 ##############
 # COMMON VIEWS
@@ -60,4 +64,4 @@ def root(_):
 
 # clem 17/10/2016
 def handler404(_):
-	return get_response_opt(message='NOT FOUND', http_code=404)
+	return get_response_opt(http_code=HTTP_NOT_FOUND)
