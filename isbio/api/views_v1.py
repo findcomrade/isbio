@@ -32,7 +32,7 @@ def hook(_):
 def reload_sys(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
-		print(rq.event_name)
+		print('GitHub event header: "%s"' % rq.event_name)
 		if True: # TODO filter json request
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
@@ -45,7 +45,7 @@ def reload_sys(request):
 def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
-		print(rq.event_name)
+		print('GitHub event header: "%s"' % rq.event_name)
 		if True: # TODO filter json request
 			result = code.do_r_source_git_pull()
 			return get_response(result, payload)
