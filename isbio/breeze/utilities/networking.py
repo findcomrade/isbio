@@ -115,3 +115,46 @@ def test_url(target_url, timeout=5):
 	:rtype: bool
 	"""
 	return get_http_code(target_url, timeout) in [200, 302]
+
+
+# clem 18/10/2016
+def network_info(network_addr):
+	import sys
+	
+	# Get address string and CIDR string from command line
+	(ip_addr, cidr) = network_addr.split('/')
+	
+	# Split address into octets and turn CIDR into int
+	addr = ip_addr.split('.')
+	cidr = int(cidr)
+	
+	# Initialize the netmask and calculate based on CIDR mask
+	mask = [0, 0, 0, 0]
+	for i in range(cidr):
+		mask[i / 8] += + (1 << (7 - i % 8))
+	
+	# Initialize net and binary and netmask with addr to get network
+	net = []
+	for i in range(4):
+		net.append(int(addr[i]) & mask[i])
+	
+	# Duplicate net into broad array, gather host bits, and generate broadcast
+	broad = list(net)
+	b_range = 32 - cidr
+	for i in range(b_range):
+		broad[3 - i / 8] += (1 << (i % 8))
+	
+	# Print information, mapping integer lists to strings for easy printing
+	print "Address:   ", ip_addr
+	print "Netmask:   ", ".".join(map(str, mask))
+	print "Network:   ", ".".join(map(str, net))
+	print "Broadcast: ", ".".join(map(str, broad))
+
+
+def is_ip_in_network(ip_addr, network):
+	if isinstance(ip_addr, str):
+		ip_addr = unicode(ip_addr)
+	if isinstance(network, str):
+		network = unicode(network)
+	from ipaddress import ip_network, ip_address
+	return ip_address(ip_addr) in ip_network(network)

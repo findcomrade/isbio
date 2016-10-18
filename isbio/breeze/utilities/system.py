@@ -5,7 +5,7 @@ import copy
 import abc
 import subprocess as sp
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -50,21 +50,15 @@ class TermColoring(enumerate):
 
 
 # clem 19/02/2016
+# FIXME deprecated 18/10/2016
 def do_restart():
-	try:
-		sp.Popen('sleep 1 && killall python', shell=True, stdout=sp.PIPE) # relies on autorun.sh
-	except Exception as e:
-		raise e
-	return True
+	return False
 
 
 # clem 19/02/2016
+# FIXME deprecated 18/10/2016
 def do_reboot():
-	try:
-		sp.Popen('sleep 1 && sudo reboot -n', shell=True, stdout=sp.PIPE)
-	except Exception as e:
-		raise e
-	return True
+	return False
 
 
 # clem 10/10/2016 moved this_function_* to pythonic
