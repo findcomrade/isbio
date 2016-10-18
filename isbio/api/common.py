@@ -30,15 +30,15 @@ def get_response(result=True, data=empty_dict, version=settings.API_VERSION):
 # clem 17/10/2016
 def get_response_opt(data=empty_dict, http_code=HTTP_SUCCESS, version=settings.API_VERSION, message=''):
 	assert isinstance(data, dict)
-	http_code = { 'api':
+	result = { 'api':
 		{'version': version, },
 		'result'       : http_code,
 		'message'      : message,
 		'time'         : time.time()
 	}
-	http_code.update(data)
+	result.update(data)
 	
-	return HttpResponse(json.dumps(http_code), content_type=CT_JSON, status=http_code)
+	return HttpResponse(json.dumps(result), content_type=CT_JSON, status=http_code)
 
 
 def make_http_code(a_bool):
