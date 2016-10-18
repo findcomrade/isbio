@@ -10,7 +10,7 @@ def _get_abstract(request):
 	:return: (json, request) | (None, request)
 	:rtype: (object , hooker.HookWSGIReq)
 	"""
-	assert issubclass(request, hooker.HookWSGIReq)
+	assert issubclass(request.__class__, hooker.HookWSGIReq)
 	try:
 		return request.get_json(), request
 	except Exception as e:
