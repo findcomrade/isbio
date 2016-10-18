@@ -13,8 +13,11 @@ settings.handler404 = handler404
 
 API_VERSION = '1.0'
 
-GIT_IP_SOURCE = '192.30.252.0/22'
-GIT_PULL_MASTER = 'git pull origin master'
-GIT_PULL_DEV = 'git pull origin dev'
+GIT_HUB_IP_NETWORK = '192.30.252.0/22'
+GIT_COMMAND = 'git pull'
+GIT_DEV_BRANCH = 'dev'
+GIT_PROD_BRANCH = 'master'
+GIT_REMOTE_NAME = 'origin'
+GIT_PULL_FROM = GIT_DEV_BRANCH if settings.DEV_MODE else GIT_PROD_BRANCH
 
-API_PULL_COMMAND = GIT_PULL_DEV if settings.DEV_MODE else GIT_PULL_MASTER
+API_PULL_COMMAND = '%s %s %s' % (GIT_COMMAND, GIT_REMOTE_NAME, GIT_PULL_FROM)
