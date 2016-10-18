@@ -37,7 +37,7 @@ def reload_sys(request):
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
 		
-	raise SuspiciousOperation('Invalid request or handling error')
+	raise default_suspicious(request)
 	
 	
 # clem 17/10/2016
@@ -50,4 +50,4 @@ def git_hook(request):
 			result = code.do_r_source_git_pull()
 			return get_response(result, payload)
 	
-	raise SuspiciousOperation('Invalid request or handling error')
+	raise default_suspicious(request)

@@ -43,14 +43,23 @@ def get_response_opt(data=empty_dict, http_code=HTTP_SUCCESS, version=settings.A
 	return HttpResponse(json.dumps(result), content_type=CT_JSON, status=http_code)
 
 
+# clem 18/10/2016
 def make_http_code(a_bool):
 	return HTTP_SUCCESS if a_bool else HTTP_FAILED
 
 
+# clem 18/10/2016
 def make_message(a_bool=True, http_code=None):
 	if not http_code:
 		http_code = make_http_code(a_bool)
 	return CUSTOM_MSG[http_code]
+
+
+# clem 18/10/2016
+def default_suspicious(request):
+	raise SuspiciousOperation('Invalid request or handling error at %s (payload : %s)' % (request.path,
+	len(request.body)))
+
 
 ##############
 # COMMON VIEWS
