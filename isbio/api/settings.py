@@ -1,12 +1,14 @@
 from breeze.utilities import *
 from django.conf import settings as settings
 # from isbio.settings import *
+
 # Django settings for isbio project.
 # from configurations import Settings
 
 # override default 404
-settings.handler404 = 'api.common.handler404'
-
+handler404 = 'api.common.handler404'
+settings.handler404 = handler404
+settings.settings.DATABASES['default']['handler404'] = handler404
 
 API_VERSION = '1.0'
 

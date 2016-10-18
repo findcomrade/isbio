@@ -207,7 +207,8 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH0_DOMAIN = 'breeze.eu.auth0.com'
 AUTH0_TEST_URL = 'https://%s/test' % AUTH0_DOMAIN
-AUTH0_CLIENT_ID = 'gIN83mLS4qcQqE99Bi5MqzRzU38KruR6'
+AUTH0_ID_FILE_N = 'auth0_id'
+AUTH0_CLIENT_ID = get_key(AUTH0_ID_FILE_N)
 AUTH0_SECRET_FILE_N = 'auth0'
 AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
 # AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
