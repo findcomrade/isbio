@@ -117,13 +117,6 @@ def get_json(request_init):
 
 
 # clem 17/10/2016
-def root(_):
-	data = { }
-	
-	return get_response(data, message='ok')
-
-
-# clem 17/10/2016
 def hook(_):
 	data = { }
 	

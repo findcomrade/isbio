@@ -14,14 +14,26 @@ empty_dict = dict()
 
 
 # clem 17/10/2016
-def get_response(data=empty_dict, result=200, version=settings.API_VERSION, message=''):
+def get_response(data=empty_dict, http_code=200, version=settings.API_VERSION, message=''):
 	assert isinstance(data, dict)
-	result = {'api':
+	http_code = { 'api':
 		{'version': version, },
-		'result': result,
-		'message': message,
-		'time': time.time()
+		'result'       : http_code,
+		'message'      : message,
+		'time'         : time.time()
 	}
-	result.update(data)
+	http_code.update(data)
 	
-	return HttpResponse(json.dumps(result), content_type=CT_JSON)
+	return HttpResponse(json.dumps(http_code), content_type=CT_JSON, status=http_code)
+
+
+# clem 17/10/2016
+def root(_):
+	data = { }
+	
+	return get_response(data, message='ok')
+
+
+# clem 17/10/2016
+def handler404(_):
+	return get_response(message='NOT FOUND', http_code=404)
