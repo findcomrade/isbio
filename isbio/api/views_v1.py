@@ -48,6 +48,9 @@ def git_hook(request):
 		print('GitHub event header: "%s"' % rq.event_name)
 		if True: # TODO filter json request
 			result = code.do_r_source_git_pull()
-			return get_response(result, payload)
+			if not result:
+				return get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
+			else:
+				return get_response(data=payload)
 	
 	raise default_suspicious(request)

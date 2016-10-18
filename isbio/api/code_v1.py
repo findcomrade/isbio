@@ -61,7 +61,7 @@ def do_self_git_pull():
 		subprocess.Popen(command, shell=True)
 		
 		logger.info('Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
-		print (TermColoring.ok_blue(command))
+		print (TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
 		return True
 	except Exception as e:
 		logger.exception(str(e))

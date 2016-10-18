@@ -15,20 +15,44 @@ empty_dict = dict()
 HTTP_SUCCESS = 200
 HTTP_FAILED = 400
 HTTP_NOT_FOUND = 404
+HTTP_NOT_IMPLEMENTED = 501
 CUSTOM_MSG = {
 	HTTP_SUCCESS: 'ok',
 	HTTP_FAILED: 'error',
 	HTTP_NOT_FOUND: 'NOT FOUND',
+	HTTP_NOT_IMPLEMENTED: 'NOT IMPLEMENTED YET',
 }
 
 
 # clem 18/10/2016
 def get_response(result=True, data=empty_dict, version=settings.API_VERSION):
+	"""
+	
+	:param result: optional bool to return HTTP200 or HTTP400
+	:type result: bool | None
+	:param data: optional dict, containing json-serializable data
+	:type data: dict | None
+	:param version: optionally specify the version number to return or default
+	:type version: str | None
+	:rtype: HttpResponse
+	"""
 	return get_response_opt(data, make_http_code(result), version, make_message(result))
 	
 
 # clem 17/10/2016
 def get_response_opt(data=empty_dict, http_code=HTTP_SUCCESS, version=settings.API_VERSION, message=''):
+	"""
+	
+	:param data: optional dict, containing json-serializable data
+	:type data: dict | None
+	:param http_code: optional HTTP code to return (default is 200)
+	:type http_code: int | None
+	:param version: optionally specify the version number to return or default
+	:type version: str | None
+	:param message: if no message is provided, one will be generated from the HTTP code
+	:type message: str | None
+	:rtype: HttpResponse
+	"""
 	assert isinstance(data, dict)
 	if not message:
 		make_message(http_code=http_code)
