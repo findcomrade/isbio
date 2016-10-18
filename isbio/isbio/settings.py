@@ -123,7 +123,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+# STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -448,64 +448,7 @@ WATCHER_PROC_REFRESH = 2 # number of seconds to wait before refreshing processes
 #
 # SHINY RELATED CONFIG
 #
-# FIXME obsolete
-# SHINY_APPS = MEDIA_ROOT + 'shinyApps/'
-SHINY_FN_REPORTS = 'shinyReports'
-SHINY_FN_TAGS = 'shinyTags'
-SHINY_FN_TEMPLATE = 'shiny_templates'
-SHINY_TAGS = '%s%s/' % (MEDIA_ROOT, SHINY_FN_TAGS)
-SHINY_REPORTS = '%s%s/' % (MEDIA_ROOT, SHINY_FN_REPORTS)
-SHINY_REPORT_TEMPLATE_PATH = '%s%s/' % (TEMPLATE_FOLDER, SHINY_FN_TEMPLATE)
-SHINY_ORIG_TARGET_URL = '%s/breeze/'
-SHINY_ORIG_STANDALONE_URL = '%s/apps/'
-SHINY_ORIG_LIBS_TARGET_URL = '%s/libs/'
-# local Shiny
-SHINY_LOCAL_ENABLE = True
-SHINY_LOCAL_IP = '127.0.0.1:3838'
-SHINY_LOCAL_TARGET_URL = 'http://' + SHINY_ORIG_TARGET_URL % SHINY_LOCAL_IP
-SHINY_LOCAL_LIBS_TARGET_URL = 'http://' + SHINY_ORIG_LIBS_TARGET_URL % SHINY_LOCAL_IP
-SHINY_LOCAL_LIBS_BREEZE_URL = '/libs/'
-SHINY_LOCAL_STANDALONE_BREEZE_URL = 'http://' + SHINY_ORIG_STANDALONE_URL % SHINY_LOCAL_IP
-# remote Shiny
-SHINY_REMOTE_ENABLE = True
-# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
-SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
-SHINY_REMOTE_LOCAL_PATH = '/shiny-csc/'
-SHINY_REMOTE_CSC_LOCAL_PATH = '/home/shiny/shiny/'
-SHINY_REMOTE_BREEZE_REPORTS_PATH = SHINY_REMOTE_LOCAL_PATH + REPORTS_FN
-SHINY_REMOTE_REPORTS = '%s%s/' % (SHINY_REMOTE_LOCAL_PATH, SHINY_FN_REPORTS)
-SHINY_REMOTE_REPORTS_INTERNAL = '%s%s/' % (SHINY_REMOTE_CSC_LOCAL_PATH, SHINY_FN_REPORTS)
-SHINY_REMOTE_TAGS = '%s%s/' % (SHINY_REMOTE_LOCAL_PATH, SHINY_FN_TAGS)
-SHINY_REMOTE_TAGS_INTERNAL = '%s%s/' % (SHINY_REMOTE_CSC_LOCAL_PATH, SHINY_FN_TAGS)
-# SHINY_REMOTE_PROTOCOL = 'http'
-SHINY_REMOTE_PROTOCOL = 'https'
-SHINY_REMOTE_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_TARGET_URL % SHINY_REMOTE_IP
-SHINY_REMOTE_LIBS_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_LIBS_TARGET_URL % SHINY_REMOTE_IP
-SHINY_REMOTE_LIBS_BREEZE_URL = '/libs/'
-
-# LEGACY ONLY (single Shiny old system)
-SHINY_MODE = 'local'
-SHINY_PUB_REDIRECT = 'http://breeze-dev.giu.fi:8080/'
-
-SHINY_HEADER_FILE_NAME = 'header.R'
-SHINY_LOADER_FILE_NAME = 'loader.R'
-SHINY_GLOBAL_FILE_NAME = 'global.R'
-SHINY_UI_FILE_NAME = 'ui.R'
-SHINY_SERVER_FILE_NAME = 'server.R'
-SHINY_FILE_LIST = 'files.json'
-# SHINY_SERVER_FOLDER = 'scripts_server/'
-# SHINY_UI_FOLDER = 'scripts_body/'
-# SHINY_SERVER_FOLDER = 'scripts_server/'
-SHINY_RES_FOLDER = 'www/'
-# SHINY_DASH_UI_FILE = 'dash_ui.R'
-# HINY_DASH_SERVER_FILE = 'dashboard_serverside.R'
-# SHINY_DASH_UI_FN = SHINY_UI_FOLDER + SHINY_DASH_UI_FILE
-# SHINY_DASH_SERVER_FN = SHINY_SERVER_FOLDER + SHINY_DASH_SERVER_FILE
-SHINY_TAG_CANVAS_FN = 'shinyTagTemplate.zip'
-SHINY_TAG_CANVAS_PATH = MOULD_FOLDER + SHINY_TAG_CANVAS_FN
-SHINY_MIN_FILE_SIZE = 14 # library(shiny) is 14 byte long
-# NOZZLE_TARGET_URL = 'http://' + FULL_HOST_NAME + '/'
-# Install shiny library : install.packages('name of the lib', lib='/usr/local/lib/R/site-library', dependencies=TRUE)
+from shiny.settings import *
 
 FOLDERS_LST = [TEMPLATE_FOLDER, SHINY_REPORT_TEMPLATE_PATH, SHINY_REPORTS, SHINY_TAGS,
 	NOZZLE_TEMPLATE_FOLDER, SCRIPT_TEMPLATE_FOLDER, JOBS_PATH, REPORT_TYPE_PATH, REPORTS_PATH, RSCRIPTS_PATH, MEDIA_ROOT,
@@ -530,18 +473,13 @@ FOLDERS_TO_CHECK = [TEMPLATE_FOLDER, SHINY_TAGS, REPORT_TYPE_PATH, # SHINY_REPOR
 	RSCRIPTS_PATH, MOULD_FOLDER, STATIC_ROOT, DATASETS_FOLDER]
 
 # STATIC URL MAPPINGS
-SHINY_URL = '/shiny/rep/' # FIXME
+
 # STATIC_URL = '/static/'
 # MEDIA_URL = '/media/'
 MOULD_URL = MEDIA_URL + DATA_TEMPLATES_FN
 
 # number of seconds after witch a job that has not received a sgeid should be marked as aborted or re-run
 NO_SGEID_EXPIRY = 30
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-	"",
-)
 
 TMP_CSC_TAITO_MOUNT = '/mnt/csc-taito/'
 TMP_CSC_TAITO_REPORT_PATH = 'breeze/'
@@ -655,9 +593,9 @@ if DEBUG:
 	}
 	import logging.config
 	logging.config.dictConfig(LOGGING)
-
 else:
 	VERBOSE = False
+
 # FIXME obsolete
 if ENABLE_ROLLBAR:
 	try:
@@ -711,8 +649,6 @@ else:
 			TermColoring.bold(RUN_MODE)), TermColoring.ok_blue(FULL_HOST_NAME))
 	git_stat = git.get_status()
 	print git_stat
-	if PHARMA_MODE:
-		print TermColoring.bold('RUNNING WITH PHARMA')
 	logging.info('Settings loaded. Running %s on %s' % (RUN_MODE, FULL_HOST_NAME))
 	logging.info(git_stat)
 
