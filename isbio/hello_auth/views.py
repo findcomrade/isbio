@@ -4,16 +4,22 @@ from django.contrib import auth
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User
-from utilz import logger
-from django.contrib.auth.decorators import login_required
-# import os
+from utilz import logger, is_http_client_in_fimm_network
 import json
 import requests
+# from django.contrib.auth.decorators import login_required
+# import os
 
 
 def index(request, template='hello_auth/base.html'):
 	if not request.user.is_authenticated():
-		return render(request, template)
+		error = request.GET.get('error', '')
+		error_description = request.GET.get('error_description', '')
+		context = {'from_fimm': is_http_client_in_fimm_network(request) }
+		if error and error_description:
+			context.update({'error': error, 'error_msg': error_description })
+		
+		return render(request, template, context=context)
 	else:
 		return redirect(settings.AUTH0_SUCCESS_URL)
 
@@ -56,19 +62,18 @@ def process_login(request):
 			if user and user.is_active:
 				auth.login(request, user)
 				logger.info('AUTH success for %s (%s)' % (user.username, user.email))
-			else:
+			else: # error from django auth (i.e. inactive user, or id mismatch)
 				request.session['profile'] = None
 				logger.warning('AUTH denied for %s (%s)' % (user.username, user.email))
 				return HttpResponse(status=403)
-		else:
+		else: # error from AUTH0
 			print(token_info)
 			if token_info['error'] == 'access_denied':
 				logger.warning('AUTH failure [%s]' % str(token_info))
 				return HttpResponse(status=503)
 	else:
-		# AUTH0 did not returned a ticket, it might be an error on their side (not verified email addr, disabled account
-		# etc)
-		logger.warning('AUTH invalid GET[%s] POST[%s]' % (request.GET.__dict__, request.POST.__dict__))
+		logger.warning('AUTH invalid GET[%s] POST[%s] content: %s' % (request.GET.__dict__,
+		request.POST.__dict__, str(request.body)))
 		print ('unsupported auth type :\n', request.GET.__dict__, request.POST.__dict__)
 	
 	return index(request)

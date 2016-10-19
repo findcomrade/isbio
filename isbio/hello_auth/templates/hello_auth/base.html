@@ -15,19 +15,26 @@
 		  }
 		}
 		});
-		
-		window.onload = function () {
-			lock.show();
-		};
-	    
-</script>
+	</script>
 </head>
 <body>
 	<div align="center"><h6>Breeze (empty) home page</h6>
 		<h1>This is "Cloud Breeze" !</h1>
-		FIMM Users : are you looking for <a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">
-		FIMM's Breeze</a> ?<br><br>
 		<button onclick="lock.show();">Breeze Login</button>
+		{% if error_msg %}
+			<h3 style="color: crimson">{error} : {error_msg}</h3>
+		{% else %}
+			{% if from_fimm %}
+				FIMM Users : are you looking for
+				<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">FIMM's Breeze</a> ?<br>
+			{% else %}
+				<script type="text/javascript">
+					window.onload = function () {
+						lock.show();
+					};
+				</script>
+			{% endif %}
+		{% endif %}
 	</div>
 </body>
 </html>
