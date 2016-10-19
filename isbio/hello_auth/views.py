@@ -90,7 +90,9 @@ def trigger_logout(request):
 	:param request: HttpRequest
 	"""
 	if request.user.is_authenticated():
+		user = request.user
 		auth.logout(request)
+		logger.info('LOGOUT %s (%s)' % (user.username, user.email))
 		return redirect('%s?returnTo=%s' % (settings.AUTH0_LOGOUT_URL, settings.AUTH0_LOGOUT_REDIRECT))
 		# return redirect('https://www.fimm.fi')
 	else:
