@@ -85,16 +85,38 @@ def default_suspicious(request):
 	len(request.body)))
 
 
-# clem 18/10/2016 # TODO path ref with .
+# clem 18/10/2016 + 19/10/2016 # TODO description
 def check_filter(payload, filter_dict):
-	"""
+	""" TODO
 	
 	:type payload: dict
 	:type filter_dict:  dict
 	:rtype: bool
 	"""
-	for k, v in filter_dict.iteritems():
-		if payload.get(k, '') != v:
+	if (type(payload), type(filter_dict)) not in [(dict, dict)]:
+		return False
+	for key, equal_value in filter_dict.iteritems():
+		tail = None
+		if '.' in key :
+			# if the key is a dotted path
+			split = key.split('.')
+			# get the first key and rest of path
+			key, tail = split[0], split[1:]
+		# value for this key, wether the key was a name or a path
+		payload_value = payload.get(key, '')
+		if tail:
+			# the path was dotted and has at least one other component (i.e path was not "something.")
+			if not (payload_value and type(payload_value) is dict):
+				# there was no such key in payload, or the payload_value was not a dict
+				# (i.e. there is no sub-path to go to for this key) thus the match fails
+				return False
+			else:
+				# payload_value is a dict and tail as some more path component
+				if not check_filter(payload_value, {tail: equal_value}):
+					# if the sub-payload doesn't match
+					return False
+		elif key in payload.keys() or payload_value != equal_value:
+			# the key was not in the payload or the value was different, thus the match fails
 			return False
 	return True
 
