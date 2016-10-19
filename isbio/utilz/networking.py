@@ -151,6 +151,7 @@ def network_info(network_addr):
 	print "Broadcast: ", ".".join(map(str, broad))
 
 
+# clem 18/10/2016
 def is_ip_in_network(ip_addr, network):
 	if isinstance(ip_addr, str):
 		ip_addr = unicode(ip_addr)
@@ -158,3 +159,14 @@ def is_ip_in_network(ip_addr, network):
 		network = unicode(network)
 	from ipaddress import ip_network, ip_address
 	return ip_address(ip_addr) in ip_network(network)
+	
+	
+# clem 19/10/2016
+def is_ip_in_fimm_network(ip_addr):
+	return is_ip_in_network(ip_addr, '128.214.0.0/16')
+
+
+# clem 19/10/2016
+def is_http_client_in_fimm_network(request):
+	from webhooks.hooker import HookWSGIReq
+	return is_ip_in_fimm_network(HookWSGIReq(request).http_remote_ip)
