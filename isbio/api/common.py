@@ -104,7 +104,7 @@ def match_filter(payload, filter_dict, org_key=''):
 			# if the key is a dotted path
 			split = key.split('.')
 			# get the first key and rest of path
-			key, tail = split[0], '.'.join(split[1:])
+			org_key, key, tail = key, split[0], '.'.join(split[1:])
 		# value for this key, wether the key was a name or a path
 		payload_value = payload.get(key, '')
 		if tail:
@@ -116,7 +116,7 @@ def match_filter(payload, filter_dict, org_key=''):
 				return False
 			else:
 				# payload_value is a dict and tail as some more path component
-				if not match_filter(payload_value, {tail: equal_value }, key):
+				if not match_filter(payload_value, {tail: equal_value }, org_key):
 					# if the sub-payload doesn't match
 					return False # this cannot be a prime failure source
 		elif not (key in payload.keys() and payload_value == equal_value): # FIXME possible unicode issue
