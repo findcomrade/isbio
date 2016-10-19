@@ -2347,10 +2347,12 @@ def report_file_server_sub(request, rid, category, report_inst, fname=None):
 		local_path, path_to_file = get_report_path(report_inst, fname)
 		logger.debug('Read : %s' % local_path)
 	except Http404 as e:
-		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'
-			' did run, but failed to produce the report for some reason.', 'Tis could be caused by the a script failing'
+		msg = ['The report file was not found.', 'This usually means that the pipeline'
+			' did run, but failed to produce the report for some reason.',
+			'Tis could be caused by the a script failing'
 			' in an unexpected way that Breeze could not detect, or failed to detect.',
-			'You can consider that this report has failed'])
+			'You can consider that this report has failed']
+		return aux.fail_with404(request, msg, e.message)
 
 	mime = MimeTypes()
 	url = urllib.pathname2url(path_to_file)

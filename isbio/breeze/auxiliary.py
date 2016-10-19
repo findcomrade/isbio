@@ -429,15 +429,17 @@ def u_print_sub(request, url, code=None, size=None, date_f=None):
 # DELETED get_report_path_test(f_item, fname=None, no_fail=False): 19/02/2016 moved to comp.py
 
 
-def fail_with404(request, error_msg=None):
+def fail_with404(request, error_msg=None, log_message=''):
 	"""
 	custom 404 method that enable 404 template even in debug mode (discriminate from real 404),
 	Raise no exception so call it with return
 
 	:param request: Django request object
 	:type request: http.HttpRequest
-	:param error_msg: The message to display on the 404 page
-	:type error_msg: str
+	:param error_msg: The message to display on the 404 page, defaults to ''
+	:type error_msg: str | list
+	:param log_message: The message to write in the logs, defaults to error_msg
+	:type log_message: str | None
 	:return: custom 404 page
 	:rtype: http.HttpResponseNotFound
 	"""
@@ -449,7 +451,9 @@ def fail_with404(request, error_msg=None):
 
 	rq_path = request.path if request is not None else ''
 	
-	logger.warning('404 @ %s from %s : %s' % (this_function_caller_name(), rq_path, error_msg))
+	if not log_message:
+		log_message = error_msg
+	logger.warning('404 @ %s from %s : %s' % (rq_path, this_function_caller_name(), log_message))
 
 	return http.HttpResponseNotFound(t.render(RequestContext(request, {
 		'request_path': rq_path,
