@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from utilz import logger, this_function_caller_name
 __author__ = 'clem'
 __date__ = '25/05/2015'
 #
@@ -115,3 +116,22 @@ class ConfigFileNotFound(FileNotFound):
 
 class ObjectHasNoReadOnlySupport(RuntimeError):
 	pass
+
+
+class MyDenied(PermissionDenied):
+	def __init__(self, *args, **kwargs):
+		super(MyDenied, self).__init__(*args, **kwargs)
+		from django.core.handlers.wsgi import WSGIRequest
+		final_text = ''
+		request = kwargs.get('request', None) or args[0] if len(args) >= 1 else None
+		message = kwargs.get('message', '') or kwargs.get('msg', '') or args[0] if len(args) >= 1 else ''
+		if isinstance(request, WSGIRequest):
+			final_text = 'Access denied to %s for %s' % (request.user.username, this_function_caller_name())
+		if message and isinstance(message, basestring):
+			if final_text:
+				message = ' (%s)' % message
+			final_text += message
+		logger.warning(final_text)
+
+
+PermissionDenied = MyDenied

@@ -20,7 +20,6 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User  # , Group # replaced with breeze.models.User overload
 from django.core.files import File
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.urlresolvers import reverse
 from django.db.models.query_utils import Q
@@ -2303,8 +2302,7 @@ def report_file_server(request, rid, category, file_name=None):
 	# Enforce user access restrictions
 	if request.user not in report_inst.shared.all() and report_inst.author != request.user\
 		and not request.user.is_superuser:
-		logger.warning('Access denied to %s for %s' % (request.user.username, rid))
-		raise PermissionDenied
+		raise PermissionDenied(request)
 
 	return report_file_server_sub(request, rid, category, fname=file_name, report_inst=report_inst)
 
@@ -2826,10 +2824,10 @@ def custom_404_view(request, message=None):
 	if type(message) != list:
 		message = [str(message)]
 	t = loader.get_template('404.html')
-	return http.HttpResponseNotFound(t.render(RequestContext(request, {
+	return http.HttpResponseNotFound(t.render({
 		'request_path': request.path,
 		'messages': message,
-	})))
+	}))
 
 # DELETED on 08/09/2015 status_button(stat, text=['Online', 'Offline'], href=['#', '#']):
 
@@ -2941,7 +2939,10 @@ def view_log(request, show_all=False, num=0):
 		return txt.replace('\t', '    ').replace(' ', '&nbsp;')
 
 	if not request.user.is_superuser:
+		logger.warning(
+			'un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
 		raise PermissionDenied
+	raise NotDefined
 	grab_next = False
 	last_pid = 0
 	with open(settings.LOG_PATH) as f:
@@ -2985,43 +2986,22 @@ def view_log(request, show_all=False, num=0):
 @login_required(login_url='/')
 def fix_file_acl(request, fid):
 	if not request.user.is_superuser:
-		get_logger().warning('Non priviledged user %s tried to trigger %s' % (request.user.get_full_name,
-			sys._getframe(0).f_code.co_name))
+		logger.warning('un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
 		raise PermissionDenied
 
 	try:
 		utils.fix_file_acl_interface(fid)
 	except OSError as e:
-		return custom_404_view(request, e)
+		# return custom_404_view(request, e)
+		return aux.fail_with404(request, 'OSError', str(e.message))
 
 	# return file_system_info(request)
 	return HttpResponseRedirect(reverse(file_system_info))
 
 
-# clem on 08/10/2015
-@login_required(login_url='/')
-def restart_breeze(request):
-	restart_reboot_wrap(request, this_function_name(), utils.do_restart)
-
-
-# clem on 08/01/2016
-@login_required(login_url='/')
-def restart_vm(request):
-	return restart_reboot_wrap(request, this_function_name(), utils.do_reboot)
-
-
-# clem on 19/02/2016
-@login_required(login_url='/')
-def restart_reboot_wrap(request, self_name, func):
-	retr = 'err'
-	full_name = request.user.get_full_name()
-	if not request.user.is_superuser:
-		get_logger().warning('Non privileged user %s tried to trigger %s' % (full_name, self_name))
-		raise PermissionDenied
-	if callable(func) and func():
-		retr = 'ok'
-		get_logger().info('User %s successfully triggered %s' % (full_name, self_name))
-	return HttpResponse(retr, content_type=c_t.PLAIN)
+# restart_breeze deleted on 19/10/2016
+# restart_vm deleted on 19/10/2016
+# restart_reboot_wrap deleted on 19/10/2016
 
 
 @login_required(login_url='/')

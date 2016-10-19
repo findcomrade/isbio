@@ -455,10 +455,10 @@ def fail_with404(request, error_msg=None, log_message=''):
 		log_message = error_msg
 	logger.warning('404 @ %s from %s : %s' % (rq_path, this_function_caller_name(), log_message))
 
-	return http.HttpResponseNotFound(t.render(RequestContext(request, {
+	return http.HttpResponseNotFound(t.render({
 		'request_path': rq_path,
 		'messages': error_msg,
-	})))
+	}))
 
 
 # FIXME old and nasty code (STILL IN USE, for Shiny and to check CAS connection)
