@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib import auth
+from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User
-from utilz import logger, is_http_client_in_fimm_network
+from django.contrib import messages
+from utilz import logger, is_http_client_in_fimm_network, this_function_name
 import json
 import requests
 # from django.contrib.auth.decorators import login_required
@@ -17,7 +19,13 @@ def index(request, template='hello_auth/base.html'):
 		error_description = request.GET.get('error_description', '')
 		context = {'from_fimm': is_http_client_in_fimm_network(request) }
 		if error and error_description:
-			context.update({'error': error, 'error_msg': error_description })
+			# commit an error message
+			messages.add_message(request, messages.ERROR, '%s : %s' % (error, error_description))
+			return redirect(reverse(this_function_name()))
+		# if an error message is present, consume it
+		msg = messages.get_messages(request)
+		if msg:
+			context.update({ 'error_msg': msg[0]})
 		
 		return render(request, template, context=context)
 	else:
