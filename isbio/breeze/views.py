@@ -93,6 +93,11 @@ def logout(request):
 	return HttpResponseRedirect('/')  # FIXME hardcoded url
 
 
+# clem 19/10/2016 Fix loop when accessing breeze-fimm from another website while being already logged-in
+def login(request):
+	return HttpResponseRedirect(reverse('login'))
+	
+
 def register_user(request):
 	if request.user.is_authenticated():
 		return HttpResponseRedirect(settings.HOME_PAGE)  # FIXME hardcoded url
