@@ -103,7 +103,7 @@ def match_filter(payload, filter_dict):
 			# if the key is a dotted path
 			split = key.split('.')
 			# get the first key and rest of path
-			key, tail = split[0], split[1:]
+			key, tail = split[0], '.'.join(split[1:])
 		# value for this key, wether the key was a name or a path
 		payload_value = payload.get(key, '')
 		if tail:
