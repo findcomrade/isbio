@@ -21,6 +21,7 @@ from django.contrib.auth.models import User  # , Group # replaced with breeze.mo
 from django.core.files import File
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.handlers.wsgi import WSGIRequest
 from django.core.urlresolvers import reverse
 from django.db.models.query_utils import Q
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponsePermanentRedirect
@@ -32,7 +33,6 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from mimetypes import MimeTypes
 from breeze.legacy import get_report_path, get_report_path_test
-
 import hashlib
 import sys
 
@@ -2289,44 +2289,51 @@ def report_file_get(request, rid, fname=None):
 
 
 @login_required(login_url='/')
-def report_file_server(request, rid, type, fname=None):
+def report_file_server(request, rid, category, fname=None):
 	"""
 	Serve report files, while enforcing access rights
 	"""
 	try:
-		fitem = Report.objects.get(id=rid)
+		report_inst = Report.objects.get(id=rid)
 	except ObjectDoesNotExist:
 		msg = 'There is no report with id %s in DB' % rid
 		logger.warning(msg)
 		return aux.fail_with404(request, msg)
 
 	# Enforce user access restrictions
-	if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+	if request.user not in report_inst.shared.all() and report_inst.author != request.user\
+		and not request.user.is_superuser:
 		logger.warning('Access denied to %s for %s' % (request.user.username, rid))
 		raise PermissionDenied
 
-	return report_file_server_sub(request, rid, type, fname=fname, fitem=fitem)
+	return report_file_server_sub(request, rid, category, fname=fname, report_inst=report_inst)
 
 
 # access from outside
-def report_file_server_out(request, rid, type, u_key, fname=None):
+def report_file_server_out(request, rid, category, u_key, fname=None):
 	try:
-		fitem = Report.objects.get(id=rid)
-		fitem.offsiteuser_set.get(user_key=u_key)
+		report_inst = Report.objects.get(id=rid)
+		report_inst.offsiteuser_set.get(user_key=u_key)
 	except ObjectDoesNotExist:
-		return aux.fail_with404(request, 'There is no such report')
-	return report_file_server_sub(request, rid, type, fname=fname, fitem=fitem)
+		msg = 'There is no such report'
+		logger.warning(msg)
+		return aux.fail_with404(request, msg)
+	return report_file_server_sub(request, rid, category, fname=fname, report_inst=report_inst)
 
 
 # DO NOT CALL THIS VIEW FROM url.py
-def report_file_server_sub(request, rid, type, fitem=None, fname=None):
-	"""
-		Serve report files
-		SECURITY (ACL/ARM) has to be delt with by the caller
+def report_file_server_sub(request, rid, category, report_inst=None, fname=None):
+	""" Serve report files
+		SECURITY (ACL/ARM) has to be dealt with by the caller
+		
+		:param request: request object
+		:type request: WSGIRequest
 		:param rid: a Report id
 		:type rid: int
-		:param fitem: a Report class instance from db
-		:type fitem: Report
+		:param category: the category
+		:type category: str
+		:param report_inst: a Report class instance from db
+		:type report_inst: Report
 		:param fname: a specified file name (optional, default is report.html)
 		:type fname: str
 		:return: (local_path, path_to_file)
@@ -2334,11 +2341,14 @@ def report_file_server_sub(request, rid, type, fitem=None, fname=None):
 	"""
 	from django.http import Http404
 	# SAFETY FIRST
-	if not fitem:
-		aux.fail_with404(request, 'Bad function call : missing or invalid argument')
+	if not report_inst:
+		msg = 'Bad function call : missing or invalid argument'
+		logger.warning(msg)
+		return aux.fail_with404(request, msg)
 	try:
-		local_path, path_to_file = get_report_path(fitem, fname)
+		local_path, path_to_file = get_report_path(report_inst, fname)
 	except Http404:
+		logger.warning('File not found')
 		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'
 			' did run, but failed to produce the report for some reason.', 'Tis could be caused by the a script failing'
 			' in an unexpected way that Breeze could not detect, or failed to detect.',
@@ -2354,7 +2364,7 @@ def report_file_server_sub(request, rid, type, fitem=None, fname=None):
 
 		response = HttpResponse(my_html, content_type=mime_type)
 		folder, slash, a_file = local_path.rpartition('/')
-		if type == 'get':
+		if category == 'get':
 			response['Content-Disposition'] = 'attachment; filename=' + a_file
 		else:
 			response['Content-Disposition'] = 'filename=' + a_file

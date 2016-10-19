@@ -8,27 +8,27 @@ from os.path import isdir, exists, dirname
 
 
 # Used to check for missing reports, following lost report event
-def get_report_path(f_item, fname=None):
-	"""
-		Return the path of an object, and checks that the path is existent or fail with 404
-		:param f_item: a Report.objects from db
-		:type f_item: Report or DataSet
-		:param fname: a specified file name (optional, default is report.html)
-		:type fname: str
+def get_report_path(report_inst, file_name=None):
+	""" Return the path of an object, and checks that the path is existent or fail with 404
+		
+		:param report_inst: a Report.objects from db
+		:type report_inst: Report or DataSet
+		:param file_name: a specified file name (optional, default is report.html)
+		:type file_name: str
 		:return: (local_path, path_to_file)
 		:rtype: (str, str)
 	"""
 	from django.http import Http404
-	assert isinstance(f_item, (Report, DataSet))
+	assert isinstance(report_inst, (Report, DataSet))
 	error_msg = ''
-	if fname is None:
-		fname = '%s.html' % Report.REPORT_FILE_NAME
+	if file_name is None:
+		file_name = '%s.html' % Report.REPORT_FILE_NAME
 
-	if isinstance(f_item, DataSet):
-		home = f_item.rdata
+	if isinstance(report_inst, DataSet):
+		home = report_inst.rdata
 	else:
-		home = f_item.home_folder_rel
-	local_path = home + '/' + unicode.replace(unicode(fname), '../', '')
+		home = report_inst.home_folder_rel
+	local_path = home + '/' + unicode.replace(unicode(file_name), '../', '')
 	path_to_file = str(settings.MEDIA_ROOT) + local_path
 
 	# hack to access reports that were generated while dev was using prod folder
