@@ -448,8 +448,8 @@ def fail_with404(request, error_msg=None):
 		error_msg = [error_msg]
 
 	rq_path = request.path if request is not None else ''
-
-	logger.warning('404 %s: %s' % (rq_path, error_msg))
+	
+	get_logger(level=1).warning('404 %s: %s' % (rq_path, error_msg))
 
 	return http.HttpResponseNotFound(t.render(RequestContext(request, {
 		'request_path': rq_path,
