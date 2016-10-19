@@ -25,7 +25,7 @@ def index(request, template='hello_auth/base.html'):
 		# if an error message is present, consume it
 		msg = messages.get_messages(request)
 		if msg:
-			context.update({ 'error_msg': msg[0]})
+			context.update({ 'error_msg': msg})
 		
 		return render(request, template, context=context)
 	else:
