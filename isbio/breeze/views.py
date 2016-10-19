@@ -2269,27 +2269,27 @@ def report_file_view_redir(request, rid):
 
 
 @login_required(login_url='/')
-def report_file_view(request, rid, fname=None):
-	return report_file_server(request, rid, 'view', fname)
+def report_file_view(request, rid, file_name=None):
+	return report_file_server(request, rid, 'view', file_name)
 
 
 @login_required(login_url='/')
-def report_file_wrap(request, rid, rest, fname=None):
-	return report_file_server(request, rid, 'view', fname)
+def report_file_wrap(request, rid, rest, file_name=None):
+	return report_file_server(request, rid, 'view', file_name)
 
 
 @login_required(login_url='/')
-def report_file_wrap2(request, rid, fname=None):
-	return report_file_server(request, rid, 'view', fname)
+def report_file_wrap2(request, rid, file_name=None):
+	return report_file_server(request, rid, 'view', file_name)
 
 
 @login_required(login_url='/')
-def report_file_get(request, rid, fname=None):
-	return report_file_server(request, rid, 'get', fname)
+def report_file_get(request, rid, file_name=None):
+	return report_file_server(request, rid, 'get', file_name)
 
 
 @login_required(login_url='/')
-def report_file_server(request, rid, category, fname=None):
+def report_file_server(request, rid, category, file_name=None):
 	"""
 	Serve report files, while enforcing access rights
 	"""
@@ -2306,10 +2306,11 @@ def report_file_server(request, rid, category, fname=None):
 		logger.warning('Access denied to %s for %s' % (request.user.username, rid))
 		raise PermissionDenied
 
-	return report_file_server_sub(request, rid, category, fname=fname, report_inst=report_inst)
+	return report_file_server_sub(request, rid, category, fname=file_name, report_inst=report_inst)
 
 
 # access from outside
+# FIXME DEPRECATED (had no url right now)
 def report_file_server_out(request, rid, category, u_key, fname=None):
 	try:
 		report_inst = Report.objects.get(id=rid)
@@ -2345,10 +2346,11 @@ def report_file_server_sub(request, rid, category, report_inst=None, fname=None)
 		msg = 'Bad function call : missing or invalid argument'
 		logger.warning(msg)
 		return aux.fail_with404(request, msg)
+	local_path, path_to_file = '', ''
 	try:
 		local_path, path_to_file = get_report_path(report_inst, fname)
 	except Http404:
-		logger.warning('File not found')
+		logger.warning('File not found : %s, %s' % (local_path, path_to_file))
 		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'
 			' did run, but failed to produce the report for some reason.', 'Tis could be caused by the a script failing'
 			' in an unexpected way that Breeze could not detect, or failed to detect.',
