@@ -119,7 +119,7 @@ def match_filter(payload, filter_dict, org_key=''):
 				if not match_filter(payload_value, {tail: equal_value }, key):
 					# if the sub-payload doesn't match
 					return False # this cannot be a prime failure source
-		elif not (key in payload.keys() and str(payload_value) == equal_value): # FIXME possible unicode issue
+		elif not (key in payload.keys() and payload_value == equal_value): # FIXME possible unicode issue
 			# the key was not in the payload or the value was different, thus the match fails
 			logger.warning('no key %s or values mismatched (%s!=%s) !' % (org_key or key, payload_value, equal_value))
 			return False

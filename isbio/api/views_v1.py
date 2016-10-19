@@ -54,15 +54,12 @@ def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
 		allow_filter = {
-			'ref'                 : "refs/heads/testing",
+			'ref'                 : "refs/heads/master",
 			'repository.id'       : "70131764", # "DSRT-v2"
 		}
 		if match_filter(payload, allow_filter):
 			logger.info('Received git push event for R code')
 			result = code.do_r_source_git_pull()
-			if not result:
-				return get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
-			else:
-				return get_response(data=payload)
+			return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
 	
 	raise default_suspicious(request)
