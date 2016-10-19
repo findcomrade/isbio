@@ -2296,10 +2296,13 @@ def report_file_server(request, rid, type, fname=None):
 	try:
 		fitem = Report.objects.get(id=rid)
 	except ObjectDoesNotExist:
-		return aux.fail_with404(request, 'There is no report with id ' + rid + ' in DB')
+		msg = 'There is no report with id %s in DB' % rid
+		logger.warning(msg)
+		return aux.fail_with404(request, msg)
 
 	# Enforce user access restrictions
 	if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+		logger.warning('Access denied to %s for %s' % (request.user.username, rid))
 		raise PermissionDenied
 
 	return report_file_server_sub(request, rid, type, fname=fname, fitem=fitem)
