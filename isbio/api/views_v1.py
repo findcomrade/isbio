@@ -34,10 +34,10 @@ def reload_sys(request):
 	if payload:
 		allow_filter = {
 			'ref'                 : settings.GIT_AUTO_REF,
-			'repository.id'       : 70237993,
+			'repository.id'       : "70237993",
 			'repository.full_name': 'Fclem/isbio2',
 			'pusher.name'         : 'Fclem',
-			'sender.id'           : 6617239,
+			'sender.id'           : "6617239",
 		}
 		if match_filter(payload, allow_filter):
 			logger.info(
@@ -55,7 +55,7 @@ def git_hook(request):
 	if payload:
 		allow_filter = {
 			'ref'                 : "refs/heads/testing",
-			'repository.id'       : 70131764, # "DSRT-v2"
+			'repository.id'       : "70131764", # "DSRT-v2"
 		}
 		if match_filter(payload, allow_filter):
 			logger.info('Received git push event for R code')
