@@ -2348,7 +2348,7 @@ def report_file_server_sub(request, rid, category, report_inst=None, fname=None)
 		return aux.fail_with404(request, msg)
 	try:
 		local_path, path_to_file = get_report_path(report_inst, fname)
-		logger.info('Read : %s, %s' % (local_path, path_to_file))
+		logger.info('Read : %s, %s' % (local_path, os.path.dirname(path_to_file)))
 	except Http404 as e:
 		logger.warning('File not found : %s' % e.message)
 		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'

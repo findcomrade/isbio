@@ -28,7 +28,8 @@ def get_report_path(report_inst, file_name=None):
 		home = report_inst.rdata
 	else:
 		home = report_inst.home_folder_rel
-	local_path = home + '/' + unicode.replace(unicode(file_name), '../', '')
+	home = home + '/' if not home.endswith('/') else home
+	local_path = home + unicode.replace(unicode(file_name), '../', '')
 	path_to_file = str(settings.MEDIA_ROOT) + local_path
 
 	if not exists(path_to_file):
