@@ -31,41 +31,39 @@ def hook(_):
 @csrf_exempt
 def reload_sys(request):
 	payload, rq = code.get_git_hub_json(request)
-	if payload:
-		allow_filter = {
-			'ref'                 : settings.GIT_AUTO_REF,
-			'repository.id'       : "70237993",
-			'repository.full_name': 'Fclem/isbio2',
-			'pusher.name'         : 'Fclem',
-			'sender.id'           : "6617239",
-		}
-		if match_filter(payload, allow_filter):
-			logger.info(
-				'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
-			result = code.do_self_git_pull()
-			return get_response(result, payload)
-		else:
-			return HttpResponseNotModified('')
-		
-	raise default_suspicious(request)
-	# return HttpResponseBadRequest()
+	if not (payload and rq.is_json_post):
+		raise default_suspicious(request)
+	
+	allow_filter = {
+		'ref'                 : settings.GIT_AUTO_REF,
+		'repository.id'       : "70237993",
+		'repository.full_name': 'Fclem/isbio2',
+		'pusher.name'         : 'Fclem',
+		'sender.id'           : "6617239",
+	}
+	if match_filter(payload, allow_filter) and rq.event_name == 'push':
+		logger.info(
+			'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
+		result = code.do_self_git_pull()
+		return get_response(result, payload)
+
+	return HttpResponseNotModified()
 	
 	
 # clem 17/10/2016
 @csrf_exempt
 def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
-	if payload:
-		allow_filter = {
-			'ref'                 : "refs/heads/master",
-			'repository.id'       : "70131764", # "DSRT-v2"
-		}
-		if match_filter(payload, allow_filter):
-			logger.info('Received git push event for R code')
-			result = code.do_r_source_git_pull()
-			return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
-		else:
-			return HttpResponseNotModified('')
-	
-	raise default_suspicious(request)
-	# return HttpResponseBadRequest()
+	if not (payload and rq.is_json_post):
+		raise default_suspicious(request)
+
+	allow_filter = {
+		'ref'                 : "refs/heads/master",
+		'repository.id'       : "70131764", # "DSRT-v2"
+	}
+	if match_filter(payload, allow_filter) and rq.event_name == 'push':
+		logger.info('Received git push event for R code')
+		result = code.do_r_source_git_pull()
+		return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
+
+	return HttpResponseNotModified()

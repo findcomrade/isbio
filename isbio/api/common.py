@@ -82,7 +82,7 @@ def make_message(a_bool=True, http_code=None):
 # clem 18/10/2016
 def default_suspicious(request):
 	raise SuspiciousOperation('Invalid request or handling error at %s (payload : %s)' % (request.path,
-	len(request.body)))
+	len(request.body))) # FIXME len doesnt work !
 
 
 # clem 18/10/2016 + 19/10/2016 # TODO description
@@ -121,7 +121,8 @@ def match_filter(payload, filter_dict, org_key=''):
 					return False # this cannot be a prime failure source
 		elif not (key in payload.keys() and str(payload_value) == str(equal_value)): # FIXME possible unicode issue
 			# the key was not in the payload or the value was different, thus the match fails
-			logger.warning('no key %s or values mismatched (%s!=%s) !' % (org_key or key, payload_value, equal_value))
+			logger.warning('no key %s or values mismatched "%s" != "%s") !' %
+				(org_key or key, payload_value, equal_value))
 			return False
 	return True
 
