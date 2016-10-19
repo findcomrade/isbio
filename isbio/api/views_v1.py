@@ -44,8 +44,11 @@ def reload_sys(request):
 				'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
+		else:
+			return HttpResponseNotModified
 		
-	raise default_suspicious(request)
+	# raise default_suspicious(request)
+	return HttpResponseBadRequest
 	
 	
 # clem 17/10/2016
@@ -61,5 +64,8 @@ def git_hook(request):
 			logger.info('Received git push event for R code')
 			result = code.do_r_source_git_pull()
 			return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
+		else:
+			return HttpResponseNotModified
 	
-	raise default_suspicious(request)
+	# raise default_suspicious(request)
+	return HttpResponseBadRequest
