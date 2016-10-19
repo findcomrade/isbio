@@ -86,11 +86,12 @@ def default_suspicious(request):
 
 
 # clem 18/10/2016 + 19/10/2016 # TODO description
-def match_filter(payload, filter_dict):
+def match_filter(payload, filter_dict, org_key=''):
 	""" TODO
 	
 	:type payload: dict
 	:type filter_dict:  dict
+	:type org_key:  str
 	:rtype: bool
 	"""
 	check_type = (type(payload), type(filter_dict))
@@ -115,12 +116,12 @@ def match_filter(payload, filter_dict):
 				return False
 			else:
 				# payload_value is a dict and tail as some more path component
-				if not match_filter(payload_value, {tail: equal_value }):
+				if not match_filter(payload_value, {tail: equal_value }, key):
 					# if the sub-payload doesn't match
 					return False # this cannot be a prime failure source
 		elif key in payload.keys() or payload_value != equal_value:
 			# the key was not in the payload or the value was different, thus the match fails
-			logger.warning('values of %s mismatched (%s!=%s) !' % (key, payload_value, equal_value))
+			logger.warning('values of %s mismatched (%s!=%s) !' % (org_key or key, payload_value, equal_value))
 			return False
 	return True
 
