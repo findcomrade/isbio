@@ -342,6 +342,8 @@ if not os.path.isfile( R_ENGINE_PATH.strip()):
 	PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
 	R_ENGINE_PATH = PROD_PATH + R_ENGINE_SUB_PATH # FIXME Legacy
 
+PROJECT_PATH = PROJECT_PATH + '/' if not PROJECT_PATH.endswith('/') else PROD_PATH
+
 PROJECT_FHRB_PM_PATH = '/%s/fhrb_pm/' % PROJECT_FOLDER_NAME
 JDBC_BRIDGE_PATH = PROJECT_FHRB_PM_PATH + 'bin/start-jdbc-bridge' # Every other path has a trailing /
 
