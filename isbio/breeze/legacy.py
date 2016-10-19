@@ -31,13 +31,6 @@ def get_report_path(report_inst, file_name=None):
 	local_path = home + '/' + unicode.replace(unicode(file_name), '../', '')
 	path_to_file = str(settings.MEDIA_ROOT) + local_path
 
-	# hack to access reports that were generated while dev was using prod folder
-	if not exists(path_to_file) and settings.DEV_MODE:
-		dir_exists = isdir(dirname(path_to_file))
-		error_msg = 'File ' + str(path_to_file) + ' NOT found. The folder ' + (
-			'DO NOT ' if not dir_exists else ' ') + 'exists.'
-		path_to_file = str(settings.MEDIA_ROOT).replace('-dev', '') + local_path
-
 	if not exists(path_to_file):
 		dir_exists = isdir(dirname(path_to_file))
 		raise Http404(error_msg + '<br />\n' + 'File ' + str(path_to_file) + ' NOT found. The folder ' + (
