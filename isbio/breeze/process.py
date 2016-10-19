@@ -1,4 +1,5 @@
 from multiprocessing import Process as ProcessOriginal
+from multiprocessing.process import signal
 import os
 import sys
 import itertools

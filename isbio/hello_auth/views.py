@@ -66,6 +66,8 @@ def process_login(request):
 				logger.warning('AUTH failure [%s]' % str(token_info))
 				return HttpResponse(status=503)
 	else:
+		# AUTH0 did not returned a ticket, it might be an error on their side (not verified email addr, disabled account
+		# etc)
 		logger.warning('AUTH invalid GET[%s] POST[%s]' % (request.GET.__dict__, request.POST.__dict__))
 		print ('unsupported auth type :\n', request.GET.__dict__, request.POST.__dict__)
 	
