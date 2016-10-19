@@ -12,7 +12,7 @@ from .common import *
 
 
 # clem 17/10/2016
-def get_response(data=empty_dict):
+def get_response(data=empty_dict, version='', result=''):
 	return HttpResponse(json.dumps(data), content_type=CT_JSON)
 
 
