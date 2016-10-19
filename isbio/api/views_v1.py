@@ -32,12 +32,12 @@ def hook(_):
 def reload_sys(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
-		# print('GitReload event header: "%s"' % rq.event_name)
-		# print('size of payload : %s, type : %s' % (len(payload), type(payload)))
 		allow_filter = {
 			'ref': settings.GIT_AUTO_REF
 		}
 		if check_filter(payload, allow_filter):
+			logger.info(
+				'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
 		
@@ -49,11 +49,10 @@ def reload_sys(request):
 def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
-		# print('GitHook event header: "%s"' % rq.event_name)
-		# print('size of payload : %s, type : %s' % (len(payload), type(payload)))
 		allow_filter = {
 		}
 		if check_filter(payload, allow_filter):
+			logger.info('Received git push event for R code')
 			result = code.do_r_source_git_pull()
 			if not result:
 				return get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)

@@ -59,8 +59,6 @@ def do_self_git_pull():
 		import subprocess
 		command = 'sleep 1 && ' + settings.API_PULL_COMMAND
 		subprocess.Popen(command, shell=True)
-		
-		logger.info('Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
 		print (TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
 		return True
 	except Exception as e:
@@ -79,7 +77,6 @@ def do_r_source_git_pull():
 	:rtype: bool
 	"""
 	try:
-		logger.info('Received git push event for R code')
 		logger.warning('NOT_IMPLEMENTED')
 		print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
 		# return True
