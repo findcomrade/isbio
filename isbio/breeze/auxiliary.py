@@ -544,6 +544,7 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 			more = "%s :\n" % log
 			try:
 				with open(log) as f:
+					logger.debug('read: %s' % log)
 					f.seek(log_size)
 					for line in f.readlines():
 						more += line + '\n'
@@ -605,14 +606,17 @@ def proxy_to(request, path, target_url, query_s='', silent=False, timeout=None):
 
 # clem 02/10/2015
 def html_auto_content_cache(path_to_file, convert_img=True):
-	"""
-	Figure out if an HTML file has been cached or not, and return file content.
+	""" Figure out if an HTML file has been cached or not, and return file content.
+	
 	If file was not cached, checks for image content and return <i>image_embedding()</i> processed markup
 	<i>image_embedding()</i> transform images link in embedded images and save a cache file.
 	<i>Experimental results shows browser <u>loading time decrease by <b>factor 10+</b></u> (2000+ images)</i>
 
 	:param path_to_file: path to the HTML file
 	:type path_to_file: str
+	:param convert_img: wether to convert img from HTML file to embedded base64 images
+		(WARNING : currently breaks <img> attributes)
+	:type convert_img: bool
 	:rtype: str
 	"""
 	from os.path import splitext, dirname, basename, isfile
@@ -622,6 +626,7 @@ def html_auto_content_cache(path_to_file, convert_img=True):
 
 	if not convert_img or file_ext != 'html' and file_ext != 'htm':
 		f = open(path_to_file)
+		logger.debug('read: %s' % path_to_file)
 		return f.read()
 
 	dir_path = dirname(path_to_file) + '/'
@@ -629,6 +634,7 @@ def html_auto_content_cache(path_to_file, convert_img=True):
 
 	if isfile(cached_path): # and getsize(cached_path) > pow(1024, 2): # 1 Mibi
 		f = open(cached_path)
+		logger.debug('read: %s' % cached_path)
 		return f.read()
 	
 	return image_embedding(path_to_file, cached_path)

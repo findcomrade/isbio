@@ -2345,7 +2345,7 @@ def report_file_server_sub(request, rid, category, report_inst, fname=None):
 	assert isinstance(report_inst, Report)
 	try:
 		local_path, path_to_file = get_report_path(report_inst, fname)
-		logger.debug('Read : %s' % local_path)
+		logger.debug('served: %s' % local_path)
 	except Http404 as e:
 		msg = ['The report file was not found.', 'This usually means that the pipeline'
 			' did run, but failed to produce the report for some reason.',
