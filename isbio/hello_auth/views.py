@@ -22,10 +22,6 @@ def index(request, template='hello_auth/base.html'):
 			# commit an error message
 			messages.add_message(request, messages.ERROR, '%s : %s' % (error, error_description))
 			return redirect(reverse(this_function_name()))
-		# if an error message is present, consume it
-		msg = messages.get_messages(request)
-		if msg:
-			context.update({ 'error_msg': msg})
 		
 		return render(request, template, context=context)
 	else:
