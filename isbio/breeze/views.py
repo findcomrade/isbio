@@ -2939,10 +2939,9 @@ def view_log(request, show_all=False, num=0):
 		return txt.replace('\t', '    ').replace(' ', '&nbsp;')
 
 	if not request.user.is_superuser:
-		logger.warning(
-			'un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
+		# logger.warning(
+		# 	'un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
 		raise PermissionDenied
-	raise NotDefined
 	grab_next = False
 	last_pid = 0
 	with open(settings.LOG_PATH) as f:
@@ -2986,7 +2985,8 @@ def view_log(request, show_all=False, num=0):
 @login_required(login_url='/')
 def fix_file_acl(request, fid):
 	if not request.user.is_superuser:
-		logger.warning('un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
+		# logger.warning('un-privileged user %s tried to trigger %s' % (request.user.get_full_name,
+		# utils.this_function_name()))
 		raise PermissionDenied
 
 	try:
