@@ -33,9 +33,13 @@ def reload_sys(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
 		allow_filter = {
-			'ref': settings.GIT_AUTO_REF
+			'ref'                 : settings.GIT_AUTO_REF,
+			'repository.id'       : 70237993,
+			'repository.full_name': 'Fclem/isbio2',
+			'pusher.name'         : 'Fclem',
+			'sender.id'           : 6617239,
 		}
-		if check_filter(payload, allow_filter):
+		if match_filter(payload, allow_filter):
 			logger.info(
 				'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
 			result = code.do_self_git_pull()
@@ -50,8 +54,10 @@ def git_hook(request):
 	payload, rq = code.get_git_hub_json(request)
 	if payload:
 		allow_filter = {
+			'ref'                 : "refs/heads/testing",
+			'repository.id'       : 70131764, # "DSRT-v2"
 		}
-		if check_filter(payload, allow_filter):
+		if match_filter(payload, allow_filter):
 			logger.info('Received git push event for R code')
 			result = code.do_r_source_git_pull()
 			if not result:

@@ -86,14 +86,16 @@ def default_suspicious(request):
 
 
 # clem 18/10/2016 + 19/10/2016 # TODO description
-def check_filter(payload, filter_dict):
+def match_filter(payload, filter_dict):
 	""" TODO
 	
 	:type payload: dict
 	:type filter_dict:  dict
 	:rtype: bool
 	"""
-	if (type(payload), type(filter_dict)) not in [(dict, dict)]:
+	check_type = (type(payload), type(filter_dict))
+	if check_type not in [(dict, dict)]:
+		logger.error('cannot match with %s, %s' % check_type)
 		return False
 	for key, equal_value in filter_dict.iteritems():
 		tail = None
@@ -109,14 +111,16 @@ def check_filter(payload, filter_dict):
 			if not (payload_value and type(payload_value) is dict):
 				# there was no such key in payload, or the payload_value was not a dict
 				# (i.e. there is no sub-path to go to for this key) thus the match fails
+				logger.warning('incorrect key path, or key not found')
 				return False
 			else:
 				# payload_value is a dict and tail as some more path component
-				if not check_filter(payload_value, {tail: equal_value}):
+				if not match_filter(payload_value, {tail: equal_value }):
 					# if the sub-payload doesn't match
-					return False
+					return False # this cannot be a prime failure source
 		elif key in payload.keys() or payload_value != equal_value:
 			# the key was not in the payload or the value was different, thus the match fails
+			logger.warning('values of %s mismatched (%s!=%s) !' % (key, payload_value, equal_value))
 			return False
 	return True
 
