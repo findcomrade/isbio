@@ -2346,11 +2346,10 @@ def report_file_server_sub(request, rid, category, report_inst=None, fname=None)
 		msg = 'Bad function call : missing or invalid argument'
 		logger.warning(msg)
 		return aux.fail_with404(request, msg)
-	local_path, path_to_file = '', ''
 	try:
 		local_path, path_to_file = get_report_path(report_inst, fname)
-	except Http404:
-		logger.warning('File not found : %s, %s' % (local_path, path_to_file))
+	except Http404 as e:
+		logger.warning('File not found : %s' % e.message)
 		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'
 			' did run, but failed to produce the report for some reason.', 'Tis could be caused by the a script failing'
 			' in an unexpected way that Breeze could not detect, or failed to detect.',
