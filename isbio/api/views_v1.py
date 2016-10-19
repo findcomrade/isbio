@@ -41,7 +41,7 @@ def reload_sys(request):
 		'pusher.name'         : 'Fclem',
 		'sender.id'           : "6617239",
 	}
-	if match_filter(payload, allow_filter) and rq.event_name == 'push':
+	if rq.event_name == 'push' and match_filter(payload, allow_filter):
 		logger.info(
 			'Received system reload from GitHub, pulling (django should reload itself if any change occurs) ...')
 		result = code.do_self_git_pull()
@@ -61,7 +61,7 @@ def git_hook(request):
 		'ref'                 : "refs/heads/master",
 		'repository.id'       : "70131764", # "DSRT-v2"
 	}
-	if match_filter(payload, allow_filter) and rq.event_name == 'push':
+	if rq.event_name == 'push' and match_filter(payload, allow_filter):
 		logger.info('Received git push event for R code')
 		result = code.do_r_source_git_pull()
 		return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
