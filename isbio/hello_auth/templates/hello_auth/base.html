@@ -19,11 +19,11 @@
 	</script>
 	<!-- general style -->
 	<style>
-		.error_msg{
+		.error{
 			color:crimson;
 			text-align: center;
 		}
-		.page_content{
+		.page_content, .messages{
 			align-content: center;
 			text-align: center;
 		}
@@ -110,14 +110,14 @@
 		<button onclick="lock.show();">Breeze Login</button>
 	</div>
 	{% if messages %}
-		<ul class="messages">
+		<div class="messages">
 			{% for message in messages %}
-				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+				<h3{% if message.tags %} class="{{ message.tags }}"{% endif %}>
 					{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error: {% endif %}
 					{{ message }}
-				</li>
+				</h3>
 			{% endfor %}
-		</ul>
+		</div>
 	{% else %}
 		{% if from_fimm %}
 			<!-- Fimm warning Modal message -->
