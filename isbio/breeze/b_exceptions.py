@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied as PermissionDenied_org, ObjectDoesNotExist
 from utilz import logger, this_function_caller_name
 __author__ = 'clem'
 __date__ = '25/05/2015'
@@ -118,9 +118,9 @@ class ObjectHasNoReadOnlySupport(RuntimeError):
 	pass
 
 
-class MyDenied(PermissionDenied):
+class PermissionDenied(PermissionDenied_org):
 	def __init__(self, *args, **kwargs):
-		super(MyDenied, self).__init__(*args, **kwargs)
+		super(PermissionDenied, self).__init__(*args, **kwargs)
 		from django.core.handlers.wsgi import WSGIRequest
 		final_text = ''
 		request = kwargs.get('request', None) or args[0] if len(args) >= 1 else None
@@ -133,5 +133,3 @@ class MyDenied(PermissionDenied):
 			final_text += message
 		logger.warning(final_text)
 
-
-PermissionDenied = MyDenied
