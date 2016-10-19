@@ -17,6 +17,17 @@
 		}
 		});
 	</script>
+	<!-- general style -->
+	<style>
+		.error_msg{
+			color:crimson;
+			text-align: center;
+		}
+		.page_content{
+			align-content: center;
+			text-align: center;
+		}
+	</style>
 	<!-- modal dialogue -->
 	<style>
 		/* The Modal (background) */
@@ -41,7 +52,9 @@
 			margin: auto;
 			padding: 0;
 			border: 1px solid #888;
-			width: 80%;
+			width: 50%;
+			min-width: 330px;
+			min-height: 220px;
 			box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 			-webkit-animation-name: animatetop;
 			-webkit-animation-duration: 0.4s;
@@ -91,68 +104,66 @@
 	</style>
 </head>
 <body>
-	<div>
-		<p align="center">
-			<h6>Breeze (empty) home page</h6>
-			<h1>This is "Cloud Breeze" !</h1>
-			<button onclick="lock.show();">Breeze Login</button>
-		</p>
-		{% if error_msg %}
-			<h3 style="color: crimson">{{error}} : {{error_msg}}</h3>
-		{% else %}
-			{% if from_fimm %}
-				<!-- Fimm warning Modal message -->
-				<div id="FimmUserWarningModal" class="modal">
-					<!-- Modal content -->
-					<div class="modal-content">
-						<div class="modal-header">
-							<span class="close">×</span>
-							<h2>Message to FIMM's users :</h2>
-						</div>
-						<div class="modal-body">
-							<p>This is "Cloud Breeze" !</p>
-							<p>Are you maybe looking for
-								<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">
-									FIMM's Breeze</a> ?</p>
-						</div>
-						<div class="modal-footer">
-							<h3>FIMM internal Breeze has move to https://breeze-fimm.fimm.fi !</h3>
-						</div>
+	<div class="page_content">
+		<h6>Breeze (empty) home page</h6>
+		<h1>This is "Cloud Breeze" !</h1>
+		<button onclick="lock.show();">Breeze Login</button>
+	</div>
+	{% if error_msg %}
+		<h3 class="error_msg">{{error}} : {{error_msg}}</h3>
+	{% else %}
+		{% if from_fimm %}
+			<!-- Fimm warning Modal message -->
+			<div id="FimmUserWarningModal" class="modal">
+				<!-- Modal content -->
+				<div class="modal-content">
+					<div class="modal-header">
+						<span class="close">×</span>
+						<h2>Message to FIMM's users :</h2>
+					</div>
+					<div class="modal-body">
+						<p>This is "Cloud Breeze" !</p>
+						<p>Are you maybe looking for
+							<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">
+								FIMM's Breeze</a> ?</p>
+					</div>
+					<div class="modal-footer">
+						<h3>FIMM internal Breeze has move to https://breeze-fimm.fimm.fi !</h3>
 					</div>
 				</div>
-				<!-- Modal Script dialogue -->
-				<script type="text/javascript">
-					// Get the modal
-					var modal = document.getElementById('FimmUserWarningModal');
-					// Get the <span> element that closes the modal
-					var span = document.getElementsByClassName("close")[0];
-					// When the user clicks the button, open the modal
-					function show_warning() {
-						modal.style.display = "block";
-					}
-					// When the user clicks on <span> (x), close the modal
-					span.onclick = function () {
+			</div>
+			<!-- Modal Script dialogue -->
+			<script type="text/javascript">
+				// Get the modal
+				var modal = document.getElementById('FimmUserWarningModal');
+				// Get the <span> element that closes the modal
+				var span = document.getElementsByClassName("close")[0];
+				// When the user clicks the button, open the modal
+				function show_warning() {
+					modal.style.display = "block";
+				}
+				// When the user clicks on <span> (x), close the modal
+				span.onclick = function () {
+					modal.style.display = "none";
+				};
+				// When the user clicks anywhere outside of the modal, close it
+				window.onclick = function (event) {
+					if (event.target == modal) {
 						modal.style.display = "none";
-					};
-					// When the user clicks anywhere outside of the modal, close it
-					window.onclick = function (event) {
-						if (event.target == modal) {
-							modal.style.display = "none";
-						}
-					};
-					window.onload = function () {
-						show_warning();
-					};
-				</script>
-			{% else %}
-				<!-- Auto show AUTH0 login/reg popup -->
-				<script type="text/javascript">
-					window.onload = function () {
-						lock.show();
-					};
-				</script>
-			{% endif %}
+					}
+				};
+				window.onload = function () {
+					show_warning();
+				};
+			</script>
+		{% else %}
+			<!-- Auto show AUTH0 login/reg popup -->
+			<script type="text/javascript">
+				window.onload = function () {
+					lock.show();
+				};
+			</script>
 		{% endif %}
-	</div>
+	{% endif %}
 </body>
 </html>
