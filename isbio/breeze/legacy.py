@@ -35,7 +35,7 @@ def get_report_path(report_inst, file_name=None):
 	if not exists(path_to_file):
 		dir_exists = isdir(dirname(path_to_file))
 		raise Http404(error_msg + '<br />\n' + 'File ' + str(path_to_file) + ' NOT found. The folder ' + (
-			'DO NOT ' if not dir_exists else ' ') + 'exists.')
+			'DOES NOT ' if not dir_exists else ' ') + 'exists.')
 
 	return local_path, path_to_file
 

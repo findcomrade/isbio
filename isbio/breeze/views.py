@@ -2323,7 +2323,7 @@ def report_file_server_out(request, rid, category, u_key, fname=None):
 
 
 # DO NOT CALL THIS VIEW FROM url.py
-def report_file_server_sub(request, rid, category, report_inst=None, fname=None):
+def report_file_server_sub(request, rid, category, report_inst, fname=None):
 	""" Serve report files
 		SECURITY (ACL/ARM) has to be dealt with by the caller
 		
@@ -2342,15 +2342,11 @@ def report_file_server_sub(request, rid, category, report_inst=None, fname=None)
 	"""
 	from django.http import Http404
 	# SAFETY FIRST
-	if not report_inst:
-		msg = 'Bad function call : missing or invalid argument'
-		logger.warning(msg)
-		return aux.fail_with404(request, msg)
+	assert isinstance(report_inst, Report)
 	try:
 		local_path, path_to_file = get_report_path(report_inst, fname)
-		logger.info('Read : %s, %s' % (local_path, os.path.dirname(path_to_file)))
+		logger.debug('Read : %s' % local_path)
 	except Http404 as e:
-		logger.warning('File not found : %s' % e.message)
 		return aux.fail_with404(request, ['The report file was not found.', 'This usually means that the pipeline'
 			' did run, but failed to produce the report for some reason.', 'Tis could be caused by the a script failing'
 			' in an unexpected way that Breeze could not detect, or failed to detect.',
