@@ -79,7 +79,9 @@ def do_r_source_git_pull():
 	try:
 		# logger.warning('NOT_IMPLEMENTED')
 		# print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
-		return os.system('cd /home/breeze/dockerb/breeze_data && git pull') # FIXME
+		command = 'cd /root/code/breeze_data && git pull'
+		print(TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
+		return os.system(command) # FIXME
 		# return True
 	except Exception as e:
 		logger.exception(str(e))
