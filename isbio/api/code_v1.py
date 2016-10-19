@@ -77,8 +77,9 @@ def do_r_source_git_pull():
 	:rtype: bool
 	"""
 	try:
-		logger.warning('NOT_IMPLEMENTED')
-		print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
+		# logger.warning('NOT_IMPLEMENTED')
+		# print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
+		return os.system('cd /home/breeze/dockerb/breeze_data && git pull') # FIXME
 		# return True
 	except Exception as e:
 		logger.exception(str(e))
