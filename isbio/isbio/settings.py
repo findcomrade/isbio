@@ -654,6 +654,8 @@ else:
 	print git_stat
 	logging.info('Settings loaded. Running %s on %s' % (RUN_MODE, FULL_HOST_NAME))
 	logging.info(git_stat)
+	from api import code_v1
+	code_v1.do_self_git_pull()
 
 
 def project_folder_path(breeze_folder=BREEZE_FOLDER):
