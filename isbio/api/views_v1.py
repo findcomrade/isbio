@@ -45,7 +45,7 @@ def reload_sys(request):
 			result = code.do_self_git_pull()
 			return get_response(result, payload)
 		else:
-			return HttpResponseNotModified
+			return HttpResponseNotModified('')
 		
 	# raise default_suspicious(request)
 	return HttpResponseBadRequest
@@ -65,7 +65,7 @@ def git_hook(request):
 			result = code.do_r_source_git_pull()
 			return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
 		else:
-			return HttpResponseNotModified
+			return HttpResponseNotModified('')
 	
 	# raise default_suspicious(request)
 	return HttpResponseBadRequest
