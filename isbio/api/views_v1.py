@@ -48,7 +48,7 @@ def reload_sys(request):
 			return HttpResponseNotModified('')
 		
 	# raise default_suspicious(request)
-	return HttpResponseBadRequest
+	return HttpResponseBadRequest()
 	
 	
 # clem 17/10/2016
@@ -68,4 +68,4 @@ def git_hook(request):
 			return HttpResponseNotModified('')
 	
 	# raise default_suspicious(request)
-	return HttpResponseBadRequest
+	return HttpResponseBadRequest()
