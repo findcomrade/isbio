@@ -22,11 +22,12 @@
 		<h1>This is "Cloud Breeze" !</h1>
 		<button onclick="lock.show();">Breeze Login</button>
 		{% if error_msg %}
-			<h3 style="color: crimson">{error} : {error_msg}</h3>
+			<h3 style="color: crimson">{{error}} : {{error_msg}}</h3>
 		{% else %}
 			{% if from_fimm %}
+				<h3>
 				FIMM Users : are you looking for
-				<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">FIMM's Breeze</a> ?<br>
+				<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">FIMM's Breeze</a> ?</h3>
 			{% else %}
 				<script type="text/javascript">
 					window.onload = function () {
