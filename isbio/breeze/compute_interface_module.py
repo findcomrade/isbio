@@ -1,4 +1,4 @@
-from utilities import *
+from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 

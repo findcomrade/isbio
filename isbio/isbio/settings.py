@@ -5,7 +5,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from breeze.utilities import git, TermColoring, recur, recur_rec, get_key, import_env, file_content
+from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
@@ -177,6 +177,7 @@ INSTALLED_APPS = [
 	'hello_auth.apps.Config',
 	'api.apps.Config',
 	'webhooks.apps.Config',
+	'utilz.apps.Config',
 	'django_requestlogging',
 	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',

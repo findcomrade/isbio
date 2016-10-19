@@ -1,4 +1,4 @@
-from breeze.utilities import *
+from utilz import *
 from django.conf import settings as settings
 # from isbio.settings import *
 

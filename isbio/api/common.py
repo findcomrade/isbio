@@ -1,5 +1,5 @@
 from . import settings
-from breeze.utilities import *
+from utilz import *
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.exceptions import SuspiciousOperation

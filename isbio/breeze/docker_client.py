@@ -2,7 +2,7 @@ from docker import Client as DockerApiClient
 from docker.errors import NotFound, APIError, NullResource
 from threading import Thread, Lock
 from datetime import datetime
-from utilities import get_md5, advanced_pretty_print, TermColoring, new_thread, get_named_tuple, ObjectCache,\
+from utilz import get_md5, advanced_pretty_print, TermColoring, new_thread, get_named_tuple, ObjectCache,\
 	this_function_caller_name
 import curses
 import json
@@ -744,7 +744,7 @@ class DockerInfo:
 		self.__dict__.update(a_dict)
 
 	def summary(self):
-		from utilities import human_readable_byte_size, UnitSystem
+		from utilz import human_readable_byte_size, UnitSystem
 		return 'Docker daemon at "%s" running on (%s %s %s) %s\n' %\
 			(self.Name, self.Architecture, self.OSType, self.KernelVersion, self.OperatingSystem) + \
 			'Containers :\n' \

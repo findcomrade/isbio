@@ -1,4 +1,4 @@
-from breeze.utilities import *
+from utilz import *
 from django.core.handlers.wsgi import WSGIRequest
 
 # from . import settings

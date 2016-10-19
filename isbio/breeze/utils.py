@@ -59,7 +59,7 @@ and also notable custom functions as :
 from django.conf import settings
 from datetime import datetime
 from breeze.b_exceptions import * # DO NOT DELETE : used in sub-modules
-from utilities import * # import all the non Breeze / non Django related utilities
+from utilz import * # import all the non Breeze / non Django related utilities
 from import_drmaa import drmaa, job_stat_class, drmaa_mutex
 
 # 01/04/2016 : Moved all non-Django related code to utilities package
@@ -191,7 +191,7 @@ def norm_proj_p(path, repl=''):
 # TODO : test and integrate
 def get_r_package(name=''):
 	# TEST function for R lib retrieval
-	from cran_old import CranArchiveDownloader
+	from utilz.cran_old import CranArchiveDownloader
 	if name:
 		cran = CranArchiveDownloader(name)
 		if cran.find() and cran.download():
