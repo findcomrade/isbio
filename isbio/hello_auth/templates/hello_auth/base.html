@@ -91,14 +91,17 @@
 	</style>
 </head>
 <body>
-	<div align="center"><h6>Breeze (empty) home page</h6>
-		<h1>This is "Cloud Breeze" !</h1>
-		<button onclick="lock.show();">Breeze Login</button>
+	<div>
+		<p align="center">
+			<h6>Breeze (empty) home page</h6>
+			<h1>This is "Cloud Breeze" !</h1>
+			<button onclick="lock.show();">Breeze Login</button>
+		</p>
 		{% if error_msg %}
 			<h3 style="color: crimson">{{error}} : {{error_msg}}</h3>
 		{% else %}
 			{% if from_fimm %}
-				<!-- The Modal -->
+				<!-- Fimm warning Modal message -->
 				<div id="FimmUserWarningModal" class="modal">
 					<!-- Modal content -->
 					<div class="modal-content">
@@ -117,7 +120,7 @@
 						</div>
 					</div>
 				</div>
-				<!-- Modal Script -->
+				<!-- Modal Script dialogue -->
 				<script type="text/javascript">
 					// Get the modal
 					var modal = document.getElementById('FimmUserWarningModal');
@@ -141,10 +144,8 @@
 						show_warning();
 					};
 				</script>
-				<h3>
-				FIMM Users : are you looking for
-				<a href="https://breeze-fimm.fimm.fi" title="go to FIMM's version of Breeze">FIMM's Breeze</a> ?</h3>
 			{% else %}
+				<!-- Auto show AUTH0 login/reg popup -->
 				<script type="text/javascript">
 					window.onload = function () {
 						lock.show();
