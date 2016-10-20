@@ -760,6 +760,21 @@ def check_ssh_tunnel():
 	return utils.is_host_online(settings.SSH_TUNNEL_HOST, 2)
 
 
+# clem 20/10/20016
+def check_docker_connection():
+	""" Check if docker endpoint is responding
+
+
+	:rtype: bool
+	"""
+	from docker_client import get_docker_client
+	client = False
+	try:
+		client = get_docker_client('tcp://breeze-ssh:3945')
+	except Exception as e:
+		logger.exception(str(e))
+	return client
+
 # TODO FIXME runtime fs_check slow and memory leak ?
 fs_mount = SysCheckUnit(check_file_system_mounted, 'fs_mount', 'File server', 'FILE SYSTEM\t\t ', RunType.runtime,
 						ex=FileSystemNotMounted, mandatory=True)
@@ -781,6 +796,8 @@ CHECK_LIST = [
 		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
 	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
+	SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime, 
+		ex=DockerNotResponding),
 	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
 		RunType.runtime, ex=ShinyUnreachable),
 	SysCheckUnit(check_watcher, 'watcher', 'JobKeeper', 'JOB_KEEPER\t\t', RunType.runtime, ex=WatcherIsNotRunning),

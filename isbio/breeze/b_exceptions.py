@@ -59,6 +59,10 @@ class NoSshTunnel(SystemCheckFailed):
 	pass
 
 
+class DockerNotResponding(SystemCheckFailed):
+	pass
+
+
 class WatcherIsNotRunning(SystemCheckFailed):
 	pass
 
