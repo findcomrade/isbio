@@ -820,14 +820,16 @@ CHECK_LIST = [
 ]
 
 
-def add_extra_test():
+def extra_test():
 	global CHECK_LIST, CHECK_DICT
 	from breeze.models import ComputeTarget
 	for each in ComputeTarget.objects.enabled():
-		CHECK_LIST.append(
-			SysCheckUnit(check_target_is_online, 'target-%s' % each.name, 'Target %s' % each.name, '', RunType.runtime,
-				ex=TargetNotResponding, arg=each.id),
-		)
+		url = 'target-%s' % each.name
+		if url not in CHECK_DICT.keys():
+			CHECK_LIST.append(
+				SysCheckUnit(check_target_is_online, url, 'Target %s' % each.name, '', RunType.runtime,
+					ex=TargetNotResponding, arg=each.id),
+			)
 	
 	CHECK_DICT = dict()
 	for each_e in CHECK_LIST:
@@ -840,7 +842,7 @@ for each_e in CHECK_LIST:
 
 # clem 08/09/2015
 def get_template_check_list():
-	add_extra_test()
+	extra_test()
 	res = list()
 	for each in CHECK_LIST:
 		if each.type in [RunType.both, RunType.runtime]:
