@@ -819,6 +819,7 @@ def initiator(compute_target, *_):
 
 	with a_lock:
 		if use_caching:
+			key_id = compute_target.runnable.short_id if hasattr(compute_target.runnable, 'short_id') else ''
 			key = '%s:%s' % ('DockerInterface', compute_target.runnable.short_id)
 			cached = ObjectCache.get(key)
 			if not cached:
