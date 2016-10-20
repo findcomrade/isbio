@@ -59,7 +59,11 @@ class NoSshTunnel(SystemCheckFailed):
 	pass
 
 
-class DockerNotResponding(SystemCheckFailed):
+class TargetNotResponding(SystemCheckFailed):
+	pass
+
+
+class DockerNotResponding(TargetNotResponding):
 	pass
 
 

@@ -539,3 +539,48 @@ class ProjectManager(ObjectsWithAuth):
 		"""
 		return super(ProjectManager, self).exclude(
 			~org_Q(author__exact=user) & org_Q(collaborative=False)).order_by("name")
+
+
+# clem 20/10/2016
+class CompTargetsManager(Manager):
+	# clem 26/05/2016
+	def _target_objects(self, only_enabled=False, only_ready=False):
+		""" Get possibly available targets for this ReportType
+
+		:param only_enabled: Filter out targets that are not marked as enabled in the DB
+		:type only_enabled: bool
+		:param only_ready:
+			Filter out targets that have disabled dependencies (exec or engine) (this implies only_enabled)
+		:type only_ready: bool
+		:return:
+		:rtype: list[ComputeTarget]
+		"""
+		base = super(CompTargetsManager, self)
+		targets = base.filter(enabled=True) if only_enabled or only_ready else base.all()
+		tmp_list = list()
+		for each in targets: # :type: ComputeTarget
+			# assert isinstance(each, ComputeTarget)
+			if not only_ready or each.compute_interface.ready:
+				tmp_list.append(each)
+		return tmp_list
+	
+	# clem 26/05/2016
+	def enabled(self):
+		""" A list of enabled ComputeTarget objects that are available to use with this ReportType
+
+		:return:
+		:rtype: list[ComputeTarget]
+		"""
+		return self._target_objects(only_enabled=True)
+		
+	# clem 26/05/2016
+	def ready(self):
+		""" A list of ready to use ComputeTarget objects that are available to use with this ReportType
+
+		This means that they are explicitly marked as enabled in the DB,
+		And, each resources they depend on (exec and engine) are also enabled
+
+		:return:
+		:rtype: list[ComputeTarget]
+		"""
+		return self._target_objects(only_ready=True)

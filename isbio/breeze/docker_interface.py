@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.4.4'
+__version__ = '0.4.5'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -24,7 +24,7 @@ class DockerInterface(ComputeInterface):
 	_run_server = None
 	run_id = '' # stores the md5 of the sent archive ie. the job id
 	proc = None
-	client = None
+	_client = None
 	_container_lock = None
 	_label = ''
 	my_volume = DockerVolume('/home/breeze/data/', '/breeze')
@@ -33,6 +33,7 @@ class DockerInterface(ComputeInterface):
 	_container_logs = ''
 	cat = DockerEventCategories
 	_connect_port = None
+	connected = False
 
 	SSH_CMD_BASE = ['ssh', '-CfNnL']
 	SSH_KILL_ALL = 'killall ssh && killall ssh'
@@ -61,7 +62,7 @@ class DockerInterface(ComputeInterface):
 	job_file_archive_name = 'temp.tar.bz2'
 	container_log_file_name = 'container.log'
 
-	def __init__(self, compute_target, storage_backend=None):
+	def __init__(self, compute_target, storage_backend=None, auto_connect=False):
 		"""
 
 		:type storage_backend: module
@@ -77,19 +78,8 @@ class DockerInterface(ComputeInterface):
 		self.config_local_bind_address = (self.config_daemon_ip, self.connect_port)
 		self._label = self.config_tunnel_host[0:2]
 
-		res = False
-		if self.target_obj.target_use_tunnel and not self._test_connection(self.config_local_bind_address):
-			self.log.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
-			self._get_ssh()
-			if self._test_connection(self.config_local_bind_address):
-				res = self._connect()
-		else:
-			res = self._connect()
-		if not res:
-			self.log.error('FAILURE connecting to docker daemon, cannot proceed')
-			self._set_status(self.js.FAILED)
-			self._runnable.manage_run_failed(1, 99)
-			raise DaemonNotConnected
+		if auto_connect: # unless explicitly asked for, connection is now made upon access
+			self._connect()
 
 	# clem 11/05/2016
 	@property
@@ -181,7 +171,12 @@ class DockerInterface(ComputeInterface):
 	#########################
 	#  CONNECTION SPECIFIC  #
 	#########################
-
+	
+	# clem 20/10/2016
+	@property
+	def online(self):
+		return self._test_connection(self.config_local_bind_address)
+	
 	# clem 12/10/2016
 	@property
 	def connect_port(self):
@@ -198,7 +193,7 @@ class DockerInterface(ComputeInterface):
 			else:
 				self._connect_port = self.config_daemon_port
 		return self._connect_port
-		
+	
 	# clem 10/05/2016
 	def _get_a_port(self):
 		""" Give the port number of an existing ssh tunnel, or return a free port if no (or more than 1) tunnel exists
@@ -243,9 +238,32 @@ class DockerInterface(ComputeInterface):
 
 	# clem 07/04/2016
 	def _connect(self):
-		self.client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False)
+		# res = False
+		if not self.connected:
+			if self.target_obj.target_use_tunnel and not self.online:
+				self.log.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
+				self._get_ssh()
+			if not (self.ready and self._do_connect()):
+				self.log.error('FAILURE connecting to docker daemon, cannot proceed')
+				self._set_status(self.js.FAILED)
+				self._runnable.manage_run_failed(1, 99)
+				raise DaemonNotConnected
+		return True
+	
+	# clem 20/10/2016
+	@property
+	def client(self):
+		if not self._client:
+			self._connect()
+		return self._client
+	
+	# clem 07/04/2016
+	def _do_connect(self):
+		if not self._client:
+			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False)
+		self.connected = bool(self._client)
 		# self.client.DEBUG = False # suppress debug messages from DockerClient
-		return self.client
+		return bool(self.connected)
 
 	# TODO externalize
 	# clem 06/04/2016 # FIXME change print to log

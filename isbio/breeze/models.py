@@ -335,6 +335,8 @@ class EngineConfig(ConfigObject, CustomModel):
 class ComputeTarget(ConfigObject, CustomModel):
 	""" Defines and describes every shared attributes/methods of computing resource abstract classes.
 	"""
+	objects = managers.CompTargetsManager()
+	
 	name = models.CharField(max_length=32, blank=False, help_text="Name of this Compute resource target")
 	label = models.CharField(max_length=64, blank=False, help_text="Label text to be used in the UI")
 	# institute = ForeignKey(Institute, default=Institute.default)
@@ -344,7 +346,7 @@ class ComputeTarget(ConfigObject, CustomModel):
 
 	config_file = models.FileField(upload_to=generic_super_fn_spe, blank=False, db_column='config',
 		help_text="The config file for this target")
-	enabled = models.BooleanField(default=True, help_text="Un-check to disable target")
+	_enabled = models.BooleanField(default=True, help_text="Un-check to disable target", db_column ='enabled')
 
 	_storage_module = None
 	_compute_module = None
@@ -373,14 +375,14 @@ class ComputeTarget(ConfigObject, CustomModel):
 
 	# clem 26/05/2016
 	@property
-	def is_operational(self):
-		""" Is this object is ready to be used, i.e. all its dependencies are available, enabled and ready
+	def is_enabled(self):
+		""" Is this object is ready to be used, i.e. all its dependencies are available and enabled
 
 		:return: If this ComputeTarget is enabled, and all its dependencies are enabled (i.e. exec_obj and engine_obj)
 		:rtype: bool
 		"""
-		return self.enabled and self.exec_obj.enabled and self.engine_obj.enabled
-
+		return self._enabled and self.exec_obj.enabled and self.engine_obj.enabled
+	
 	# clem 26/05/2016
 	@property
 	def as_tuple(self):
@@ -726,6 +728,10 @@ class ReportType(FolderObj, CustomModel):
 			return True
 		return False
 
+	###############################################################
+	# SHOULD GO TO A MANAGER FOR THIS OBJECT OR FOR TARGET OBJECT #
+	###############################################################
+	
 	# clem 26/05/2016
 	def _target_objects(cls, only_enabled=False, only_ready=False):
 		""" Get possibly available targets for this ReportType
@@ -739,9 +745,11 @@ class ReportType(FolderObj, CustomModel):
 		:rtype: list[ComputeTarget]
 		"""
 		targets = cls.targets.filter(enabled=True) if only_enabled or only_ready else cls.targets.all()
+		# targets = cls.targets(enabled=True) if only_enabled or only_ready else cls.targets.all()
 		tmp_list = list()
-		for each in targets:
-			if not only_ready or each.is_operational:
+		for each in targets: # :type: ComputeTarget
+			assert isinstance(each, ComputeTarget)
+			if not only_ready or each.compute_interface.ready :
 				tmp_list.append(each)
 		return tmp_list
 
@@ -777,6 +785,10 @@ class ReportType(FolderObj, CustomModel):
 		:rtype: list[ComputeTarget]
 		"""
 		return self._target_objects(only_ready=True)
+
+	#######
+	# END #
+	#######
 
 	# clem 26/05/2016
 	def _gen_targets_form_list(cls, only_ready=False):

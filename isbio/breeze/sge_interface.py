@@ -1,11 +1,12 @@
 from compute_interface_module import * # has os, abc, JobStat, Runnable, ComputeTarget and utilities.*
 from breeze.b_exceptions import NoSuchJob, SGEError # , InvalidArgument
 from import_drmaa import drmaa, drmaa_mutex
+from django.conf import settings
 import StringIO
 import copy
 
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __author__ = 'clem'
 __date__ = '06/05/2016'
 
@@ -35,6 +36,26 @@ class SGEInterface(ComputeInterface):
 	def __init__(self, compute_target, storage_backend=None):
 		super(SGEInterface, self).__init__(compute_target, storage_backend)
 		
+	# clem 20/10/2016
+	@property
+	def online(self):
+		# clem on 20/08/2015 from system_check.py commit 5998b638d96826d907a3b3655220e4832b892d7c
+		def check_sge():
+			""" Check if SGE queue master server host is online, and drmaa can initiate a valid session
+
+			:rtype: bool
+			"""
+			if is_host_online(settings.SGE_MASTER_IP, 2):
+				try:
+					s = drmaa.Session()
+					s.initialize()
+					s.exit()
+					return True
+				except Exception as e:
+					raise e
+			return False
+		return check_sge()
+	
 	# clem 06/10/2016
 	def name(self):
 		return "sge queue %s" % self.config_queue_name

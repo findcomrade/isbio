@@ -40,10 +40,12 @@ def test_tcp_connect(host, port, timeout=2):
 		try:
 			s.settimeout(timeout)
 			s.connect((host, port))
+			get_logger().debug('TCP can connect to %s:%s' % (host, port))
 			return True
 		finally:
 			s.close()
 	except Exception:
+		get_logger().debug('Failed connection to %s:%s' % (host, port))
 		raise
 
 

@@ -2,7 +2,7 @@ from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
@@ -28,6 +28,36 @@ class ComputeInterface:
 		assert hasattr(self.storage_backend, 'MissingResException')
 
 		self._missing_exception = self.storage_backend.MissingResException
+		
+	# clem 20/10/2016
+	@property
+	def enabled(self):
+		""" Tells if all components are enabled
+
+		:return:
+		:rtype: bool
+		"""
+		return self._compute_target.is_enabled
+	
+	# clem 20/10/2016
+	@abc.abstractmethod
+	def online(self):
+		""" Tells if the target is online
+
+		:return:
+		:rtype: bool
+		"""
+		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
+
+	# clem 20/10/2016
+	@property
+	def ready(self):
+		""" Tells if all components are enabled and if the target is online
+		
+		:return:
+		:rtype: bool
+		"""
+		raise self.enabled and self.online
 
 	# clem 17/05/2016
 	@property

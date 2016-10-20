@@ -776,6 +776,21 @@ def check_docker_connection():
 		logger.exception(str(e))
 	return client
 
+
+# clem 20/10/20016
+def check_target_is_online(target_id):
+	""" Check if docker endpoint is responding
+
+	:rtype: bool
+	"""
+	from breeze.models import ComputeTarget
+	result = False
+	try:
+		result = ComputeTarget.objects.get(pk=target_id).compute_interface.ready
+	except Exception as e:
+		logger.exception(str(e))
+	return result
+
 # TODO FIXME runtime fs_check slow and memory leak ?
 fs_mount = SysCheckUnit(check_file_system_mounted, 'fs_mount', 'File server', 'FILE SYSTEM\t\t ', RunType.runtime,
 						ex=FileSystemNotMounted, mandatory=True)
@@ -797,12 +812,19 @@ CHECK_LIST = [
 		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
 	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
-	SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime,
-		ex=DockerNotResponding),
+	# SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime,
+	# 	ex=DockerNotResponding),
 	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
 		RunType.runtime, ex=ShinyUnreachable),
 	SysCheckUnit(check_watcher, 'watcher', 'JobKeeper', 'JOB_KEEPER\t\t', RunType.runtime, ex=WatcherIsNotRunning),
 ]
+
+from breeze.models import ComputeTarget
+for each in ComputeTarget.objects.enabled():
+	CHECK_LIST.append(
+		SysCheckUnit(check_target_is_online, 'target-%s' % each.name, 'Target %s' % each.name, '', RunType.runtime,
+			ex=TargetNotResponding, arg=each.id),
+	)
 
 CHECK_DICT = dict()
 for each_e in CHECK_LIST:
