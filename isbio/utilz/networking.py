@@ -26,7 +26,7 @@ def test_tcp_connect(host, port, timeout=2):
 	:param host: ip address or FQDN of the target host
 	:type host: str
 	:param port: TCP port number to attempt connection to
-	:type port: str
+	:type port: int | str
 	:param timeout: connection timeout time in seconds
 	:type timeout: int
 	:return: if TCP connect is successful
@@ -35,6 +35,8 @@ def test_tcp_connect(host, port, timeout=2):
 	"""
 	try:
 		s = socket.socket()
+		if type(port) is not int:
+			port = int(port)
 		try:
 			s.settimeout(timeout)
 			s.connect((host, port))
