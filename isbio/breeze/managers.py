@@ -556,7 +556,7 @@ class CompTargetsManager(CustomManager):
 		:rtype: list[ComputeTarget]
 		"""
 		base = super(CompTargetsManager, self)
-		targets = base.filter(enabled=True) if only_enabled or only_ready else base.all()
+		targets = base.filter(_enabled=True) if only_enabled or only_ready else base.all()
 		tmp_list = list()
 		for each in targets: # :type: ComputeTarget
 			# assert isinstance(each, ComputeTarget)

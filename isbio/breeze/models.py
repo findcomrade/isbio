@@ -744,7 +744,7 @@ class ReportType(FolderObj, CustomModel):
 		:return:
 		:rtype: list[ComputeTarget]
 		"""
-		targets = cls.targets.filter(enabled=True) if only_enabled or only_ready else cls.targets.all()
+		targets = cls.targets.filter(_enabled=True) if only_enabled or only_ready else cls.targets.all()
 		# targets = cls.targets(enabled=True) if only_enabled or only_ready else cls.targets.all()
 		tmp_list = list()
 		for each in targets: # :type: ComputeTarget
