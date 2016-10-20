@@ -58,7 +58,7 @@ else:
 		url(r'^status/qstat/?$', breeze.views.qstat_live, name='qstat_live'),
 		url(r'^status_lp/qstat/(?P<md5_t>[a-z0-9_]{32})?$', breeze.views.qstat_lp, name='qstat_lp'),
 		# All others system check in a wrapper
-		url(r'^status/(?P<what>[a-z_-]+)?/?$', breeze.views.checker, name='checker'),
+		url(r'^status/(?P<what>[a-z_\-0-9]+)?/?$', breeze.views.checker, name='checker'),
 		url(r'^home/(?P<state>[a-z]+)?$', breeze.views.home, name='home'),
 		url(r'^ajax-rora-patients/(?P<which>[a-z]+)?$', breeze.views.ajax_patients_data, name='ajax_patients_data'),
 		url(r'^ajax-rora/action/?$', breeze.views.ajax_rora_action, name='ajax_rora_action'),
