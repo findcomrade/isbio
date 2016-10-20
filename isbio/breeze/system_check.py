@@ -768,13 +768,8 @@ def check_docker_connection():
 	:rtype: bool
 	"""
 	# from docker_client import get_docker_client
-	client = False
-	try:
-		# client = get_docker_client('tcp://breeze-ssh:3945')
-		client = test_tcp_connect('breeze-ssh', '3945')
-	except Exception as e:
-		logger.exception(str(e))
-	return client
+	# client = get_docker_client('tcp://breeze-ssh:3945')
+	return test_tcp_connect('breeze-ssh', '3945')
 
 
 # clem 20/10/20016
@@ -784,12 +779,7 @@ def check_target_is_online(target_id):
 	:rtype: bool
 	"""
 	from breeze.models import ComputeTarget
-	result = False
-	try:
-		result = ComputeTarget.objects.get(pk=target_id).compute_interface.ready
-	except Exception as e:
-		logger.exception(str(e))
-	return result
+	return ComputeTarget.objects.get(pk=target_id).compute_interface.ready
 
 # TODO FIXME runtime fs_check slow and memory leak ?
 fs_mount = SysCheckUnit(check_file_system_mounted, 'fs_mount', 'File server', 'FILE SYSTEM\t\t ', RunType.runtime,
