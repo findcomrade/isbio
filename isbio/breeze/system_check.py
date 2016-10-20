@@ -1,5 +1,5 @@
 from breeze import utils
-from utils import TermColoring, logger_timer, test_url
+from utils import TermColoring, logger_timer, test_url, test_tcp_connect
 from django.conf import settings
 from breeze.b_exceptions import *
 from django.http import HttpRequest
@@ -767,10 +767,11 @@ def check_docker_connection():
 
 	:rtype: bool
 	"""
-	from docker_client import get_docker_client
+	# from docker_client import get_docker_client
 	client = False
 	try:
-		client = get_docker_client('tcp://breeze-ssh:3945')
+		# client = get_docker_client('tcp://breeze-ssh:3945')
+		client = test_tcp_connect('breeze-ssh', '3945')
 	except Exception as e:
 		logger.exception(str(e))
 	return client
@@ -796,7 +797,7 @@ CHECK_LIST = [
 		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
 	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
-	SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime, 
+	SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime,
 		ex=DockerNotResponding),
 	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
 		RunType.runtime, ex=ShinyUnreachable),
