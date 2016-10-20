@@ -542,7 +542,7 @@ class ProjectManager(ObjectsWithAuth):
 
 
 # clem 20/10/2016
-class CompTargetsManager(Manager):
+class CompTargetsManager(CustomManager):
 	# clem 26/05/2016
 	def _target_objects(self, only_enabled=False, only_ready=False):
 		""" Get possibly available targets for this ReportType
