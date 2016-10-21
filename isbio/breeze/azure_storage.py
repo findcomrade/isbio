@@ -38,7 +38,7 @@ class BlockingTransfer:
 	_failed = False
 	_verbose = False
 	
-	def __init__(self, transfer_func, verbose=False):
+	def __init__(self, transfer_func, verbose=True):
 		"""
 		
 		:param transfer_func: The actual transfer function, that takes as first and only parameter the
