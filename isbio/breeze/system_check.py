@@ -773,9 +773,9 @@ def check_target_is_online(target_id):
 	:rtype: bool
 	"""
 	from breeze.models import ComputeTarget
-	ready = ComputeTarget.objects.get(pk=target_id).compute_interface.ready
-	print('target %s is : %s' % (target_id, ready))
-	# return ComputeTarget.objects.get(pk=target_id).compute_interface.ready
+	# ready = ComputeTarget.objects.get(pk=target_id).compute_interface.ready
+	# print('target %s is : %s' % (target_id, ready))
+	return ComputeTarget.objects.get(pk=target_id).compute_interface.ready
 	return ready
 
 # TODO FIXME runtime fs_check slow and memory leak ?

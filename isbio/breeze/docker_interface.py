@@ -198,7 +198,8 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 		if not self.connected:
 			if self.target_obj.target_use_tunnel and not self.online:
 				logger.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
-				return self._get_ssh()
+				if not self._get_ssh():
+					return False
 			if not (self.enabled and self.online and self._do_connect()):
 				logger.error('FAILURE connecting to docker daemon, cannot proceed')
 				# self._set_status(self.js.FAILED)
