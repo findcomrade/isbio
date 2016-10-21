@@ -657,7 +657,7 @@ else:
 	logging.info(git_stat)
 	from api import code_v1
 	code_v1.do_self_git_pull()
-print('debug mode is %s' % 'ON' if DEBUG else 'OFF')
+print('debug mode is %s' % ('ON' if DEBUG else 'OFF'))
 
 
 def project_folder_path(breeze_folder=BREEZE_FOLDER):
