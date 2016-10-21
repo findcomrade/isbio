@@ -112,8 +112,8 @@ class ComputeInterface(ComputeInterfaceBase):
 	
 	# clem 21/10/2016
 	def __init__(self, compute_target, storage_backend=None):
-		assert isinstance(self._runnable, Runnable)
 		super(ComputeInterface, self).__init__(compute_target, storage_backend)
+		assert isinstance(self._runnable, Runnable)
 
 	# clem 06/10/2016
 	@abc.abstractmethod
