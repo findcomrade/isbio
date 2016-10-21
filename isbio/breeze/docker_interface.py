@@ -309,7 +309,6 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 
 		:type storage_backend: module
 		"""
-		assert isinstance(self._runnable, Runnable)
 		super(DockerInterface, self).__init__(compute_target, storage_backend, auto_connect)
 		# TODO fully integrate !optional! tunneling
 		self._status = self.js.INIT # FIXME misplaced
