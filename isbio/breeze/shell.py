@@ -406,7 +406,7 @@ def build_report(report_data, request_data, report_property, sections):
 		from django.contrib import messages
 		messages.add_message(request_data, messages.ERROR, 'No such target %s' % target_id)
 		return False
-	if not target.compute_interface.ready:
+	if not target.is_ready:
 		from django.contrib import messages
 		messages.add_message(request_data, messages.ERROR, 'target %s is either disable or not ready' % target)
 		return False
