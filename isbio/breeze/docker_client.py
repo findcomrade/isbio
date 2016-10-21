@@ -1812,6 +1812,8 @@ def get_docker_client(daemon_url, repo=None, auto_connect=True, auto_watcher=Tru
 	:type repo: DockerRepo | None
 	:param auto_connect: connect upon creation of the object, default: True
 	:type auto_connect: bool | None
+	:param auto_watcher: start the event watcher upon connection, default: True
+	:type auto_watcher: bool | None
 	:return: The client
 	:rtype: DockerClient
 	"""

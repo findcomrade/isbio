@@ -3,7 +3,7 @@ from blob_storage_module import * # import interface, already has os, sys and ab
 from azure.common import AzureMissingResourceHttpError as MissingResException
 from azure.storage.blob import BlockBlobService
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 __author__ = 'clem'
 
 
@@ -16,7 +16,10 @@ __file_name__ = os.path.basename(__file__)
 
 AZURE_ACCOUNT = 'breezedata'
 AZURE_PWD_FILE = 'azure_pwd_%s' % AZURE_ACCOUNT
-AZURE_KEY = get_key_bis(AZURE_PWD_FILE)
+
+
+def azure_key():
+	return get_key_bis(AZURE_PWD_FILE)
 
 
 # clem 14/04/2016
@@ -39,9 +42,9 @@ class AzureStorage(StorageModule):
 		"""
 		generator = self.blob_service.list_containers()
 		if do_print:
-			print 'Azure account \'%s\' containers list :' % self.ACCOUNT_LOGIN
+			print('Azure account \'%s\' containers list :' % self.ACCOUNT_LOGIN)
 			for container in generator:
-				print container.name
+				print(container.name)
 		return generator
 
 	# clem 19/04/2016
@@ -55,9 +58,9 @@ class AzureStorage(StorageModule):
 		"""
 		generator = self.blob_service.list_blobs(container)
 		if do_print:
-			print 'Azure container \'%s\' content :' % container
+			print('Azure container \'%s\' content :' % container)
 			for blob in generator:
-				print blob.name
+				print(blob.name)
 		return generator
 
 	# clem 19/04/2016
@@ -184,7 +187,7 @@ class AzureStorage(StorageModule):
 
 # clem 29/04/2016
 def back_end_initiator(container):
-	return AzureStorage(AZURE_ACCOUNT, AZURE_KEY, container)
+	return AzureStorage(AZURE_ACCOUNT, azure_key(), container)
 
 
 if __name__ == '__main__':
