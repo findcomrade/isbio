@@ -67,3 +67,10 @@ def git_hook(request):
 		return get_response(data=payload) if result else get_response_opt(http_code=HTTP_NOT_IMPLEMENTED)
 
 	return HttpResponseNotModified()
+
+
+# clem 22/10/2016
+def show_cache(_):
+	from utilz.object_cache import ObjectCache
+	data = ObjectCache.dump()
+	return code.get_response(data=data)
