@@ -8,19 +8,20 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
 
 
 # clem 21/10/2016
-class DockerInterfaceConnector(ComputeInterface):
+class DockerInterfaceConnector:
 	__metaclass__ = abc.ABCMeta
 	ssh_tunnel = None
 	_client = None
 	__connect_port = None
 	connected = False
+	_compute_target = None # FIXME HACK
 	
 	SSH_CMD_BASE = ['ssh', '-CfNnL']
 	SSH_KILL_ALL = 'killall ssh && killall ssh'
@@ -40,7 +41,7 @@ class DockerInterfaceConnector(ComputeInterface):
 
 		:type storage_backend: module
 		"""
-		super(DockerInterfaceConnector, self).__init__(compute_target, storage_backend)
+		# super(DockerInterfaceConnector, self).__init__(compute_target, storage_backend)
 		# TODO rework the ssh configuration vs daemon conf
 		self.config_local_bind_address = (self.config_daemon_ip, self._connect_port)
 		self._label = self.config_tunnel_host[0:2]
@@ -48,26 +49,46 @@ class DockerInterfaceConnector(ComputeInterface):
 		if auto_connect: # unless explicitly asked for, connection is now made upon access
 			self._connect()
 	
-	# clem 11/05/2016
-	@property
-	def label(self):
-		return '<docker%s%s>' % ('_' + self._label, '' if self.client else ' ?')
+	################
+	#  SOME HACKS  #
+	################
+		
+	# clem 14/05/2016
+	@property # FIXME HACK
+	def target_obj(self):
+		"""
+
+		:return:
+		:rtype: ComputeTarget
+		"""
+		return self._compute_target
 	
-	# clem 11/05/2016
-	@property
-	def log(self):
-		try:
-			log_obj = LoggerAdapter(self._compute_target.runnable.log_custom(1), dict())
-			bridge = log_obj.process
-			log_obj.process = lambda msg, kwargs: bridge(self.label + ' ' + str(msg), kwargs)
-		except Exception as e:
-			log_obj = None
-		return log_obj or logger
+	# clem 17/05/2016 # FIXME HACK
+	@property # writing shortcut
+	def engine_obj(self):
+		if self.target_obj and self.target_obj.engine_obj:
+			return self.target_obj.engine_obj
+		return None
 	
-	# clem 06/10/2016
-	def name(self):
-		img = self.client.get_image(self.config_container)
-		return "docker image %s (%s)" % (self.config_container, img.Id)
+	# clem 20/10/2016 # FIXME HACK
+	@property
+	def enabled(self):
+		""" Tells if all components are enabled
+
+		:return:
+		:rtype: bool
+		"""
+		return self._compute_target.is_enabled
+	
+	# clem 20/10/2016  # FIXME HACK
+	@property
+	def ready(self):
+		""" Tells if all components are enabled and if the target is online
+
+		:return:
+		:rtype: bool
+		"""
+		return self.enabled and self.online
 	
 	##########################
 	#  CONFIG FILE SPECIFIC  #
@@ -181,10 +202,10 @@ class DockerInterfaceConnector(ComputeInterface):
 				pass
 		if len(lines) > 0:
 			if len(lines) == 1:
-				self.log.debug('Found pre-existing active ssh tunnel, gonna re-use it')
+				logger.debug('Found pre-existing active ssh tunnel, gonna re-use it')
 				return int(lines[0])
 			else:
-				self.log.warning('Found %s active ssh tunnels, killing them all...' % len(lines))
+				logger.warning('Found %s active ssh tunnels, killing them all...' % len(lines))
 				sp.Popen(self.SSH_KILL_ALL, shell=True, stdout=sp.PIPE)
 		return int(get_free_port())
 	
@@ -193,26 +214,26 @@ class DockerInterfaceConnector(ComputeInterface):
 		time_out = 2
 		import socket
 		try:
-			self.log.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
+			logger.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
 			if test_tcp_connect(target[0], target[1], time_out):
-				self.log.debug('success')
+				logger.debug('success')
 				return True
 		except socket.timeout:
-			self.log.exception('connect %s: Time-out' % str(target))
+			logger.exception('connect %s: Time-out' % str(target))
 		except socket.error as e:
-			self.log.exception('connect %s: %s' % (str(target), e[1]))
+			logger.exception('connect %s: %s' % (str(target), e[1]))
 		except Exception as e:
-			self.log.error('connect %s' % str((type(e), e)))
+			logger.error('connect %s' % str((type(e), e)))
 		return False
 	
 	# clem 07/04/2016
 	def _connect(self):
 		if not self.connected:
 			if self.target_obj.target_use_tunnel and not self.online:
-				self.log.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
+				logger.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
 				self._get_ssh()
 			if not (self.ready and self._do_connect()):
-				self.log.error('FAILURE connecting to docker daemon, cannot proceed')
+				logger.error('FAILURE connecting to docker daemon, cannot proceed')
 				# self._set_status(self.js.FAILED)
 				raise DaemonNotConnected
 		return True
@@ -233,17 +254,17 @@ class DockerInterfaceConnector(ComputeInterface):
 		return bool(self.connected)
 	
 	# TODO externalize
-	# clem 06/04/2016 # FIXME change print to log
+	# clem 06/04/2016
 	def _get_ssh(self):
 		if self.config_tunnel_host:
 			try:
-				print 'Establishing ssh tunnel, running', self._ssh_cmd_list, '...',
+				logger.debug('Establishing ssh tunnel, running %s ...' % str(self._ssh_cmd_list))
 				self.ssh_tunnel = sp.Popen(self._ssh_cmd_list, stdout=sp.PIPE, stderr=sp.PIPE, preexec_fn=os.setsid)
-				print 'done,',
+				logger.debug('done,')
 				stat = self.ssh_tunnel.poll()
 				while stat is None:
 					stat = self.ssh_tunnel.poll()
-				print 'bg PID :', self.ssh_tunnel.pid
+				logger.debug('bg PID : %s' % self.ssh_tunnel.pid)
 				return True
 			except Exception as e:
 				logger.exception('While establishing ssh tunnel : %s ' % str(e))
@@ -271,7 +292,7 @@ class DockerInterfaceConnector(ComputeInterface):
 
 
 # clem 15/03/2016
-class DockerInterface(DockerInterfaceConnector):
+class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# ssh_tunnel = None
 	auto_remove = True
 	__docker_storage = None
@@ -324,6 +345,27 @@ class DockerInterface(DockerInterfaceConnector):
 
 	# ALL CONFIG SPECIFICs MOVED TO CONNECTOR
 	# ALL CONNECTION SPECIFICs MOVED TO CONNECTOR
+	
+	# clem 11/05/2016
+	@property
+	def label(self):
+		return '<docker%s%s>' % ('_' + self._label, '' if self.client else ' ?')
+	
+	# clem 11/05/2016
+	@property
+	def log(self):
+		try:
+			log_obj = LoggerAdapter(self._compute_target.runnable.log_custom(1), dict())
+			bridge = log_obj.process
+			log_obj.process = lambda msg, kwargs: bridge(self.label + ' ' + str(msg), kwargs)
+		except Exception as e:
+			log_obj = None
+		return log_obj or logger
+	
+	# clem 06/10/2016
+	def name(self):
+		img = self.client.get_image(self.config_container)
+		return "docker image %s (%s)" % (self.config_container, img.Id)
 
 	#####################
 	#  DOCKER SPECIFIC  #
