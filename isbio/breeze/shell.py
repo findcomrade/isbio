@@ -401,7 +401,7 @@ def build_report(report_data, request_data, report_property, sections):
 	target_id = request_data.POST.get('target')
 	try:
 		# target = ComputeTarget.objects.get_ready().filter(pk=target_id)
-		target = ComputeTarget.objects.filter(pk=target_id)
+		target = ComputeTarget.objects.get(pk=target_id)
 	except ObjectDoesNotExist:
 		from django.contrib import messages
 		messages.add_message(request_data, messages.ERROR, 'No such target %s' % target_id)
