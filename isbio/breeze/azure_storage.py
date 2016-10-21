@@ -22,6 +22,76 @@ def azure_key():
 	return get_key_bis(AZURE_PWD_FILE)
 
 
+class NoProgressException(BaseException):
+	pass
+
+
+class BlockingTransfer:
+	import time
+	_completed = False
+	_per100 = 0.
+	_last_progress = 0.
+	_started = False
+	_start_time = 0
+	_transfer_func = None
+	_waiting = False
+	_failed = False
+	_verbose = False
+	
+	def __init__(self, transfer_func, verbose=False):
+		"""
+		
+		:param transfer_func: The actual transfer function, that takes as first and only parameter the
+			progress_func(current, total)
+		:type transfer_func: callable
+		"""
+		assert callable(transfer_func)
+		self._verbose = verbose
+		self._transfer_func = transfer_func
+		
+	def do_blocking_transfer(self):
+		if not self._started:
+			try:
+				self._start_time = self.time.time()
+				self._transfer_func(self._progress_func)
+				self._started = True
+				self._wait()
+				return True
+			except:
+				self._failed = True
+				self._waiting = False
+		return False
+		
+	def _wait(self):
+		if self._started and not self._waiting:
+			self._waiting = True
+			while not self.is_complete:
+				self.time.sleep(0.005)
+				if (self.time.time() - self._start_time) % 2 == 0:
+					# check every two seconds if some progress was made
+					if self._per100 == self._last_progress:
+						print 'NoProgressException'
+						raise NoProgressException
+	
+	def _progress_func(self, current, total):
+		self._last_progress = self._per100
+		self._per100 = (current // total) * 100
+		if self._verbose:
+			print 'transfer: %.2f%%\r' % self._per100,
+		if current == total:
+			self._completed = True
+			if self._verbose:
+				print 'transfer complete'
+			
+	@property
+	def is_complete(self):
+		return self._completed and not self._failed
+	
+	@property
+	def progress(self):
+		return self._per100
+
+
 # clem 14/04/2016
 class AzureStorage(StorageModule):
 	_interface = BlockBlobService
@@ -114,6 +184,12 @@ class AzureStorage(StorageModule):
 		"""
 		if not container:
 			container = self.container
+		err = getattr(__builtins__, 'FileNotFoundError', IOError)
+		
+		def do_upload(progress_func):
+			assert callable(progress_func)
+			self.blob_service.create_blob_from_path(container, blob_name, file_path, progress_callback=progress_func)
+		
 		if os.path.exists(file_path):
 			if not self.blob_service.exists(container):
 				# if container does not exist yet, we create it
@@ -122,9 +198,11 @@ class AzureStorage(StorageModule):
 				self.blob_service.create_container(container)
 			if verbose:
 				self._print_call('create_blob_from_path', (container, blob_name, file_path))
-			self.blob_service.create_blob_from_path(container, blob_name, file_path)
+			trans = BlockingTransfer(do_upload).do_blocking_transfer()
+			if not trans:
+				raise err("Blocking Upload failed")
+			# self.blob_service.create_blob_from_path(container, blob_name, file_path)
 		else:
-			err = getattr(__builtins__, 'FileNotFoundError', IOError)
 			raise err("File '%s' not found in '%s' !" % (os.path.basename(file_path),
 				os.path.dirname(file_path)))
 		return self.blob_service.get_blob_properties(container, blob_name)
