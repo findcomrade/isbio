@@ -131,7 +131,13 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	@property
 	def can_connect(self):
 		try:
-			return self._connect()
+			if self._connect():
+				try:
+					self.client.close()
+					self._client = None
+				except:
+					pass
+				return True
 		except:
 			return False
 	
