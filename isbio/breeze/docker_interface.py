@@ -408,6 +408,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# clem 25/05/2016
 	def _start_container(self):
 		self._wait_until_container().start()
+		self.log.info('%s started' % self._container.name)
 		return True
 
 	def _run(self):
