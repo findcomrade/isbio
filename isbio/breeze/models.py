@@ -373,7 +373,7 @@ class ComputeTarget(ConfigObject, CustomModel):
 	# clem 21/10/2016
 	@property
 	def is_ready(self):
-		return self.compute_module.is_ready()
+		return self.compute_module.is_ready(self)
 
 	# clem 26/05/2016
 	@property
