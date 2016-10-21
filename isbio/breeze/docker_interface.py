@@ -354,7 +354,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# clem 25/05/2016
 	@property
 	def is_start_timeout(self):
-		return not (self._container.is_running or self._container.is_dead) and \
+		return (self._container.has_failed or not self._container.has_normal_exit) and\
 			self._container.time_since_creation.total_seconds() > self.START_TIMEOUT
 
 	# clem 25/05/2016
