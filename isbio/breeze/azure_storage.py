@@ -188,6 +188,8 @@ class AzureStorage(StorageModule):
 		
 		def do_upload(progress_func):
 			assert callable(progress_func)
+			if verbose:
+				self._print_call('create_blob_from_path', (container, blob_name, file_path))
 			self.blob_service.create_blob_from_path(container, blob_name, file_path, progress_callback=progress_func)
 		
 		if os.path.exists(file_path):
@@ -196,8 +198,6 @@ class AzureStorage(StorageModule):
 				if verbose:
 					self._print_call('create_container', container)
 				self.blob_service.create_container(container)
-			if verbose:
-				self._print_call('create_blob_from_path', (container, blob_name, file_path))
 			trans = BlockingTransfer(do_upload).do_blocking_transfer()
 			if not trans:
 				raise err("Blocking Upload failed")

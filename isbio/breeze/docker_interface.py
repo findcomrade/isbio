@@ -653,7 +653,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		"""
 		self._docker_storage.upload_self() # update the cloud version of azure_storage.py
 		self.run_id = get_file_md5(self.assembly_archive_path) # use the archive hash as an id for storage
-		if self._job_storage.upload(self.run_id, self.assembly_archive_path):
+		if self._job_storage.upload(self.run_id, self.assembly_archive_path, self._job_storage.container):
 			if not KEEP_TEMP_FILE:
 				remove_file_safe(self.assembly_archive_path)
 			return True
