@@ -821,7 +821,7 @@ _CHECK_DICK = dict()
 
 
 def regen_checks_dict():
-	global _CHECK_DICK
+	global _CHECK_DICK, CHECK_LIST
 	_CHECK_DICK = dict()
 	for each_e in CHECK_LIST:
 		_CHECK_DICK.update({ each_e.url: each_e })
