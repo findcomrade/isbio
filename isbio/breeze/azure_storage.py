@@ -198,7 +198,7 @@ class AzureStorage(StorageModule):
 				if verbose:
 					self._print_call('create_container', container)
 				self.blob_service.create_container(container)
-			trans = BlockingTransfer(do_upload).do_blocking_transfer()
+			trans = BlockingTransfer(do_upload, verbose=False).do_blocking_transfer()
 			if not trans:
 				raise err("Blocking Upload failed")
 			# self.blob_service.create_blob_from_path(container, blob_name, file_path)
@@ -227,11 +227,19 @@ class AzureStorage(StorageModule):
 		"""
 		if not container:
 			container = self.container
-		if self.blob_service.exists(container, blob_name): # avoid error, and having blank files on error
+		
+		def do_download(progress_func):
+			assert callable(progress_func)
 			if verbose:
 				self._print_call('get_blob_to_path', (container, blob_name, file_path))
+			self.blob_service.get_blob_to_path(container, blob_name, file_path, progress_callback=progress_func)
+		
+		if self.blob_service.exists(container, blob_name): # avoid error, and having blank files on error
 			# purposely not catching AzureMissingResourceHttpError (to be managed from caller code)
-			self.blob_service.get_blob_to_path(container, blob_name, file_path)
+			trans = BlockingTransfer(do_download).do_blocking_transfer()
+			if not trans:
+				raise IOError("Blocking Download failed")
+			# self.blob_service.get_blob_to_path(container, blob_name, file_path)
 			return True
 		raise MissingResException('Not found %s / %s' % (container, blob_name), 404)
 
