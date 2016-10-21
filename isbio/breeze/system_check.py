@@ -8,11 +8,12 @@ from collections import OrderedDict
 DEBUG = True
 SKIP_SYSTEM_CHECK = False
 
-if DEBUG:
-	# quick fix to solve PyCharm Django console environment issue
-	from breeze.process import MyProcess as Process
-else:
-	from multiprocessing import Process
+# if DEBUG:
+# # quick fix to solve PyCharm Django console environment issue
+# 	#from breeze.process import Process
+# else:
+# 	from multiprocessing import Process
+from breeze.process import Process
 
 OK = '[' + TermColoring.ok_green('OK') + ']'
 BAD = '[' + TermColoring.fail('NO') + ']'
@@ -760,17 +761,7 @@ def check_ssh_tunnel():
 	return utils.is_host_online(settings.SSH_TUNNEL_HOST, 2)
 
 
-# clem 20/10/20016
-def check_docker_connection():
-	""" Check if docker endpoint is responding
-
-
-	:rtype: bool
-	"""
-	# from docker_client import get_docker_client
-	# client = get_docker_client('tcp://breeze-ssh:3945')
-	return test_tcp_connect('breeze-ssh', '3945')
-
+# removed check_docker_connection 21/10/2016
 
 # clem 20/10/20016
 def check_target_is_online(target_id):
