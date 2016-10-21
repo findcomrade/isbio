@@ -734,11 +734,11 @@ def ui_get_object(what):
 	:return: SysCheckUnit or False
 	:rtype: SysCheckUnit|bool
 	"""
-	if what not in checks_dict:
+	if what not in checks_dict().keys():
 		# from breeze import auxiliary as aux
 		utils.logger.warning('system check "%s" not found' % what)
 		return False
-	obj = checks_dict[what]
+	obj = checks_dict()[what]
 	assert isinstance(obj, SysCheckUnit)
 	return obj
 
@@ -811,11 +811,11 @@ CHECK_LIST = [
 
 
 def extra_test():
-	global CHECK_LIST, checks_dict
+	global CHECK_LIST
 	from breeze.models import ComputeTarget
 	for each in ComputeTarget.objects.enabled():
 		url = 'target-%s' % each.name
-		if url not in checks_dict.keys():
+		if url not in checks_dict().keys():
 			CHECK_LIST.append(
 				SysCheckUnit(check_target_is_online, url, 'Target %s' % each.name, '', RunType.runtime,
 					ex=TargetNotResponding, arg=each.id),
@@ -827,18 +827,17 @@ _CHECK_DICK = dict()
 
 
 def regen_checks_dict():
-	global _CHECK_DICK, checks_dict
+	global _CHECK_DICK
 	_CHECK_DICK = dict()
-	_ = checks_dict
+	for each_e in CHECK_LIST:
+		_CHECK_DICK.update({ each_e.url: each_e })
+	return _CHECK_DICK
 
 
-@property
 def checks_dict():
 	global _CHECK_DICK
 	if not _CHECK_DICK:
-		_CHECK_DICK = dict()
-		for each_e in CHECK_LIST:
-			_CHECK_DICK.update({ each_e.url: each_e })
+		_CHECK_DICK = regen_checks_dict()
 	return _CHECK_DICK
 
 
