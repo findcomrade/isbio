@@ -810,7 +810,7 @@ CHECK_LIST = [
 def extra_test():
 	global CHECK_LIST
 	from breeze.models import ComputeTarget
-	for each in ComputeTarget.objects.enabled():
+	for each in ComputeTarget.objects.get_enabled():
 		url = 'target-%s' % each.name
 		if url not in checks_dict().keys():
 			CHECK_LIST.append(
