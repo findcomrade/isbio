@@ -2850,8 +2850,12 @@ def status_button_json(stat, text, href=('#', '#'), c_type=('success', 'danger')
 @login_required(login_url='/')
 def checker(request, what):
 	# return aux.fail_with404(HttpRequest(), 'NOT FOUND')
-	test_obj = check.ui_get_object(what)
-	return status_button_json(check.ui_checker_proxy(test_obj), test_obj.ui_text)
+	try:
+		test_obj = check.ui_get_object(what)
+		return status_button_json(check.ui_checker_proxy(test_obj), test_obj.ui_text)
+	except Exception as e:
+		logger.exception(str(e))
+	return status_button_json(False, 'err : not found')
 
 
 # FIXME del DEPRECATED / STILL IN USE

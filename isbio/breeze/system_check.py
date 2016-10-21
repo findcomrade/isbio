@@ -734,10 +734,10 @@ def ui_get_object(what):
 	:return: SysCheckUnit or False
 	:rtype: SysCheckUnit|bool
 	"""
-	if what not in checks_dict().keys():
+	if what not in checks_dict():
 		# from breeze import auxiliary as aux
 		utils.logger.warning('system check "%s" not found' % what)
-		return False
+		raise ObjectNotFound
 	obj = checks_dict()[what]
 	assert isinstance(obj, SysCheckUnit)
 	return obj
