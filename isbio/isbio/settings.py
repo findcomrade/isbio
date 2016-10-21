@@ -220,6 +220,7 @@ AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
 AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
 
 SSH_TUNNEL_HOST = 'breeze-ssh'
+SSH_TUNNEL_PORT = '2222'
 # SSH_TUNNEL_TEST_URL = 'breeze-ssh'
 
 # ROOT_URLCONF = 'isbio.urls'

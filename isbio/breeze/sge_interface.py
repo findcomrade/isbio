@@ -6,7 +6,7 @@ import StringIO
 import copy
 
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __author__ = 'clem'
 __date__ = '06/05/2016'
 
@@ -55,6 +55,10 @@ class SGEInterface(ComputeInterface):
 					raise e
 			return False
 		return check_sge()
+	
+	@property
+	def can_connect(self):
+		return self.online
 	
 	# clem 06/10/2016
 	def name(self):

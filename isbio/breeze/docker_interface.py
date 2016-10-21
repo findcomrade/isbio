@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.5.2'
+__version__ = '0.5.3'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -127,6 +127,11 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	def online(self):
 		return self._test_connection(self.config_local_bind_address)
 	
+	# clem 21/10/2016
+	@property
+	def can_connect(self):
+		return self._connect()
+	
 	# clem 12/10/2016
 	@property
 	def _connect_port(self):
@@ -168,16 +173,14 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 				sp.Popen(self.SSH_KILL_ALL, shell=True, stdout=sp.PIPE)
 		return int(get_free_port())
 	
-	# clem 08/09/2016
+	# clem 08/09/2016 # This might succeed even if there is not endpoint if using an external tunneling
 	def _test_connection(self, target):
 		time_out = 2
 		import socket
 		try:
 			logger.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
-			print('testing connection to %s Tout: %s sec' % (str(target), time_out))
 			if test_tcp_connect(target[0], target[1], time_out):
 				logger.debug('success')
-				print('success')
 				return True
 		except socket.timeout:
 			logger.exception('connect %s: Time-out' % str(target))
@@ -193,7 +196,7 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 			if self.target_obj.target_use_tunnel and not self.online:
 				logger.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
 				self._get_ssh()
-			if not (self.ready and self._do_connect()):
+			if not (self.enabled and self.online and self._do_connect()):
 				logger.error('FAILURE connecting to docker daemon, cannot proceed')
 				# self._set_status(self.js.FAILED)
 				raise DaemonNotConnected

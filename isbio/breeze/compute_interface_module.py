@@ -2,7 +2,7 @@ from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
@@ -53,6 +53,11 @@ class ComputeInterfaceBase:
 		"""
 		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
 	
+	# clem 21/10/2016
+	@abc.abstractmethod
+	def can_connect(self):
+		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
+	
 	# clem 20/10/2016
 	@property
 	def ready(self):
@@ -61,7 +66,7 @@ class ComputeInterfaceBase:
 		:return:
 		:rtype: bool
 		"""
-		return self.enabled and self.online
+		return self.enabled and self.online and self.can_connect
 	
 	# clem 17/05/2016
 	@property
@@ -183,7 +188,7 @@ class ComputeInterface(ComputeInterfaceBase):
 		It is advised to return a bool indicating success or failure
 		"""
 		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
-
+	
 	def _get_storage(self, container=None):
 		return self.storage_backend.back_end_initiator(container)
 
@@ -220,7 +225,7 @@ class ComputeInterface(ComputeInterfaceBase):
 		except Exception as e:
 			self.log.exception('Error extracting %s : %s' % (input_filename, str(e)))
 		return False
-
+	
 	# clem 16/05/2016
 	def __repr__(self):
 		return '<%s@%s>' % (self.__class__.__name__, hex(id(self)))
