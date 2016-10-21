@@ -555,7 +555,7 @@ class CompTargetsManager(CustomManager):
 			Filter out targets that have disabled dependencies (exec or engine) (this implies only_enabled)
 		:type only_ready: bool
 		:return:
-		:rtype: list[ComputeTarget]
+		:rtype: original_QS
 		"""
 		base = super(CompTargetsManager, self)
 		targets = base.filter(_enabled=True) if only_enabled or only_ready else base.all()
@@ -574,22 +574,22 @@ class CompTargetsManager(CustomManager):
 		return targets2
 	
 	# clem 26/05/2016
-	def enabled(self):
+	def get_enabled(self):
 		""" A list of enabled ComputeTarget objects that are available to use with this ReportType
 
 		:return:
-		:rtype: list[ComputeTarget]
+		:rtype: original_QS
 		"""
 		return self._target_objects(only_enabled=True)
 		
 	# clem 26/05/2016
-	def ready(self):
+	def get_ready(self):
 		""" A list of ready to use ComputeTarget objects that are available to use with this ReportType
 
 		This means that they are explicitly marked as enabled in the DB,
 		And, each resources they depend on (exec and engine) are also enabled
 
 		:return:
-		:rtype: list[ComputeTarget]
+		:rtype: original_QS
 		"""
 		return self._target_objects(only_ready=True)

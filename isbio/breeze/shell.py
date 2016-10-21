@@ -397,12 +397,18 @@ def build_report(report_data, request_data, report_property, sections):
 	assert isinstance(the_user.prof, UserProfile)
 	
 	# target profile :
-	from b_exceptions import *
+	from django.core.exceptions import ObjectDoesNotExist
+	target_id = request_data.POST.get('target')
 	try:
-		target = ComputeTarget.objects.ready(pk=request_data.POST.get('target'))
+		# target = ComputeTarget.objects.get_ready().filter(pk=target_id)
+		target = ComputeTarget.objects.filter(pk=target_id)
 	except ObjectDoesNotExist:
 		from django.contrib import messages
-		messages.add_message(request_data, messages.INFO, 'target %s is either disable or not ready' % target)
+		messages.add_message(request_data, messages.ERROR, 'No such target %s' % target_id)
+		return False
+	if not target.compute_interface.ready:
+		from django.contrib import messages
+		messages.add_message(request_data, messages.ERROR, 'target %s is either disable or not ready' % target)
 		return False
 	# target = ComputeTarget.objects.get(pk=request_data.POST.get('target'))
 	# if target.id not in rt.ready_id_list: # TODO make a validator in the form section
