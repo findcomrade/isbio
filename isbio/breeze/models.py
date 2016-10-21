@@ -1404,7 +1404,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 	##
 	# deleted abort on 21/06/2016
 	def abort(self): # FIXME buggy
-		if not self.read_only and not self._breeze_stat != JobStat.DONE:
+		if not self.read_only and self._breeze_stat != JobStat.DONE:
 			self.compute_if.abort()
 		return True
 
