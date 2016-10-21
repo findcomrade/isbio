@@ -317,6 +317,12 @@ def initiator(compute_target, *_):
 	assert isinstance(compute_target, ComputeTarget)
 	return SGEInterface(compute_target)
 
+
+# clem 21/10/2016
+def is_ready(compute_target, *_):
+	assert isinstance(compute_target, ComputeTarget)
+	return SGEInterface(compute_target).ready
+
 # moved here on 17/05/2016
 
 

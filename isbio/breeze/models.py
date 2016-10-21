@@ -341,9 +341,6 @@ class ComputeTarget(ConfigObject, CustomModel):
 	label = models.CharField(max_length=64, blank=False, help_text="Label text to be used in the UI")
 	# institute = ForeignKey(Institute, default=Institute.default)
 
-	# def file_name(self, filename):
-	#	return super(ComputeTarget, self).file_name(filename)
-
 	config_file = models.FileField(upload_to=generic_super_fn_spe, blank=False, db_column='config',
 		help_text="The config file for this target")
 	_enabled = models.BooleanField(default=True, help_text="Un-check to disable target", db_column ='enabled')
@@ -372,6 +369,11 @@ class ComputeTarget(ConfigObject, CustomModel):
 		:rtype: str
 		"""
 		return settings.TARGET_CONFIG_FN
+		
+	# clem 21/10/2016
+	@property
+	def is_ready(self):
+		return self.compute_module.is_ready()
 
 	# clem 26/05/2016
 	@property

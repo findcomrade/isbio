@@ -854,12 +854,8 @@ def initiator(compute_target, *_):
 	assert isinstance(compute_target, ComputeTarget)
 
 	def new_if():
-		print(repr(compute_target.runnable), ':', str(compute_target.runnable))
-		if compute_target.runnable:
-			return DockerInterface(compute_target)
-		else: # if the target has no associated runnable object
-			return DockerInterfaceConnector(compute_target)
-
+		return DockerInterface(compute_target)
+		
 	with a_lock:
 		if use_caching:
 			key_id = compute_target.runnable.short_id if hasattr(compute_target.runnable, 'short_id') else ''
@@ -871,3 +867,8 @@ def initiator(compute_target, *_):
 		return new_if()
 
 # removed DockerIfTest from azure_test commit 422cc8e on 24/05/2016
+
+
+def is_ready(compute_target, *_):
+	assert isinstance(compute_target, ComputeTarget)
+	return DockerInterfaceConnector(compute_target).ready

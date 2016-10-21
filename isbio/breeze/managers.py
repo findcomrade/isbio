@@ -559,18 +559,15 @@ class CompTargetsManager(CustomManager):
 		"""
 		base = super(CompTargetsManager, self)
 		targets = base.filter(_enabled=True) if only_enabled or only_ready else base.all()
-		# tmp_list = list()
-		# for each in targets:
-		# 	if not only_ready or each.compute_interface.ready:
-		# 		tmp_list.append(each)
-		# return tmp_list
+		
 		from copy import copy
 		targets2 = copy(targets)
-		assert isinstance(targets2, original_QS) and isinstance(targets, original_QS)
+		# assert isinstance(targets2, original_QS) and isinstance(targets, original_QS)
+		# from models import ComputeTarget
 		for each in targets:
-			if only_ready and not each.compute_interface.ready:
+			# assert isinstance(each, ComputeTarget)
+			if only_ready and not each.is_ready:
 				targets2 = targets2.exclude(pk=each.id)
-				# tmp_list.append(each)
 		return targets2
 	
 	# clem 26/05/2016

@@ -240,3 +240,10 @@ def initiator(compute_target, *_):
 	# Replace compute_target.storage_module with another module.
 	# Note : compute_target.storage_module is also the default
 	return ComputeInterface(compute_target, compute_target.storage_module)
+
+
+# clem 21/10/2016
+# TODO override in implementation
+def is_ready(compute_target, *_):
+	assert isinstance(compute_target, ComputeTarget)
+	raise NotImplementedError("The module %s doesn't implement %s()" % (__file__, this_function_name()))
