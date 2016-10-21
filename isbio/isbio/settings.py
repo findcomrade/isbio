@@ -323,7 +323,8 @@ SU_ACCESS_OVERRIDE = True
 
 # contains everything else (including breeze generated content) than the breeze web source code and static files
 PROJECT_FOLDER_NAME = 'projects'
-PROJECT_FOLDER_PREFIX = '/fs'
+# PROJECT_FOLDER_PREFIX = '/fs'
+PROJECT_FOLDER_PREFIX = ''
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 BREEZE_PROD_FOLDER = 'breeze'
 # BREEZE_DEV_FOLDER = '%s-dev' % BREEZE_PROD_FOLDER
