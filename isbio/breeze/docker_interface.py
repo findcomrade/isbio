@@ -130,7 +130,10 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	# clem 21/10/2016
 	@property
 	def can_connect(self):
-		return self._connect()
+		try:
+			return self._connect()
+		except:
+			return False
 	
 	# clem 12/10/2016
 	@property
@@ -195,7 +198,7 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 		if not self.connected:
 			if self.target_obj.target_use_tunnel and not self.online:
 				logger.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
-				self._get_ssh()
+				return self._get_ssh()
 			if not (self.enabled and self.online and self._do_connect()):
 				logger.error('FAILURE connecting to docker daemon, cannot proceed')
 				# self._set_status(self.js.FAILED)
@@ -213,9 +216,9 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	def _do_connect(self):
 		if not self._client:
 			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False)
-		self.connected = bool(self._client)
+		self.connected = bool(self._client.cli)
 		# self.client.DEBUG = False # suppress debug messages from DockerClient
-		return bool(self.connected)
+		return self.connected
 	
 	# TODO externalize
 	# clem 06/04/2016
@@ -233,7 +236,6 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 			except Exception as e:
 				logger.exception('While establishing ssh tunnel : %s ' % str(e))
 				logger.info('ssh was : %s' % str(self._ssh_cmd_list))
-		
 		else:
 			raise AttributeError('Cannot establish ssh tunnel since no ssh_host provided during init')
 	

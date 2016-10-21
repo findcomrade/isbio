@@ -760,8 +760,8 @@ def check_ssh_tunnel():
 
 	:rtype: bool
 	"""
-	# return utils.is_host_online(settings.SSH_TUNNEL_HOST, 2)
-	return test_tcp_connect(settings.SSH_TUNNEL_HOST, settings.SSH_TUNNEL_PORT, 2)
+	return utils.is_host_online(settings.SSH_TUNNEL_HOST, 2)
+	# return test_tcp_connect(settings.SSH_TUNNEL_HOST, settings.SSH_TUNNEL_PORT, 2)
 
 
 # removed check_docker_connection 21/10/2016
