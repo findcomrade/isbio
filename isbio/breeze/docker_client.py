@@ -882,18 +882,19 @@ class DockerClient:
 	_run_wait = 0
 	_run_dict = dict()
 	_destroyed_objects = dict()
+	_last_connection = ''
 
 	#
 	# CLASS MANAGEMENT
 	#
 
-	def __init__(self, daemon_url, repo=None, auto_connect=True):
+	def __init__(self, daemon_url, repo=None, auto_connect=True, auto_watcher=True):
 		assert isinstance(daemon_url, basestring)
 		if repo:
 			assert isinstance(repo, DockerRepo)
 			self.repo = repo
 		self._daemon_url = daemon_url
-		self.__connect_to_daemon(auto_connect)
+		self.__connect_to_daemon(auto_connect, auto_watcher)
 
 	# clem 14/03/2016
 	def __cleanup(self):
@@ -999,16 +1000,19 @@ class DockerClient:
 	#
 
 	# clem 05/04/2016
-	def __connect_to_daemon(self, auto_login=False):
+	def __connect_to_daemon(self, auto_login=False, auto_watcher=True):
 		try:
-			self._log('Connecting to docker daemon at %s ...' % self._daemon_url)
-			self._raw_cli = DockerApiClient(base_url=self._daemon_url)
-			self._raw_cli.info()
-			self._start_event_watcher()
-			if auto_login:
-				self.login()
+			if self._last_connection != 'failed':
+				self._log('Connecting to docker daemon at %s ...' % self._daemon_url)
+				self._raw_cli = DockerApiClient(base_url=self._daemon_url)
+				self._raw_cli.info()
+				if auto_watcher:
+					self._start_event_watcher()
+				if auto_login:
+					self.login()
 		except requests.exceptions.ConnectionError as e:
 			self._force_log(TermColoring.fail('FATAL: Connection to docker daemon failed'))
+			self._last_connection = 'failed'
 			self._raw_cli = None
 			self._exception_handler(e)
 
@@ -1799,7 +1803,7 @@ expire_after = 60 * 60 # 1 hour
 
 
 # clem 10/05/2016
-def get_docker_client(daemon_url, repo=None, auto_connect=True):
+def get_docker_client(daemon_url, repo=None, auto_connect=True, auto_watcher=True):
 	""" Return and save the DockerClient, so that only one get instantiated per daemon_url / repo couple
 
 	:param daemon_url: The url of the target Docker daemon. Can be anything docker api will accept (socket, tcp, etc)
@@ -1813,7 +1817,7 @@ def get_docker_client(daemon_url, repo=None, auto_connect=True):
 	"""
 
 	def new_if():
-		return DockerClient(daemon_url, repo, auto_connect)
+		return DockerClient(daemon_url, repo, auto_connect, auto_watcher)
 
 	with a_lock:
 		if use_caching:

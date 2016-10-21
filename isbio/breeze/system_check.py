@@ -775,8 +775,8 @@ def check_target_is_online(target_id):
 	from breeze.models import ComputeTarget
 	# ready = ComputeTarget.objects.get(pk=target_id).compute_interface.ready
 	# print('target %s is : %s' % (target_id, ready))
+	# return ready
 	return ComputeTarget.objects.get(pk=target_id).compute_interface.ready
-	return ready
 
 # TODO FIXME runtime fs_check slow and memory leak ?
 fs_mount = SysCheckUnit(check_file_system_mounted, 'fs_mount', 'File server', 'FILE SYSTEM\t\t ', RunType.runtime,

@@ -222,7 +222,8 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	# clem 07/04/2016
 	def _do_connect(self):
 		if not self._client:
-			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False)
+			auto_watcher = bool(self.target_obj.runnable)
+			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False, auto_watcher)
 		self.connected = bool(self._client.cli)
 		# self.client.DEBUG = False # suppress debug messages from DockerClient
 		return self.connected
