@@ -221,7 +221,8 @@ class SysCheckUnit(Process):
 			else:
 				print self.msg + BAD
 				raise self.ex(' ')
-		except:
+		except Exception as e:
+			logger.exception('sys_check %s failed: %s' % (self.url, e))
 			return False
 
 	# clem 25/09/2015
