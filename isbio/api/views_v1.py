@@ -72,5 +72,5 @@ def git_hook(request):
 # clem 22/10/2016
 def show_cache(_):
 	from utilz.object_cache import ObjectCache
-	data = ObjectCache.dump()
+	data = { 'cache': dict(ObjectCache.dump()) }
 	return code.get_response(data=data)
