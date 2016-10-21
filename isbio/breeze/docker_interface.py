@@ -14,6 +14,258 @@ __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
 
 
+# clem 21/10/2016
+class DockerInterfaceConnector(ComputeInterface):
+	__metaclass__ = abc.ABCMeta
+	ssh_tunnel = None
+	_client = None
+	_connect_port = None
+	connected = False
+	
+	SSH_CMD_BASE = ['ssh', '-CfNnL']
+	SSH_KILL_ALL = 'killall ssh && killall ssh'
+	SSH_LOOKUP_BASE = 'ps aux|grep "%s"|grep -v grep'
+	
+	CONFIG_HUB_PWD_FILE = 'hub_password_file'
+	CONFIG_HUB_LOGIN = 'hub_login'
+	CONFIG_HUB_EMAIL = 'hub_email'
+	CONFIG_DAEMON_IP = 'daemon_ip'
+	CONFIG_DAEMON_PORT = 'daemon_port'
+	CONFIG_DAEMON_URL = 'daemon_url'
+	CONFIG_CONTAINER = 'container'
+	CONFIG_CMD = 'cmd'
+	
+	def __init__(self, compute_target, storage_backend=None, auto_connect=False):
+		"""
+
+		:type storage_backend: module
+		"""
+		super(DockerInterfaceConnector, self).__init__(compute_target, storage_backend)
+		self.config_local_bind_address = (self.config_daemon_ip, self.connect_port)
+		self._label = self.config_tunnel_host[0:2]
+		
+		if auto_connect: # unless explicitly asked for, connection is now made upon access
+			self._connect()
+	
+	# clem 11/05/2016
+	@property
+	def label(self):
+		return '<docker%s%s>' % ('_' + self._label, '' if self.client else ' ?')
+	
+	# clem 11/05/2016
+	@property
+	def log(self):
+		log_obj = LoggerAdapter(self._compute_target.runnable.log_custom(1), dict())
+		bridge = log_obj.process
+		log_obj.process = lambda msg, kwargs: bridge(self.label + ' ' + str(msg), kwargs)
+		return log_obj
+	
+	# clem 06/10/2016
+	def name(self):
+		img = self.client.get_image(self.config_container)
+		return "docker image %s (%s)" % (self.config_container, img.Id)
+	
+	##########################
+	#  CONFIG FILE SPECIFIC  #
+	##########################
+	
+	# clem 17/06/2016
+	@property
+	def config_daemon_ip(self):
+		return self.engine_obj.get(self.CONFIG_DAEMON_IP)
+	
+	# clem 17/06/2016
+	@property
+	def config_daemon_port(self):
+		return self.engine_obj.get(self.CONFIG_DAEMON_PORT)
+	
+	# clem 17/06/2016
+	@property
+	def config_daemon_url_base(self):
+		return str(self.engine_obj.get(self.CONFIG_DAEMON_URL)) % self.connect_port
+	
+	# clem 17/06/2016
+	@property
+	def config_container(self):
+		return self.engine_obj.get(self.CONFIG_CONTAINER)
+	
+	# clem 17/06/2016
+	@property
+	def config_cmd(self):
+		return self.engine_obj.get(self.CONFIG_CMD)
+	
+	# clem 17/06/2016
+	@property
+	def config_hub_email(self):
+		return self.engine_obj.get(self.CONFIG_HUB_EMAIL)
+	
+	# clem 17/06/2016
+	@property
+	def config_hub_login(self):
+		return self.engine_obj.get(self.CONFIG_HUB_LOGIN)
+	
+	# clem 17/06/2016
+	@property
+	def config_hub_password_file_path(self):
+		return self.engine_obj.get(self.CONFIG_HUB_PWD_FILE)
+	
+	# clem 17/06/2016
+	@property
+	def config_tunnel_host(self):
+		return self.target_obj.tunnel_host
+	
+	# clem 11/10/2016
+	@property
+	def config_tunnel_user(self):
+		return self.target_obj.tunnel_user
+	
+	# clem 11/10/2016
+	@property
+	def config_tunnel_port(self):
+		return self.target_obj.tunnel_port
+	
+	# clem 17/05/2016
+	@property
+	def docker_hub_pwd(self):
+		return get_key(self.config_hub_password_file_path)
+	
+	# clem 17/05/2016
+	@property
+	def docker_repo(self): # TODO check
+		return DockerRepo(self.config_hub_login, self.docker_hub_pwd, email=self.config_hub_email)
+	
+	#########################
+	#  CONNECTION SPECIFIC  #
+	#########################
+	
+	# clem 20/10/2016
+	@property
+	def online(self):
+		return self._test_connection(self.config_local_bind_address)
+	
+	# clem 12/10/2016
+	@property
+	def connect_port(self):
+		""" Tell which port to connect to.
+
+		for a ssh tunnel, its the locally mapped port, otherwise its the remote daemon port
+
+		:rtype: int
+		"""
+		if not self._connect_port:
+			if self.target_obj.target_use_tunnel:
+				self._connect_port = self._get_a_port()
+			else:
+				self._connect_port = self.config_daemon_port
+		return self._connect_port
+	
+	# clem 10/05/2016
+	def _get_a_port(self):
+		""" Give the port number of an existing ssh tunnel, or return a free port if no (or more than 1) tunnel exists
+
+		:return: a TCP port number
+		:rtype: int
+		"""
+		lookup = ' '.join(self.__ssh_cmd_list('.*'))
+		full_string = self.SSH_LOOKUP_BASE % lookup
+		tmp = sp.Popen(full_string, shell=True, stdout=sp.PIPE).stdout
+		lines = []
+		for line in tmp.readlines():
+			try:
+				lines.append(line.split(' ')[-2].split(':')[0])
+			except Exception:
+				pass
+		if len(lines) > 0:
+			if len(lines) == 1:
+				self.log.debug('Found pre-existing active ssh tunnel, gonna re-use it')
+				return int(lines[0])
+			else:
+				self.log.warning('Found %s active ssh tunnels, killing them all...' % len(lines))
+				sp.Popen(self.SSH_KILL_ALL, shell=True, stdout=sp.PIPE)
+		return int(get_free_port())
+	
+	# clem 08/09/2016
+	def _test_connection(self, target):
+		time_out = 2
+		import socket
+		try:
+			self.log.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
+			if test_tcp_connect(target[0], target[1], time_out):
+				self.log.debug('success')
+			return True
+		except socket.timeout:
+			self.log.exception('connect %s: Time-out' % str(target))
+		except socket.error as e:
+			self.log.exception('connect %s: %s' % (str(target), e[1]))
+		except Exception as e:
+			self.log.error('connect %s' % str((type(e), e)))
+		return False
+	
+	# clem 07/04/2016
+	def _connect(self):
+		if not self.connected:
+			if self.target_obj.target_use_tunnel and not self.online:
+				self.log.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
+				self._get_ssh()
+			if not (self.ready and self._do_connect()):
+				self.log.error('FAILURE connecting to docker daemon, cannot proceed')
+				# self._set_status(self.js.FAILED)
+				raise DaemonNotConnected
+		return True
+	
+	# clem 20/10/2016
+	@property
+	def client(self):
+		if not self._client:
+			self._connect()
+		return self._client
+	
+	# clem 07/04/2016
+	def _do_connect(self):
+		if not self._client:
+			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False)
+		self.connected = bool(self._client)
+		# self.client.DEBUG = False # suppress debug messages from DockerClient
+		return bool(self.connected)
+	
+	# TODO externalize
+	# clem 06/04/2016 # FIXME change print to log
+	def _get_ssh(self):
+		if self.config_tunnel_host:
+			try:
+				print 'Establishing ssh tunnel, running', self._ssh_cmd_list, '...',
+				self.ssh_tunnel = sp.Popen(self._ssh_cmd_list, stdout=sp.PIPE, stderr=sp.PIPE, preexec_fn=os.setsid)
+				print 'done,',
+				stat = self.ssh_tunnel.poll()
+				while stat is None:
+					stat = self.ssh_tunnel.poll()
+				print 'bg PID :', self.ssh_tunnel.pid
+				return True
+			except Exception as e:
+				logger.exception('While establishing ssh tunnel : %s ' % str(e))
+				logger.info('ssh was : %s' % str(self._ssh_cmd_list))
+		
+		else:
+			raise AttributeError('Cannot establish ssh tunnel since no ssh_host provided during init')
+	
+	# clem 29/04/2016
+	@property
+	def _ssh_cmd_list(self):
+		return self.__ssh_cmd_list(self.connect_port)
+	
+	# clem 17/05/2016
+	def __ssh_cmd_list(self, local_port):
+		assert isinstance(self.config_tunnel_host, basestring)
+		user = ''
+		port = []
+		if self.config_tunnel_user:
+			user = self.config_tunnel_user + '@'
+		if self.config_tunnel_port:
+			port = ['-p ' + str(self.config_tunnel_port)]
+		return self.SSH_CMD_BASE + ['%s:%s:%s' % (local_port, self.config_daemon_ip, self.config_daemon_port)] + \
+			[user + self.config_tunnel_host] + port
+
+
 # clem 15/03/2016
 class DockerInterface(ComputeInterface):
 	ssh_tunnel = None
