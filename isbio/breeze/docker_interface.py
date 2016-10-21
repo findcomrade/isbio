@@ -854,6 +854,7 @@ def initiator(compute_target, *_):
 	assert isinstance(compute_target, ComputeTarget)
 
 	def new_if():
+		print(repr(compute_target.runnable), ':', str(compute_target.runnable))
 		if compute_target.runnable:
 			return DockerInterface(compute_target)
 		else: # if the target has no associated runnable object
