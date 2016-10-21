@@ -2853,8 +2853,7 @@ def checker(request, what):
 	try:
 		print('checking %s' % what)
 		test_obj = check.ui_get_object(what)
-		print('got %s' % str(test_obj))
-		print('returned %s' % str(check.ui_checker_proxy(test_obj)))
+		print('got %s, returned %s' % (str(test_obj), str(check.ui_checker_proxy(test_obj))))
 		return status_button_json(check.ui_checker_proxy(test_obj), test_obj.ui_text)
 	except Exception as e:
 		logger.exception(str(e))
