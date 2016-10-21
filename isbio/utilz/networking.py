@@ -40,6 +40,7 @@ def test_tcp_connect(host, port, timeout=2):
 		try:
 			s.settimeout(timeout)
 			s.connect((host, port))
+			s.send('PING')
 			get_logger().debug('TCP can connect to %s:%s' % (host, port))
 			return True
 		finally:
