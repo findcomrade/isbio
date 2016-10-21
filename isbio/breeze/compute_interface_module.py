@@ -2,12 +2,15 @@ from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
 
 # clem 04/05/2016
+# TODO improve the architecture of this system : the interface should not carry the runnable object
+# TODO 	this should be a "provider" not "interface" and a new interface should be created to link the
+# TODO 	provider with the runnable
 class ComputeInterface:
 	__metaclass__ = abc.ABCMeta
 	_not = "Class %s doesn't implement %s()"
@@ -20,7 +23,7 @@ class ComputeInterface:
 		assert isinstance(compute_target, ComputeTarget)
 		self._compute_target = compute_target
 		self._runnable = self._compute_target.runnable
-		assert isinstance(self._runnable, Runnable)
+		# assert isinstance(self._runnable, Runnable)
 
 		self.storage_backend = storage_backend
 		if not self.storage_backend:

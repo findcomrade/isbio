@@ -1,6 +1,6 @@
 from __builtin__ import property
 
-from django.db.models.query import QuerySet as __original_QS
+from django.db.models.query import QuerySet as original_QS
 from django.db.models import Manager
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 import django.db.models.query_utils
@@ -219,7 +219,7 @@ class Q(django.db.models.query_utils.Q):
 		super(Q, self).__init__(*args, **kwargs)
 
 
-class QuerySet(__original_QS):
+class QuerySet(original_QS):
 	def __init__(self, *args, **kwargs):
 		super(QuerySet, self).__init__(*args, **kwargs)
 	
@@ -543,6 +543,8 @@ class ProjectManager(ObjectsWithAuth):
 
 # clem 20/10/2016
 class CompTargetsManager(CustomManager):
+	use_for_related_fields = True
+	
 	# clem 26/05/2016
 	def _target_objects(self, only_enabled=False, only_ready=False):
 		""" Get possibly available targets for this ReportType
@@ -557,12 +559,19 @@ class CompTargetsManager(CustomManager):
 		"""
 		base = super(CompTargetsManager, self)
 		targets = base.filter(_enabled=True) if only_enabled or only_ready else base.all()
-		tmp_list = list()
-		for each in targets: # :type: ComputeTarget
-			# assert isinstance(each, ComputeTarget)
-			if not only_ready or each.compute_interface.ready:
-				tmp_list.append(each)
-		return tmp_list
+		# tmp_list = list()
+		# for each in targets:
+		# 	if not only_ready or each.compute_interface.ready:
+		# 		tmp_list.append(each)
+		# return tmp_list
+		from copy import copy
+		targets2 = copy(targets)
+		assert isinstance(targets2, original_QS) and isinstance(targets, original_QS)
+		for each in targets:
+			if only_ready and not each.compute_interface.ready:
+				targets2 = targets2.exclude(pk=each.id)
+				# tmp_list.append(each)
+		return targets2
 	
 	# clem 26/05/2016
 	def enabled(self):

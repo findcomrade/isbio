@@ -384,7 +384,7 @@ def build_report(report_data, request_data, report_property, sections):
 	log = logger.getChild('build_report')
 	assert isinstance(log, logging.getLoggerClass())
 	assert isinstance(request_data.user, User)
-
+	
 	# get the request ReportType
 	rt = ReportType.objects.get(type=report_data['report_type'])
 	# list of users that will have access to this report
@@ -395,14 +395,22 @@ def build_report(report_data, request_data, report_property, sections):
 	the_user = request_data.user
 	the_user.prof = UserProfile.objects.get(user=the_user)
 	assert isinstance(the_user.prof, UserProfile)
-
+	
 	# target profile :
-	target = ComputeTarget.objects.get(pk=request_data.POST.get('target'))
-	if target.id not in rt.ready_id_list: # TODO make a validator in the form section
+	from b_exceptions import *
+	try:
+		target = ComputeTarget.objects.ready(pk=request_data.POST.get('target'))
+	except ObjectDoesNotExist:
 		from django.contrib import messages
 		messages.add_message(request_data, messages.INFO, 'target %s is either disable or not ready' % target)
 		return False
-
+	# target = ComputeTarget.objects.get(pk=request_data.POST.get('target'))
+	# if target.id not in rt.ready_id_list: # TODO make a validator in the form section
+	# if target not in ComputeTarget.objects.ready():
+	# 	from django.contrib import messages
+	# 	messages.add_message(request_data, messages.INFO, 'target %s is either disable or not ready' % target)
+	# 	return False
+	
 	# create initial instance so that we can use its db id
 	dbitem = Report(
 		_type=rt,
@@ -416,7 +424,7 @@ def build_report(report_data, request_data, report_property, sections):
 	)
 	dbitem.assemble(request_data=request_data, shared_users=shared_users, sections=sections)
 	dbitem.submit_to_cluster()
-
+	
 	return True
 
 

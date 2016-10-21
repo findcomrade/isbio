@@ -732,65 +732,12 @@ class ReportType(FolderObj, CustomModel):
 	# SHOULD GO TO A MANAGER FOR THIS OBJECT OR FOR TARGET OBJECT #
 	###############################################################
 	
-	# clem 26/05/2016
-	def _target_objects(cls, only_enabled=False, only_ready=False):
-		""" Get possibly available targets for this ReportType
-
-		:param only_enabled: Filter out targets that are not marked as enabled in the DB
-		:type only_enabled: bool
-		:param only_ready:
-			Filter out targets that have disabled dependencies (exec or engine) (this implies only_enabled)
-		:type only_ready: bool
-		:return:
-		:rtype: list[ComputeTarget]
-		"""
-		targets = cls.targets.filter(_enabled=True) if only_enabled or only_ready else cls.targets.all()
-		# targets = cls.targets(enabled=True) if only_enabled or only_ready else cls.targets.all()
-		tmp_list = list()
-		for each in targets: # :type: ComputeTarget
-			assert isinstance(each, ComputeTarget)
-			if not only_ready or each.compute_interface.ready :
-				tmp_list.append(each)
-		return tmp_list
-
-	# clem 26/05/2016
-	@property
-	def enabled_only(self):
-		""" A list of enabled ComputeTarget objects that are available to use with this ReportType
-
-		:return:
-		:rtype: list[ComputeTarget]
-		"""
-		return self._target_objects(only_enabled=True)
-
-	# clem 26/05/2016
-	@property
-	def all(self):
-		""" A list of all ComputeTarget objects that are available to use with this ReportType
-
-		:return:
-		:rtype: list[ComputeTarget]
-		"""
-		return self._target_objects()
-
-	# clem 26/05/2016
-	@property
-	def ready_only(self):
-		""" A list of ready to use ComputeTarget objects that are available to use with this ReportType
-
-		This means that they are explicitly marked as enabled in the DB,
-		And, each resources they depend on (exec and engine) are also enabled
-
-		:return:
-		:rtype: list[ComputeTarget]
-		"""
-		return self._target_objects(only_ready=True)
-
-	#######
-	# END #
-	#######
-
-	# clem 26/05/2016
+	# removed _target_objects 21/10/2016 useless
+	# removed enabled_only 21/10/2016 moved to CompTargetsManager
+	# removed all 21/10/2016 moved to CompTargetsManager
+	# removed ready_only 21/10/2016 moved to CompTargetsManager
+	
+	# clem 26/05/2016 # FIXME should be somewhere else
 	def _gen_targets_form_list(cls, only_ready=False):
 		""" Generate a list of tuple from a list of ComputeTarget, This list can be used directly in <select> Form
 		obj
@@ -801,13 +748,13 @@ class ReportType(FolderObj, CustomModel):
 		:rtype: list[tuple[int, str]]
 		"""
 		result_list = list()
-		a_list = cls.all if not only_ready else cls.ready_only
+		a_list = cls.targets.all() if not only_ready else cls.targets.ready()
 		for each in a_list:
 			result_list.append(each.as_tuple)
 		return result_list
-
+	
 	# clem 19/04/2016
-	@property
+	@property # FIXME should be somewhere else
 	def all_as_form_list(self):
 		""" A list of tuple, of compute target for this report type, that is suitable to use in a Form
 
@@ -818,9 +765,9 @@ class ReportType(FolderObj, CustomModel):
 		if not self._all_target_list:
 			self._all_target_list = self._gen_targets_form_list()
 		return self._all_target_list
-
+	
 	# clem 26/05/2016
-	@property
+	@property # FIXME maybe un-used # FIXME should be somewhere else
 	def ready_as_form_list(self):
 		""" A list of tuple, of ready only compute target for this report type, that is suitable to use in a Form
 
@@ -831,28 +778,32 @@ class ReportType(FolderObj, CustomModel):
 		if not self._ready_target_list:
 			self._ready_target_list = self._gen_targets_form_list(only_ready=True)
 		return self._ready_target_list
-
+	
 	# clem 19/04/2016
-	@property
+	@property # FIXME should be somewhere else
 	def ready_id_list(self):
 		""" A list of (enabled & ready) compute target ids for this report type
 
 		:rtype: list[int]
 		"""
 		result = list()
-		for each in self.ready_only:
+		for each in self.targets.ready():
 			result.append(each.id)
 		return result
+
+	#######
+	# END #
+	#######
 
 	# TargetManager.targets = targets
 	# ez_targets = TargetManager
 
-	# clem 01/06/2016
+	# clem 01/06/2016 # FIXME un-used & move to a manager ?
 	def get_all_users_ever(self):
 		report_list = Report.objects.filter(_type=self.id).values_list('_author', flat=True).distinct()
 		return User.objects.filter(pk__in=report_list)
 
-	# clem 01/06/2016
+	# clem 01/06/2016  # FIXME move to a manager ?
 	def get_all_users_ever_with_count(self):
 		report_list = Report.objects.filter(_type=self.id)
 		a_dict = dict()
