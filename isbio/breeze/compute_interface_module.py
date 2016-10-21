@@ -60,7 +60,7 @@ class ComputeInterface:
 		:return:
 		:rtype: bool
 		"""
-		raise self.enabled and self.online
+		return self.enabled and self.online
 
 	# clem 17/05/2016
 	@property
