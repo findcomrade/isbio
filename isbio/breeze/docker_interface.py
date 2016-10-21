@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.5.3'
+__version__ = '0.6'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -804,7 +804,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		if not self.container:
 			return False
 		while self.container.is_running and not self._runnable.aborting:
-			time.sleep(1)
+			time.sleep(.5)
 		return True
 
 	# clem 06/05/2016 # TODO improve
@@ -817,9 +817,10 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		cont = self.container
 		assert isinstance(cont, DockerContainer)
 		self._set_global_status(self.js.GETTING_RESULTS)
-		self.log.info('Died code %s. Total execution time : %s' % (cont.status_obj.ExitCode, cont.delta_display))
+		self.log.info('Died code %s. Total execution time : %s' % (cont.exit_code, cont.delta_display))
 		get_res = self.get_results()
-		ex_code = cont.status_obj.ExitCode
+		# ex_code = cont.status_obj.ExitCode
+		ex_code = cont.exit_code
 		self._save_container_log()
 
 		if self.auto_remove:
@@ -834,7 +835,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 			self._runnable.manage_run_failed(1, ex_code)
 			return False
 		elif get_res:
-			self.log.info('Success, job completed !')
+			self.log.debug('Success, job completed !')
 			self._check_container_logs()
 			self._set_status(self.js.SUCCEED)
 			self._runnable.manage_run_success(0)

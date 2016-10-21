@@ -125,7 +125,7 @@ class Path(object):
 		from os import remove
 		try:
 			if isfile(self.path_str) or islink(self.path_str):
-				get_logger().info("removing %s" % self.path_str)
+				get_logger().debug("removing %s" % self.path_str)
 				set_file_acl(self.path_str, ACL.RW_RW_, True)
 				remove(self.path_str)
 				return True
