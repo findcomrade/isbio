@@ -56,10 +56,13 @@ class DockerInterfaceConnector(ComputeInterface):
 	# clem 11/05/2016
 	@property
 	def log(self):
-		log_obj = LoggerAdapter(self._compute_target.runnable.log_custom(1), dict())
-		bridge = log_obj.process
-		log_obj.process = lambda msg, kwargs: bridge(self.label + ' ' + str(msg), kwargs)
-		return log_obj
+		try:
+			log_obj = LoggerAdapter(self._compute_target.runnable.log_custom(1), dict())
+			bridge = log_obj.process
+			log_obj.process = lambda msg, kwargs: bridge(self.label + ' ' + str(msg), kwargs)
+		except Exception as e:
+			log_obj = None
+		return log_obj or logger
 	
 	# clem 06/10/2016
 	def name(self):
