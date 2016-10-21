@@ -354,12 +354,12 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# clem 25/05/2016
 	@property
 	def is_start_timeout(self):
-		return (self._container.has_failed or not self._container.has_normal_exit) and\
+		return not (self._container.has_failed or self._container.has_normal_exit) and\
 			self._container.time_since_creation.total_seconds() > self.START_TIMEOUT
 
 	# clem 25/05/2016
 	def _check_start_timeout(self): # FIXME HACK
-		if self._container and not self._container.is_dead and not self._container.is_running:
+		if self.container and not self._container.is_dead and not self._container.is_running:
 			# self.log.debug('Time since creation : %s' % self._container.time_since_creation)
 			if self.is_start_timeout: # FIXME HACK
 				if self._container.status_text == 'created' and not self.container.has_failed:
@@ -401,7 +401,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 
 	# clem 25/05/2016
 	def _wait_until_container(self):
-		while not self._container:
+		while not self.container:
 			time.sleep(.5)
 		return self._container
 
