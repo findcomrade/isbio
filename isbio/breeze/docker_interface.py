@@ -174,8 +174,10 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 		import socket
 		try:
 			logger.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
+			print('testing connection to %s Tout: %s sec' % (str(target), time_out))
 			if test_tcp_connect(target[0], target[1], time_out):
 				logger.debug('success')
+				print('success')
 				return True
 		except socket.timeout:
 			logger.exception('connect %s: Time-out' % str(target))
