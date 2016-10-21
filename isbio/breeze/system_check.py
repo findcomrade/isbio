@@ -278,6 +278,7 @@ class SysCheckUnit(Process):
 					res = self.checker_function()
 			except Exception as e:
 				self.ex = e
+				logger.exception('sys_check2 %s failed: %s' % (self.url, e))
 				pass
 		else:
 			raise InvalidArgument(TermColoring.fail('Argument function must be a callable object'))
