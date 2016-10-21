@@ -2,36 +2,37 @@ from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
-
-# clem 04/05/2016
 # TODO improve the architecture of this system : the interface should not carry the runnable object
 # TODO 	this should be a "provider" not "interface" and a new interface should be created to link the
 # TODO 	provider with the runnable
-class ComputeInterface:
+
+
+# clem 21/10/2016
+class ComputeInterfaceBase:
 	__metaclass__ = abc.ABCMeta
 	_not = "Class %s doesn't implement %s()"
 	storage_backend = None
 	_missing_exception = None
 	_compute_target = None
 	_runnable = None
-
+	
 	def __init__(self, compute_target, storage_backend=None): # TODO call from child-class, as the first instruction
 		assert isinstance(compute_target, ComputeTarget)
 		self._compute_target = compute_target
 		self._runnable = self._compute_target.runnable
 		# assert isinstance(self._runnable, Runnable)
-
+		
 		self.storage_backend = storage_backend
 		if not self.storage_backend:
 			self.storage_backend = self._compute_target.storage_module
 		assert hasattr(self.storage_backend, 'MissingResException')
-
-		self._missing_exception = self.storage_backend.MissingResException
 		
+		self._missing_exception = self.storage_backend.MissingResException
+	
 	# clem 20/10/2016
 	@property
 	def enabled(self):
@@ -51,22 +52,22 @@ class ComputeInterface:
 		:rtype: bool
 		"""
 		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
-
+	
 	# clem 20/10/2016
 	@property
 	def ready(self):
 		""" Tells if all components are enabled and if the target is online
-		
+
 		:return:
 		:rtype: bool
 		"""
 		return self.enabled and self.online
-
+	
 	# clem 17/05/2016
 	@property
 	def js(self):
 		return JobStat
-
+	
 	# clem 11/05/2016
 	@property
 	def log(self):
@@ -74,7 +75,7 @@ class ComputeInterface:
 		bridge = log_obj.process
 		log_obj.process = lambda msg, kwargs: bridge('<%s> %s' % (self._compute_target, str(msg)), kwargs)
 		return log_obj
-
+	
 	# clem 14/05/2016
 	@property
 	def target_obj(self):
@@ -84,21 +85,26 @@ class ComputeInterface:
 		:rtype: ComputeTarget
 		"""
 		return self._compute_target
-
+	
 	# clem 17/05/2016
 	@property # writing shortcut
 	def engine_obj(self):
 		if self.target_obj and self.target_obj.engine_obj:
 			return self.target_obj.engine_obj
 		return None
-
+	
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def execut_obj(self):
 		if self.target_obj and self.target_obj.exec_obj:
 			return self.target_obj.exec_obj
 		return None
-		
+
+
+# clem 04/05/2016
+class ComputeInterface(ComputeInterfaceBase):
+	__metaclass__ = abc.ABCMeta
+
 	# clem 06/10/2016
 	@abc.abstractmethod
 	def name(self):

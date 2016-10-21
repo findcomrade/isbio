@@ -8,15 +8,15 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
 
 
 # clem 21/10/2016
-class DockerInterfaceConnector:
-	__metaclass__ = abc.ABCMeta
+class DockerInterfaceConnector(ComputeInterfaceBase):
+	# __metaclass__ = abc.ABCMeta
 	ssh_tunnel = None
 	_client = None
 	__connect_port = None
@@ -41,54 +41,13 @@ class DockerInterfaceConnector:
 
 		:type storage_backend: module
 		"""
-		# super(DockerInterfaceConnector, self).__init__(compute_target, storage_backend)
+		super(DockerInterfaceConnector, self).__init__(compute_target, storage_backend)
 		# TODO rework the ssh configuration vs daemon conf
 		self.config_local_bind_address = (self.config_daemon_ip, self._connect_port)
 		self._label = self.config_tunnel_host[0:2]
 		
 		if auto_connect: # unless explicitly asked for, connection is now made upon access
 			self._connect()
-	
-	################
-	#  SOME HACKS  #
-	################
-		
-	# clem 14/05/2016
-	@property # FIXME HACK
-	def target_obj(self):
-		"""
-
-		:return:
-		:rtype: ComputeTarget
-		"""
-		return self._compute_target
-	
-	# clem 17/05/2016 # FIXME HACK
-	@property # writing shortcut
-	def engine_obj(self):
-		if self.target_obj and self.target_obj.engine_obj:
-			return self.target_obj.engine_obj
-		return None
-	
-	# clem 20/10/2016 # FIXME HACK
-	@property
-	def enabled(self):
-		""" Tells if all components are enabled
-
-		:return:
-		:rtype: bool
-		"""
-		return self._compute_target.is_enabled
-	
-	# clem 20/10/2016  # FIXME HACK
-	@property
-	def ready(self):
-		""" Tells if all components are enabled and if the target is online
-
-		:return:
-		:rtype: bool
-		"""
-		return self.enabled and self.online
 	
 	##########################
 	#  CONFIG FILE SPECIFIC  #
