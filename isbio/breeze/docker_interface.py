@@ -222,7 +222,8 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	# clem 07/04/2016
 	def _do_connect(self):
 		if not self._client:
-			auto_watcher = bool(self.target_obj.runnable)
+			# auto_watcher = bool(self.target_obj.runnable)
+			auto_watcher = True
 			self._client = get_docker_client(self.config_daemon_url_base, self.docker_repo, False, auto_watcher)
 		self.connected = bool(self._client.cli)
 		# self.client.DEBUG = False # suppress debug messages from DockerClient
@@ -653,7 +654,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		"""
 		self._docker_storage.upload_self() # update the cloud version of azure_storage.py
 		self.run_id = get_file_md5(self.assembly_archive_path) # use the archive hash as an id for storage
-		if self._job_storage.upload(self.run_id, self.assembly_archive_path, self._job_storage.container):
+		if self._job_storage.upload(self.run_id, self.assembly_archive_path):
 			if not KEEP_TEMP_FILE:
 				remove_file_safe(self.assembly_archive_path)
 			return True
