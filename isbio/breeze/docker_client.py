@@ -296,6 +296,7 @@ class DockerContainer:
 	_event_list = list()
 	_event_buffer = list()
 	_event_listener = None
+	_has_failed = False
 	__run = None
 	__client = None
 
@@ -513,6 +514,18 @@ class DockerContainer:
 	@property
 	def is_restarting(self):
 		return self.status_obj.Restarting
+	
+	# clem 21/10/2016
+	@property
+	def exit_code(self):
+		return int(self.status_obj.ExitCode)
+	
+	# clem 21/10/2016
+	@property
+	def has_failed(self):
+		self._has_failed = self._has_failed or\
+			((not self.is_running or self.is_dead or self.is_restarting) and self.exit_code != 0)
+		return self._has_failed
 
 	# clem 18/03/2016
 	def __nonzero__(self):

@@ -361,7 +361,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		if self._container and not self._container.is_dead and not self._container.is_running:
 			# self.log.debug('Time since creation : %s' % self._container.time_since_creation)
 			if self.is_start_timeout: # FIXME HACK
-				if self._container.status_text == 'created':
+				if self._container.status_text == 'created' and not self.container.has_failed:
 					self.log.info('Start TO : HACK START of %s' % self._container.status_text)
 					self._start_container()
 				else:
