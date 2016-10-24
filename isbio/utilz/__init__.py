@@ -158,10 +158,16 @@ def get_key(name=''):
 	if name.startswith('.'):
 		name = name[1:]
 	full_path = '%s.%s_secret' % (config_root, name)
+	
 	try:
-		with open(full_path) as f:
-			logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
-			return str(f.read())[:-1]
+		key_id = '%s:%s' % ('SecretKey', get_md5(full_path))
+		the_key = ObjectCache.get(key_id)
+		if not the_key:
+			with open(full_path) as f:
+				logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
+				the_key = str(f.read())[:-1]
+			ObjectCache.add(the_key, key_id, 10*60)
+		return the_key
 	except Exception as e:
 		logger.exception(str(e))
 		pass
