@@ -312,7 +312,7 @@ CONSOLE_DATE_F = "%d/%b/%Y %H:%M:%S"
 FULL_HOST_NAME = socket.gethostname()
 HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
 # automatically setting RUN_MODE depending on the host name
-MODE_FILE = SOURCE_ROOT + 'run_mode'
+MODE_FILE = SOURCE_ROOT + '.run_mode'
 MODE_FILE_CONTENT = file_content(MODE_FILE)
 RUN_MODE = 'dev' if MODE_FILE_CONTENT == 'dev' else 'prod'
 DEV_MODE = RUN_MODE == 'dev'
