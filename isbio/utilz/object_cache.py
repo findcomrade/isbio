@@ -129,7 +129,7 @@ class ObjectCache(object):
 	data_mutex = Lock()
 	
 	@classmethod
-	def dump(cls):
+	def dump(cls): # TODO : dump as serializable dict
 		return cls._cache
 
 	@classmethod
