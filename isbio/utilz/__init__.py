@@ -151,7 +151,7 @@ def gen_file_from_template(template_path, sub_dict, output_path=None, safe=True)
 # moved from settings on 19/05/2016
 # TODO make a generator
 # FIXME Django Specific ?
-def get_key(name=''):
+def get_key(name='', caching=True):
 	config_root = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/configs/' # FIXME hardcoded setting string
 	if name.endswith('_secret'):
 		name = name[:-7]
@@ -164,9 +164,9 @@ def get_key(name=''):
 			logger.info('Read key %s from %s' % (full_path, this_function_caller_name(2)))
 			return str(f.read())[:-1]
 	
-	try:
+	try: # FIXME caching seems not to work with docker_if
 		key_id = '%s:%s' % ('SecretKey', name)
-		return ObjectCache.get_or_add(key_id, read_key, 10*60)
+		return ObjectCache.get_or_add(key_id, read_key, 10*60) if caching else read_key()
 	except Exception as e:
 		logger.exception(str(e))
 		pass
