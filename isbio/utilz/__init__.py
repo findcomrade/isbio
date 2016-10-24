@@ -161,7 +161,7 @@ def get_key(name=''):
 	
 	def read_key():
 		with open(full_path) as f:
-			logger.info('Read key %s from %s' % (full_path, this_function_caller_name(1)))
+			logger.info('Read key %s from %s' % (full_path, this_function_caller_name(2)))
 			return str(f.read())[:-1]
 	
 	try:
