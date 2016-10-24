@@ -14,7 +14,7 @@ settings.handler404 = handler404
 API_VERSION = '1.0'
 
 GIT_HUB_IP_NETWORK = '192.30.252.0/22'
-GIT_COMMAND = 'git pull'
+GIT_COMMAND = 'git pull --verify-signatures'
 GIT_DEV_BRANCH = 'dev'
 GIT_DEV_REF = 'refs/heads/dev'
 GIT_PROD_BRANCH = 'master'

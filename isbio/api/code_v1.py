@@ -77,12 +77,12 @@ def do_r_source_git_pull():
 	:rtype: bool
 	"""
 	try:
-		logger.warning('NOT_IMPLEMENTED')
-		print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
-		# command = 'cd /projects/breeze/ && git pull'
-		# print(TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
-		# return not os.system(command) # FIXME
-		return True
+		# logger.warning('NOT_IMPLEMENTED')
+		# print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
+		command = 'cd /projects/breeze/code/ && git pull'
+		print(TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
+		return not os.system(command) # FIXME
+		# return True
 	except Exception as e:
 		logger.exception(str(e))
 	return False
