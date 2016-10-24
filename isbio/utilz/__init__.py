@@ -165,7 +165,7 @@ def get_key(name=''):
 			return str(f.read())[:-1]
 	
 	try:
-		key_id = '%s:%s' % ('SecretKey', get_md5(full_path))
+		key_id = '%s:%s' % ('SecretKey', name)
 		return ObjectCache.get_or_add(key_id, read_key, 10*60)
 	except Exception as e:
 		logger.exception(str(e))
