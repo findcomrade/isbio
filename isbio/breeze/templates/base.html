@@ -356,8 +356,10 @@
 				m.parentNode.insertBefore(a, m)
 			})(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 			ga('create', 'UA-86239311-1', 'auto');
+			ga('require', 'linkid');
 			ga('send', 'pageview');
 		</script>
+		<!--End of Google Analytics-->
 	{% endblock %}
 {% endif %}
 <script type="text/javascript">
