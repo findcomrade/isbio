@@ -862,10 +862,11 @@ def initiator(compute_target, *_):
 		if use_caching:
 			key_id = compute_target.runnable.short_id if hasattr(compute_target.runnable, 'short_id') else ''
 			key = '%s:%s' % ('DockerInterface', key_id)
-			cached = ObjectCache.get(key)
-			if not cached:
-				ObjectCache.add(new_if(), key, expire_after)
-			return ObjectCache.get(key)
+			return ObjectCache.get_or_add(key, new_if, expire_after)
+			# cached = ObjectCache.get(key)
+			# if not cached:
+			# 	ObjectCache.add(new_if(), key, expire_after)
+			# return ObjectCache.get(key)
 		return new_if()
 
 # removed DockerIfTest from azure_test commit 422cc8e on 24/05/2016

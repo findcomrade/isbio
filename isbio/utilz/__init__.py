@@ -159,15 +159,14 @@ def get_key(name=''):
 		name = name[1:]
 	full_path = '%s.%s_secret' % (config_root, name)
 	
+	def read_key():
+		with open(full_path) as f:
+			logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
+			return str(f.read())[:-1]
+	
 	try:
 		key_id = '%s:%s' % ('SecretKey', get_md5(full_path))
-		the_key = ObjectCache.get(key_id)
-		if not the_key:
-			with open(full_path) as f:
-				logger.info('Read key %s from %s' % (full_path, this_function_caller_name()))
-				the_key = str(f.read())[:-1]
-			ObjectCache.add(the_key, key_id, 10*60)
-		return the_key
+		return ObjectCache.get_or_add(key_id, read_key, 10*60)
 	except Exception as e:
 		logger.exception(str(e))
 		pass
