@@ -79,7 +79,7 @@ def do_r_source_git_pull():
 	try:
 		# logger.warning('NOT_IMPLEMENTED')
 		# print (TermColoring.warning('NOT_IMPLEMENTED : R PULL'))
-		command = 'cd /projects/breeze/code/ && git pull'
+		command = 'FOLDER=`pwd` && cd /projects/breeze/code/ && %s && cd $FOLDER' % settings.GIT_COMMAND
 		print(TermColoring.ok_green('$ ') + TermColoring.ok_blue(command))
 		return not os.system(command) # FIXME
 		# return True
