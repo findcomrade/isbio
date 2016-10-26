@@ -156,6 +156,9 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 # 	'django.template.loaders.app_directories.Loader',
 # )
 
+AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'breeze.models.OrderedUser'
+
 INSTALLED_APPS = [
 	'django.contrib.admin',
 	'django.contrib.auth',

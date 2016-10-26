@@ -77,7 +77,9 @@ class CustomModelAbstract(models.Model): # TODO move to a common base app
 
 
 class Institute(CustomModelAbstract):
-	institute = models.CharField(max_length=75, default='FIMM')
+	institute = models.CharField(max_length=32, default='FIMM')
+	url = models.CharField(max_length=64, default='https://www.fimm.fi')
+	domain = models.CharField(max_length=32, default='fimm.fi')
 
 	def __unicode__(self):
 		return self.institute
@@ -109,6 +111,8 @@ from shiny.models import ShinyReport
 
 # 04/06/2015
 class OrderedUser(User):
+	objects = managers.CustomUserManager
+	
 	class Meta:
 		ordering = ["username"]
 		proxy = True

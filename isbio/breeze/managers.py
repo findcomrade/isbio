@@ -590,3 +590,37 @@ class CompTargetsManager(CustomManager):
 		:rtype: original_QS
 		"""
 		return self._target_objects(only_ready=True)
+
+
+# clem 26/10/2016
+class CustomUserManager(Manager):
+	def create(self, **kwargs):
+		# from django.contrib.auth.models import User
+		from breeze.models import OrderedUser
+		has_name_info_domains = ['fimm.fi', ]
+		email = kwargs.get('email', '')
+		pass_on = kwargs
+		pass_on['is_active'] = True
+		user_institute = ''
+		if email and '@' in email and '.' in email:
+			full_split = email.split('@')
+			nick = full_split[0].split('.')
+			domain = full_split[1]
+			if domain in has_name_info_domains:
+				pass_on['first_name'] = nick[0]
+				pass_on['last_name'] = nick[1]
+			try:
+				from breeze.models import Institute
+				user_institute = Institute.objects.get(domain=domain)
+			except Exception as e:
+				from utilz import logger
+				logger.exception(str(e))
+			
+		user = super(CustomUserManager, self).create(**pass_on)
+		# TODO alert admin about new user
+		assert isinstance(user, OrderedUser)
+		if user_institute:
+			user.userprofile.institute_info = user_institute
+			user.userprofile.save()
+			user.save()
+		return user
