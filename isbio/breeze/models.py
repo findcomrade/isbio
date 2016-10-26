@@ -115,7 +115,7 @@ class OrderedUser(User):
 	
 	class Meta:
 		ordering = ["username"]
-		proxy = True
+		# proxy = True
 		auto_created = True # FIXEME Hack
 
 
