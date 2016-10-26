@@ -111,7 +111,7 @@ from shiny.models import ShinyReport
 
 # 04/06/2015
 class OrderedUser(User):
-	objects = managers.CustomUserManager
+	objects = managers.CustomUserManager()
 	
 	class Meta:
 		ordering = ["username"]
