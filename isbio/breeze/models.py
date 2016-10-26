@@ -119,6 +119,8 @@ class User(DjangoUser):
 		auto_created = True # FIXEME Hack
 
 
+OrderedUser = User
+
 # TODO add an Institute db field
 # TODO change to CustomModel
 class Post(CustomModelAbstract):
