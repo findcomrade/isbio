@@ -2,7 +2,7 @@
 from __builtin__ import property
 from django.template.defaultfilters import slugify
 from django.db.models.fields.related import ForeignKey
-from django.contrib.auth.models import User # as DjangoUser
+from django.contrib.auth.models import User as DjangoUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
@@ -110,7 +110,7 @@ from shiny.models import ShinyReport
 
 
 # 04/06/2015
-class OrderedUser(User):
+class User(DjangoUser):
 	objects = managers.CustomUserManager()
 	
 	class Meta:
