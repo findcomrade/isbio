@@ -93,7 +93,12 @@ def trigger_logout(request):
 		user = request.user
 		auth.logout(request)
 		logger.info('LOGOUT %s (%s)' % (user.username, user.email))
-		return redirect('%s?returnTo=%s' % (settings.AUTH0_LOGOUT_URL, settings.AUTH0_LOGOUT_REDIRECT))
+		url = settings.AUTH0_LOGOUT_URL
+		try:
+			url = user.userprofile.institute_info.url or settings.AUTH0_LOGOUT_REDIRECT
+		except Exception as e:
+			logger.exception(str(e))
+		return redirect('%s?returnTo=%s' % (settings.AUTH0_LOGOUT_URL, url))
 		# return redirect('https://www.fimm.fi')
 	else:
 		return HttpResponse(status=503)
