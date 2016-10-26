@@ -2,7 +2,7 @@
 from __builtin__ import property
 from django.template.defaultfilters import slugify
 from django.db.models.fields.related import ForeignKey
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User # as DjangoUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
@@ -110,17 +110,17 @@ from shiny.models import ShinyReport
 
 
 # 04/06/2015
-class OrderedUser(DjangoUser):
-	objects = managers.CustomUserManager()
+class OrderedUser(User):
+	 # objects = managers.CustomUserManager()
 	
 	class Meta:
 		ordering = ["username"]
-		# proxy = True
+		proxy = True
 		auto_created = True # FIXEME Hack
-		db_table = 'auth_user'
+		# db_table = 'auth_user'
 
 
-User = OrderedUser
+# User = OrderedUser
 
 
 # TODO add an Institute db field
