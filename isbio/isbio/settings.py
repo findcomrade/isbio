@@ -215,7 +215,7 @@ AUTH0_SECRET_FILE_N = 'auth0'
 AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
 # AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
 AUTH0_CALLBACK_URL = 'https://breeze.fimm.fi/login/'
-AUTH0_SUCCESS_URL = '/jobs/'
+AUTH0_SUCCESS_URL = '/home/'
 AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
 AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
 
