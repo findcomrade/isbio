@@ -595,6 +595,7 @@ class CompTargetsManager(CustomManager):
 # clem 26/10/2016
 class CustomUserManager(Manager):
 	def create(self, **kwargs):
+		print 'custom_user_create'
 		# from django.contrib.auth.models import User
 		from breeze.models import OrderedUser
 		has_name_info_domains = ['fimm.fi', ]
