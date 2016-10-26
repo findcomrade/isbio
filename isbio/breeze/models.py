@@ -110,7 +110,7 @@ from shiny.models import ShinyReport
 
 
 # 04/06/2015
-class User(DjangoUser):
+class OrderedUser(DjangoUser):
 	objects = managers.CustomUserManager()
 	
 	class Meta:
@@ -119,7 +119,7 @@ class User(DjangoUser):
 		auto_created = True # FIXEME Hack
 
 
-OrderedUser = User
+User = OrderedUser
 
 # TODO add an Institute db field
 # TODO change to CustomModel
