@@ -40,6 +40,18 @@ simplejson = json
 logger = utils.logger
 
 
+class LegacyRequest(WSGIRequest):
+	""" Adds back the REQUEST property as dict(self.GET + self.POST) that seems to be missing
+	
+	"""
+	def __init__(self, request):
+		assert isinstance(request, WSGIRequest)
+		super(LegacyRequest, self).__init__(request.environ)
+	
+		new_d = copy.copy(self.GET)
+		self.REQUEST = new_d.update(self.POST)
+
+
 class RequestStorage(object):
 	form_details = OrderedDict()
 
@@ -2745,6 +2757,8 @@ def report_search(request):
 	if not request.is_ajax():
 		request.method = 'GET'
 		return reports(request)  # Redirects to the default view (internaly : no new HTTP request)
+	
+	request = LegacyRequest(request)
 
 	search = request.REQUEST.get('filt_name', '') + request.REQUEST.get('filt_type', '') + \
 		request.REQUEST.get('filt_author', '') + request.REQUEST.get('filt_project', '') + \
