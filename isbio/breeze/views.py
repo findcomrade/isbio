@@ -40,16 +40,15 @@ simplejson = json
 logger = utils.logger
 
 
-class LegacyRequest(WSGIRequest):
+def legacy_request(request):
 	""" Adds back the REQUEST property as dict(self.GET + self.POST) that seems to be missing
 	
 	"""
-	def __init__(self, request):
-		assert isinstance(request, WSGIRequest)
-		super(LegacyRequest, self).__init__(request.environ)
-		
-		self.REQUEST = copy.copy(self.GET)
-		self.REQUEST.update(self.POST)
+	assert isinstance(request, WSGIRequest)
+	if not hasattr(request, 'REQUEST'):
+		request.REQUEST = copy.copy(request.GET)
+		request.REQUEST.update(request.POST)
+	return request
 
 
 class RequestStorage(object):
@@ -2758,7 +2757,7 @@ def report_search(request):
 		request.method = 'GET'
 		return reports(request)  # Redirects to the default view (internaly : no new HTTP request)
 	
-	request = LegacyRequest(request)
+	request = legacy_request(request)
 
 	search = request.REQUEST.get('filt_name', '') + request.REQUEST.get('filt_type', '') + \
 		request.REQUEST.get('filt_author', '') + request.REQUEST.get('filt_project', '') + \
