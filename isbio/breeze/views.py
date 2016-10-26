@@ -47,9 +47,9 @@ class LegacyRequest(WSGIRequest):
 	def __init__(self, request):
 		assert isinstance(request, WSGIRequest)
 		super(LegacyRequest, self).__init__(request.environ)
-	
-		new_d = copy.copy(self.GET)
-		self.REQUEST = new_d.update(self.POST)
+		
+		self.REQUEST = copy.copy(self.GET)
+		self.REQUEST.update(self.POST)
 
 
 class RequestStorage(object):
