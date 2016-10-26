@@ -117,9 +117,11 @@ class OrderedUser(DjangoUser):
 		ordering = ["username"]
 		# proxy = True
 		auto_created = True # FIXEME Hack
+		db_table = 'auth_user'
 
 
 User = OrderedUser
+
 
 # TODO add an Institute db field
 # TODO change to CustomModel
