@@ -2063,7 +2063,7 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 		raise PermissionDenied
 
 	try:
-		wrapper, name, size = run_instance.download_viezip(mod)
+		wrapper, name, size = run_instance.download_zip(mod)
 	except OSError as e:
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
 
