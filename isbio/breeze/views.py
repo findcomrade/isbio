@@ -2048,22 +2048,22 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 02/10/2015 migrated to Runnable and FolderObj
 	assert issubclass(serv_obj, Runnable)
 	try:
-		job = serv_obj.objects.get(id=jid)
-		assert isinstance(job, Runnable)
+		run_instance = serv_obj.objects.get(id=jid)
+		assert isinstance(run_instance, Runnable)
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no record with id ' + jid + ' in DB')
 
 	# FIXME : user with whom report is shared are not able to download -result
 	# Enforce user access restrictions
-	if not(('shared' in job.__dict__ and request.user in job.shared.all()) or
-			job.author == request.user or request.user.is_superuser):
+	if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
+			run_instance.author == request.user or request.user.is_superuser):
 		raise PermissionDenied
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
 		raise PermissionDenied
 
 	try:
-		wrapper, name, size = job.download_zip(mod)
+		wrapper, name, size = run_instance.download_viezip(mod)
 	except OSError as e:
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
 

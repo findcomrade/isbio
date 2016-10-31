@@ -331,7 +331,7 @@ class FolderObj(object):
 
 	# clem 02/10/2015
 	# TODO : download with no subdirs
-	def download_zip(self, cat=None, auto_cache=True):
+	def download_zip(self, cat=None, auto_cache=True): # FIXME remove useless filtering
 		""" Compress the folder object for download
 		<i>cat</i> argument enables to implement different kind of selective downloads into <i>download_ignore(cat)</i>
 		auto_cache determine if generated zip should be saved for caching purposes
@@ -356,7 +356,8 @@ class FolderObj(object):
 		import os
 		from wsgiref.util import FileWrapper
 		# from django.core.servers.basehttp import FileWrapper
-		loc = self.home_folder_full_path # writing shortcut
+		# loc = self.home_folder_full_path # writing shortcut
+		loc = self.home_folder_full_path + '/Results'
 		arch_name = str(self.folder_name)
 
 		ignore_list, filter_list, sup = self._download_ignore(cat)
@@ -403,7 +404,7 @@ class FolderObj(object):
 		archive.close()
 		wrapper = FileWrapper(temp)
 		size = temp.tell()
-		# save this zipfile for caching (disalbe to save space vs CPU)
+		# save this zipfile for caching (disable to save space vs CPU)
 		temp.seek(0)
 		if auto_cache:
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
