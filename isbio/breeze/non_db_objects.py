@@ -356,8 +356,9 @@ class FolderObj(object):
 		import os
 		from wsgiref.util import FileWrapper
 		# from django.core.servers.basehttp import FileWrapper
-		# loc = self.home_folder_full_path # writing shortcut
-		loc = self.home_folder_full_path + '/Results'
+		loc = self.home_folder_full_path # writing shortcut
+		if cat == "-result": # returning only the Results sub-folder for result switch
+			loc += '/Results'
 		arch_name = str(self.folder_name)
 
 		ignore_list, filter_list, sup = self._download_ignore(cat)
