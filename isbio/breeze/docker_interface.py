@@ -230,11 +230,11 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 			try:
 				return do_test_tcp()
 			except socket.timeout:
-				logger.exception('connect %s: Time-out' % str(target))
+				logger.warning('connect %s: Time-out' % str(target))
 			except socket.error as e:
-				logger.exception('connect %s: %s' % (str(target), e[1]))
+				logger.warning('connect %s: %s' % (str(target), e[1]))
 			except Exception as e:
-				logger.error('connect %s' % str((type(e), e)))
+				logger.exception('connect %s' % str((type(e), e)))
 			return False
 		else:
 			return do_test_tcp()
