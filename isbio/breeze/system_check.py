@@ -287,7 +287,7 @@ class SysCheckUnit(Process):
 		if not from_ui:
 			print self.msg,
 			sup = self.run_after() if self.run_after is not None and callable(self.run_after) else ''
-			print(OK if res else BAD if self.mandatory else WARN, sup, sup2)
+			print OK if res else BAD if self.mandatory else WARN, sup, sup2
 
 		if not res:
 			import sys
