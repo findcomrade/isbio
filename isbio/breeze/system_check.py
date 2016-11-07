@@ -151,6 +151,10 @@ class RunType(enumerate):
 class SysCheckUnit(Process):
 	""" Describe a self executable unit of system test, includes all the process management part """
 	RAISE_EXCEPTION = False
+	EXIT_NORMAL = 0
+	EXIT_CHECK_FAILED = 1
+	EXIT_NON_CRITICAL_FAILED = 2
+	EXIT_CHECK_RAISED = 127
 
 	def __init__(self, function, url, legend, msg, a_type, t_out=0, arg=None, run_after=None, ex=SystemCheckFailed,
 				mandatory=False, long_poll=False, ui_text=('Online', 'Offline')):
@@ -269,6 +273,7 @@ class SysCheckUnit(Process):
 
 		:type from_ui: bool
 		"""
+		has_raised = False
 		res = False
 		if callable(self.checker_function):
 			try:
@@ -277,6 +282,7 @@ class SysCheckUnit(Process):
 				else:
 					res = self.checker_function()
 			except Exception as e:
+				has_raised = True
 				self.ex = e
 				logger.exception('sys_check2 %s failed: %s' % (self.url, e))
 				pass
@@ -303,8 +309,8 @@ class SysCheckUnit(Process):
 			if self.RAISE_EXCEPTION and not from_ui:
 				raise self.ex
 			if from_ui or self.mandatory:
-				sys.exit(1)
-			sys.exit(2)
+				sys.exit(self.EXIT_CHECK_RAISED) if has_raised else sys.exit(self.EXIT_CHECK_FAILED)
+			sys.exit(self.EXIT_NON_CRITICAL_FAILED)
 		# implicit exit(0)
 
 	@property
