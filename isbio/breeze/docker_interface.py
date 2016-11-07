@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.7'
+__version__ = '0.7.1'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -131,10 +131,34 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	#  CONNECTION SPECIFIC  #
 	#########################
 	
+	# clem 07/11/2016
+	def __online_accessor(self, handle_exceptions=False):
+		return self._test_connection(self.config_local_bind_address, handle_exceptions)
+	
 	# clem 20/10/2016
 	@property
 	def online(self):
-		return self._test_connection(self.config_local_bind_address)
+		""" Tells if the docker daemon is online, i.e. allows TCP connect (might succeed even if daemon
+		
+		is actually down, as it does not say anything about the daemon status)
+		
+		:rtype: bool
+		:raise: IOError | Exception
+		"""
+		return self.__online_accessor()
+	
+	# clem 07/11/2016
+	@property
+	def _online(self):
+		""" Tells if the docker daemon is online, i.e. allows TCP connect (might succeed even if daemon
+
+		is actually down, as it does not say anything about the daemon status)
+
+		This is the same as the public property self.online, except it handles exceptions and return False on exceptions
+
+		:rtype: bool
+		"""
+		return self.__online_accessor(True)
 	
 	# clem 21/10/2016
 	@property
@@ -192,30 +216,37 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 		return int(get_free_port())
 	
 	# clem 08/09/2016 # This might succeed even if there is not endpoint if using an external tunneling
-	def _test_connection(self, target):
+	def _test_connection(self, target, handle_exceptions=False):
 		time_out = 2
 		import socket
-		try:
+		
+		def do_test_tcp():
 			logger.debug('testing connection to %s Tout: %s sec' % (str(target), time_out))
 			if test_tcp_connect(target[0], target[1], time_out):
 				logger.debug('success')
 				return True
-		except socket.timeout:
-			logger.exception('connect %s: Time-out' % str(target))
-		except socket.error as e:
-			logger.exception('connect %s: %s' % (str(target), e[1]))
-		except Exception as e:
-			logger.error('connect %s' % str((type(e), e)))
-		return False
+			
+		if handle_exceptions:
+			try:
+				return do_test_tcp()
+			except socket.timeout:
+				logger.exception('connect %s: Time-out' % str(target))
+			except socket.error as e:
+				logger.exception('connect %s: %s' % (str(target), e[1]))
+			except Exception as e:
+				logger.error('connect %s' % str((type(e), e)))
+			return False
+		else:
+			return do_test_tcp()
 	
 	# clem 07/04/2016
 	def _connect(self):
 		if not self.connected:
-			if self.target_obj.target_use_tunnel and not self.online:
+			if self.target_obj.target_use_tunnel and not self._online:
 				logger.debug('Establishing %s tunnel' % self.target_obj.target_tunnel)
 				if not self._get_ssh():
 					return False
-			if not (self.enabled and self.online and self._do_connect()):
+			if not (self.enabled and self._online and self._do_connect()):
 				logger.error('FAILURE connecting to docker daemon, cannot proceed')
 				# self._set_status(self.js.FAILED)
 				raise DaemonNotConnected

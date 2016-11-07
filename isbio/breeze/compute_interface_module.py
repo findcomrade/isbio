@@ -2,7 +2,7 @@ from utilz import *
 from breeze.models import JobStat, Runnable, ComputeTarget
 import abc
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __author__ = 'clem'
 __date__ = '04/05/2016'
 
@@ -50,6 +50,7 @@ class ComputeInterfaceBase:
 
 		:return:
 		:rtype: bool
+		:raise: IOError, Exception
 		"""
 		raise NotImplementedError(self._not % (self.__class__.__name__, this_function_name()))
 	
@@ -65,6 +66,7 @@ class ComputeInterfaceBase:
 
 		:return:
 		:rtype: bool
+		:raise: IOError, Exception
 		"""
 		return self.enabled and self.online and self.can_connect
 	
