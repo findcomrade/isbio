@@ -344,7 +344,7 @@ class EngineConfig(ConfigObject, CustomModel):
 	# clem 07/11/2016
 	@property
 	def compute_interface_module_name(self):
-		return self.config.get(option=self.CONFIG_IF_MODULE)
+		return self.get(self.CONFIG_IF_MODULE)
 	
 	# clem 07/11/2016 copied from ComputeTarget
 	@property
