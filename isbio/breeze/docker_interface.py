@@ -3,12 +3,12 @@ from docker_client import *
 from django.conf import settings
 from utils import safe_rm
 from blob_storage_module import StorageModule
-from breeze.models import RunServer
+from breeze.non_db_objects import RunServer
 import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.6'
+__version__ = '0.7'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -27,14 +27,17 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	SSH_KILL_ALL = 'killall ssh && killall ssh'
 	SSH_LOOKUP_BASE = 'ps aux|grep "%s"|grep -v grep'
 	
+	# from engine
 	CONFIG_HUB_PWD_FILE = 'hub_password_file'
 	CONFIG_HUB_LOGIN = 'hub_login'
 	CONFIG_HUB_EMAIL = 'hub_email'
 	CONFIG_DAEMON_IP = 'daemon_ip'
 	CONFIG_DAEMON_PORT = 'daemon_port'
 	CONFIG_DAEMON_URL = 'daemon_url'
-	CONFIG_CONTAINER = 'container'
-	CONFIG_CMD = 'cmd'
+	# from exec/docker
+	CONFIG_SUP_SECTION = 'docker'
+	CONFIG_SUP_CONTAINER = 'container'
+	CONFIG_SUP_CONT_CMD = 'cont_cmd'
 	
 	def __init__(self, compute_target, storage_backend=None, auto_connect=False):
 		"""
@@ -68,15 +71,21 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 	def config_daemon_url_base(self):
 		return str(self.engine_obj.get(self.CONFIG_DAEMON_URL)) % self._connect_port
 	
+	# clem 07/11/2016 # writing shortcut
+	def get_exec_specific(self, prop_name):
+		return self.execut_obj.get(prop_name, self.CONFIG_SUP_SECTION)
+	
 	# clem 17/06/2016
 	@property
 	def config_container(self):
-		return self.engine_obj.get(self.CONFIG_CONTAINER)
+		# return self.engine_obj.get(self.CONFIG_CONTAINER)
+		return self.get_exec_specific(self.CONFIG_SUP_CONTAINER)
 	
 	# clem 17/06/2016
 	@property
 	def config_cmd(self):
-		return self.engine_obj.get(self.CONFIG_CMD)
+		# return self.engine_obj.get(self.CONFIG_CMD)
+		return self.get_exec_specific(self.CONFIG_SUP_CONT_CMD)
 	
 	# clem 17/06/2016
 	@property
