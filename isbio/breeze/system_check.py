@@ -246,8 +246,8 @@ class SysCheckUnit(Process):
 
 	# clem 08/09/2015
 	def split_run(self, from_ui=False):
-		"""
-		Runs checker function in a separate process for
+		""" Runs checker function in a separate process for
+		
 			_ concurrency and speed (from console)
 			_ process isolation, and main thread segfault avoidance (from UI)
 
@@ -268,41 +268,26 @@ class SysCheckUnit(Process):
 
 	# clem 08/09/2015
 	def split_runner(self, from_ui=False):
-		""" Checker function runner.
-		Call the function, display console message and exception if appropriate
+		""" Checker function runner, Call the function, display console message and exception if appropriate
 
 		:type from_ui: bool
 		"""
-		has_raised = False
-		res = False
+		has_raised, res = False, False
 		if callable(self.checker_function):
 			try:
-				if self.arg is not None:
-					res = self.checker_function(self.arg)
-				else:
-					res = self.checker_function()
+				res = self.checker_function(self.arg) if self.arg is not None else self.checker_function()
 			except Exception as e:
 				has_raised = True
 				self.ex = e
-				logger.exception('sys_check2 %s failed: %s' % (self.url, e))
-				pass
+				logger.warning('sys_check2 %s failed to return: %s' % (self.url, e))
 		else:
 			raise InvalidArgument(TermColoring.fail('Argument function must be a callable object'))
 
-		sup = ''
-		sup2 = ''
-
-		if not res:
-			if self.mandatory:
-				sup2 = TermColoring.warning('required and critical !')
-			else:
-				sup2 = TermColoring.warning('NOT critical')
-
+		sup2 = TermColoring.warning('required and critical !' if self.mandatory else 'NOT critical') if not res else ''
 		if not from_ui:
 			print self.msg,
-			if self.run_after is not None and callable(self.run_after):
-				sup = self.run_after()
-			print OK if res else BAD if self.mandatory else WARN, sup, sup2
+			sup = self.run_after() if self.run_after is not None and callable(self.run_after) else ''
+			print(OK if res else BAD if self.mandatory else WARN, sup, sup2)
 
 		if not res:
 			import sys
