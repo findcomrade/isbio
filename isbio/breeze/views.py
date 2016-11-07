@@ -2865,9 +2865,11 @@ def checker(request, what):
 	try:
 		test_obj = check.ui_get_object(what)
 		return status_button_json(check.ui_checker_proxy(test_obj), test_obj.ui_text)
+	except SystemCheckFailed as e:
+		return status_button_json(False, ('', 'ERR : %s' % str(e)))
 	except Exception as e:
 		logger.exception(str(e))
-	return status_button_json(False, ('', 'ERR : %s' % str(e)))
+	return status_button_json(False, ('', 'FAILED : %s' % str(e)))
 
 
 # FIXME del DEPRECATED / STILL IN USE

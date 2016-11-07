@@ -279,6 +279,9 @@ class SysCheckUnit(Process):
 		if callable(self.checker_function):
 			try:
 				res = self.checker_function(self.arg) if self.arg is not None else self.checker_function()
+			except SystemCheckFailed as e:
+				has_raised = True
+				# self.ex = e
 			except Exception as e:
 				has_raised = True
 				self.ex = e
