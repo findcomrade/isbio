@@ -111,7 +111,7 @@ from shiny.models import ShinyReport
 
 # 04/06/2015
 class OrderedUser(User):
-	 # objects = managers.CustomUserManager()
+	# objects = managers.CustomUserManager()
 	
 	class Meta:
 		ordering = ["username"]
@@ -174,7 +174,6 @@ def generic_super_fn_spe(inst, filename):
 
 # clem 13/05/2016
 # TODO change from CustomModel to CustomModelAbstract
-# TODO change the institute field to a ManyToManyField
 class ExecConfig(ConfigObject, CustomModel):
 	"""
 	Defines and describes every shared attributes/methods of exec resource abstract classes.
@@ -196,6 +195,10 @@ class ExecConfig(ConfigObject, CustomModel):
 	CONFIG_EXEC_RUN = 'run'
 	CONFIG_EXEC_ARCH_CMD = 'arch_cmd'
 	CONFIG_EXEC_VERSION_CMD = 'version_cmd'
+	"""
+	container: fimm/r3:latest
+	cont_cmd: /run.sh %%s
+	"""
 
 	@property
 	def folder_name(self):
@@ -298,6 +301,10 @@ class ExecConfig(ConfigObject, CustomModel):
 		"""
 		return self.get(self.CONFIG_EXEC_VERSION_CMD)
 
+	# clem 07/11/2016
+	def get_specifics(self, section_name):
+		return self.config.items(section_name) if self.config.has_section(section_name) else list()
+
 	class Meta(ConfigObject.Meta):
 		abstract = False
 		db_table = 'breeze_execconfig'
@@ -305,7 +312,6 @@ class ExecConfig(ConfigObject, CustomModel):
 
 # clem 13/05/2016
 # TODO change from CustomModel to CustomModelAbstract
-# TODO change the institute field to a ManyToManyField
 class EngineConfig(ConfigObject, CustomModel):
 	""" Defines and describes every shared attributes/methods of exec resource abstract classes. """
 	name = models.CharField(max_length=32, blank=False, help_text="Name of this engine resource")
@@ -318,6 +324,9 @@ class EngineConfig(ConfigObject, CustomModel):
 	config_file = models.FileField(upload_to=generic_super_fn_spe, blank=False, db_column='config',
 		help_text="The config file for this engine resource")
 	enabled = models.BooleanField(default=True, help_text="Un-check to disable target")
+	
+	CONFIG_IF_MODULE = 'interface_module'
+	_compute_module = None
 
 	@property
 	def folder_name(self):
@@ -331,6 +340,30 @@ class EngineConfig(ConfigObject, CustomModel):
 	@property
 	def engine_config(self):
 		return self.config.items(self.CONFIG_GENERAL_SECTION)
+	
+	# clem 07/11/2016
+	@property
+	def compute_interface_module_name(self):
+		return self.config.get(option=self.CONFIG_IF_MODULE)
+	
+	# clem 07/11/2016 copied from ComputeTarget
+	@property
+	def compute_module(self):
+		""" The python module containing an implementation of the compute interface for this engine
+
+		this module must include an implementation of compute_interface_module.ComputeInterface,
+		and an initiator(ComputeTarget) function
+
+		:rtype: module
+		"""
+		if not self._compute_module:
+			try:
+				mod_name = 'breeze.%s_interface' % self.compute_interface_module_name
+				self._compute_module = importlib.import_module(mod_name)
+			except ImportError as e:
+				self.log.error(str(e))
+				raise e
+		return self._compute_module
 
 	class Meta(ConfigObject.Meta):
 		abstract = False
@@ -339,7 +372,6 @@ class EngineConfig(ConfigObject, CustomModel):
 
 # 19/04/2016
 # TODO change from CustomModel to CustomModelAbstract
-# TODO change the institute field to a ManyToManyField
 class ComputeTarget(ConfigObject, CustomModel):
 	""" Defines and describes every shared attributes/methods of computing resource abstract classes.
 	"""
@@ -354,7 +386,7 @@ class ComputeTarget(ConfigObject, CustomModel):
 	_enabled = models.BooleanField(default=True, help_text="Un-check to disable target", db_column ='enabled')
 
 	_storage_module = None
-	_compute_module = None
+	# _compute_module = None
 	__compute_interface = None
 	__exec = None
 	__engine = None
@@ -564,7 +596,7 @@ class ComputeTarget(ConfigObject, CustomModel):
 		return self._storage_module
 
 	#
-	# COMPUTE (based on engine name)
+	# COMPUTE (based on interface_module property in engine config)
 	#
 
 	# clem 04/05/2016
@@ -577,14 +609,7 @@ class ComputeTarget(ConfigObject, CustomModel):
 
 		:rtype: module
 		"""
-		if not self._compute_module:
-			try:
-				mod_name = 'breeze.%s_interface' % self.target_engine_name
-				self._compute_module = importlib.import_module(mod_name)
-			except ImportError as e:
-				self.log.error(str(e))
-				raise e
-		return self._compute_module
+		return self.engine_obj.compute_module
 
 	# clem 04/05/2016
 	@property
