@@ -2867,7 +2867,7 @@ def checker(request, what):
 		return status_button_json(check.ui_checker_proxy(test_obj), test_obj.ui_text)
 	except SystemCheckFailed:
 		txt = test_obj.ex.__name__ if 'test_obj' in locals() and hasattr(test_obj, 'ex') else ObjectNotFound.__name__
-		return status_button_json(False, ('', 'ERR : %s' % txt))
+		return status_button_json(False, ('', txt))
 	except Exception as e:
 		logger.exception(str(e))
 	return status_button_json(False, ('', 'FAILED : %s' % str(e)))
