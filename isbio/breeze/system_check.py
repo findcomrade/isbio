@@ -264,7 +264,10 @@ class SysCheckUnit(Process):
 				self.terminate()
 			except AttributeError:
 				pass
-			return self.exitcode == 0
+			if self.exitcode != self.EXIT_CHECK_RAISED:
+				return self.exitcode == 0
+			else:
+				raise self.ex
 
 	# clem 08/09/2015
 	def split_runner(self, from_ui=False):
