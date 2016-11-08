@@ -12,6 +12,7 @@ from utils import *
 from os.path import isfile # , isdir, islink, exists, getsize
 from django.conf import settings
 from django.db import models
+import os
 # import sys
 # from pandas.tslib import re_compile
 # from os import symlink
@@ -1368,11 +1369,12 @@ class Rscripts(FolderObj, models.Model):
 		# final step - fire header
 		headers = open(self._header_path).read()
 
-		d = { 'tag_name': self.name,
-				'body': body,
-				'gen_params': gen_params,
-				'headers': headers,
-			}
+		d = {
+			'tag_name'  : self.name,
+			'body'      : body,
+			'gen_params': gen_params,
+			'headers'   : headers,
+		}
 		# do the substitution
 		return src.substitute(d)
 
@@ -1461,15 +1463,16 @@ class Runnable(FolderObj, models.Model):
 	# CONSTANTS
 	##
 	ALLOW_DOWNLOAD = True
-	BASE_FOLDER_NAME = '' # folder name
-	BASE_FOLDER_PATH = '' # absolute path to the container folder
-	FAILED_FN = settings.FAILED_FN 				# '.failed'
-	SUCCESS_FN = settings.SUCCESS_FN			# '.done'
-	SUB_DONE_FN = settings.R_DONE_FN			# '.sub_done'
-	SH_NAME = settings.GENERAL_SH_NAME			# 'run_job.sh'
-	FILE_MAKER_FN = settings.REPORTS_FM_FN		# 'transfer_to_fm.txt'
-	R_HOME = settings.R_HOME					# %project_folder%/R/lib64/R
-	INC_RUN_FN = settings.INCOMPLETE_RUN_FN		# '.INCOMPLETE_RUN'
+	BASE_FOLDER_NAME = ''							# folder name
+	BASE_FOLDER_PATH = ''							# absolute path to the container folder
+	FAILED_FN = settings.FAILED_FN					# '.failed'
+	SUCCESS_FN = settings.SUCCESS_FN				# '.done'
+	SUB_DONE_FN = settings.R_DONE_FN				# '.sub_done'
+	SH_NAME = settings.GENERAL_SH_NAME				# 'run_job.sh'
+	SH_CONF_NAME = settings.GENERAL_SH_CONF_NAME	# 'run_job_conf.sh'
+	FILE_MAKER_FN = settings.REPORTS_FM_FN			# 'transfer_to_fm.txt'
+	INC_RUN_FN = settings.INCOMPLETE_RUN_FN			# '.INCOMPLETE_RUN'
+	LOG_FOLDER = settings.SH_LOG_FOLDER
 	# output file name (without extension) for nozzle report. MIGHT not be enforced everywhere
 	REPORT_FILE_NAME = settings.NOZZLE_REPORT_FN	# 'report'
 	RQ_FIELDS = ['_name', '_author', '_type']
@@ -1482,10 +1485,10 @@ class Runnable(FolderObj, models.Model):
 	RQ_SPECIFICS = ['request_data', 'sections']
 	FAILED_TEXT = 'Execution halted'
 
-	HIDDEN_FILES = [R_FILE_NAME, R_OUT_FILE_NAME, SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ?
+	HIDDEN_FILES = [SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ? #
 	SYSTEM_FILES = HIDDEN_FILES + [INC_RUN_FN, FAILED_FN]
 
-	objects = managers.WorkersManager() # The default manager.
+	objects = managers.WorkersManager() # Custom manage
 
 	def __init__(self, *args, **kwargs):
 		super(Runnable, self).__init__(*args, **kwargs)
@@ -1515,11 +1518,8 @@ class Runnable(FolderObj, models.Model):
 			self._set_status(value)
 		elif attr_name == 'status':
 			raise ReadOnlyAttribute # prevent direct writing
-		else:
+		else: # FIXME get rid of that
 			attr_name = Trans.swap(attr_name) # backward compatibility
-
-		# if attr_name == 'sgeid':
-		# 	print self.short_id, 'set sgeid to', str(value)
 
 		super(Runnable, self).__setattr__(attr_name, value)
 
@@ -1534,7 +1534,7 @@ class Runnable(FolderObj, models.Model):
 		from django.core.urlresolvers import reverse
 		from breeze.views import job_url_hook
 		md5 = get_file_md5(self._rexec.path)
-		return 'http://%s%s' % (settings.FULL_HOST_NAME, reverse(job_url_hook, args=(self.id, md5)))
+		return 'http://%s%s' % (settings.FULL_HOST_NAME, reverse(job_url_hook, args=(self.instance_type[0], self.id, md5)))
 
 	# SPECIFICS
 	# clem 17/09/2015
@@ -1611,13 +1611,16 @@ class Runnable(FolderObj, models.Model):
 	def html_path(self):
 		return '%s%s' % (self.home_folder_full_path, self.REPORT_FILE_NAME)
 
-	@property # UNUSED ?
+	@property # UNUSED ?  # FIXME obsolete
 	def _r_out_path(self):
-		return self._rout_file
+		return self.exec_out_file_path
 
-	@property # used by write_sh_file() # useless #Future ?
-	def _r_exec_path(self):
-		return self._rexec
+	@property
+	def source_file_path(self):
+		if not str(self._rexec).startswith(self.home_folder_full_path): # Quick fix for old style project path
+			self._rexec = '%s%s' % (self.home_folder_full_path, os.path.basename(str(self._rexec)))
+			self.save()
+		return self._rexec.path
 
 	@property # UNUSED ?
 	def _html_full_path(self):
@@ -1627,27 +1630,27 @@ class Runnable(FolderObj, models.Model):
 	def _test_file(self):
 		"""
 		full path of the job competition verification file
-		used to store the retval value, that has timings and perf related datas
+		used to store the retval value, that has timings and perf related data
+
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.SUCCESS_FN)
 
-	@property
-	def _rout_file(self):
+	@property  # FIXME obsolete
+	def exec_out_file_path(self):
 		# return '%s%s' % (self.home_folder_full_path, self.R_OUT_FILE_NAME)
 		return '%s%s' % (self._rexec, self.R_OUT_EXT)
 
 	@property
-	def _failed_file(self):
-		"""
-		full path of the job failure verification file
-		used to store the retval value, that has timings and perf related datas
+	def failed_file_path(self):
+		""" full path of the job failure verification file used to store the retval value, that has timings and perf related data
+
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.FAILED_FN)
 
 	@property
-	def _incomplete_file(self):
+	def incomplete_file_path(self):
 		"""
 		full path of the job incomplete run verification file
 		exist only if job was interrupted, or aborted
@@ -1655,10 +1658,11 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.INC_RUN_FN)
 
-	@property
+	@property  # FIXME obsolete
 	def _sge_log_file(self):
 		"""
-		Return the name of the autogenerated debug/warning file from SGE
+		Return the name of the auto-generated debug/warning file from SGE
+
 		:rtype: str
 		"""
 		return '%s_%s.o%s' % (self._name.lower(), self.instance_of.__name__, self.sgeid)
@@ -1678,13 +1682,23 @@ class Runnable(FolderObj, models.Model):
 		return res
 
 	@property
-	def _sh_file_path(self):
+	def sh_file_path(self):
 		"""
 		the full path of the sh file used to run the job on the cluster.
 		This is the file that SGE has to instruct the cluster to run.
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.SH_NAME)
+	
+	# clem 06/10/2016
+	@property
+	def sh_conf_file_path(self):
+		"""
+		the full path of the sh conf file used to run the job on the cluster.
+		This is the file that SGE has to instruct the cluster to run.
+		:rtype: str
+		"""
+		return '%s%s' % (self.home_folder_full_path, self.SH_CONF_NAME)
 
 	# clem 11/09/2015
 	@property
@@ -1696,17 +1710,18 @@ class Runnable(FolderObj, models.Model):
 		return self.SYSTEM_FILES + [self._sge_log_file] + self._shiny_files
 
 	# clem 16/09/2015
-	@property
+	@property # FIXME obsolete
 	def r_error(self):
 		""" Returns the last line of script.R which may contain an error message
+
 		:rtype: str
 		"""
 		out = ''
 		if self.is_r_failure:
-			lines = open(self._rout_file).readlines()
+			lines = open(self.exec_out_file_path).readlines()
 			i = len(lines)
 			size = i
-			for i in range(len(lines)-1, 0, -1):
+			for i in range(len(lines) - 1, 0, -1):
 				if lines[i].startswith('>'):
 					break
 			if i != size:
@@ -1722,6 +1737,7 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self.HIDDEN_FILES + [self._sge_log_file, '*~', '*.o%s' % self.sgeid] + self._shiny_files
 
+	# FIXME obsolete
 	def _download_ignore(self, cat=None):
 		"""
 		:type cat: str
@@ -1741,7 +1757,7 @@ class Runnable(FolderObj, models.Model):
 			exclude_list = self.hidden_files # + ['*.xml', '*.r*', '*.sh*']
 		return exclude_list, filer_list, name
 
-	@property
+	@property  # FIXME obsolete
 	def sge_job_name(self):
 		"""The job name to submit to SGE
 		:rtype: str
@@ -1749,7 +1765,7 @@ class Runnable(FolderObj, models.Model):
 		name = self._name if not self._name[0].isdigit() else '_%s' % self._name
 		return '%s_%s' % (slugify(name), self.instance_type.capitalize())
 
-	@property
+	@property  # FIXME obsolete
 	def is_done(self):
 		"""
 		Tells if the job run is not running anymore, using it's breeze_stat or
@@ -1764,7 +1780,7 @@ class Runnable(FolderObj, models.Model):
 		# return isfile(self._test_file)
 		return self._breeze_stat == JobStat.DONE or isfile(self._test_file)
 
-	@property
+	@property  # FIXME obsolete
 	def is_sge_successful(self):
 		"""
 		Tells if the job was properly run or not, using it's breeze_stat or
@@ -1775,7 +1791,7 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self._status != JobStat.FAILED and self.is_done
 
-	@property
+	@property  # FIXME obsolete
 	def is_successful(self):
 		"""
 		Tells if the job was successfully done or not, using it's breeze_stat or
@@ -1786,21 +1802,21 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self._status == JobStat.SUCCEED and self.is_r_successful
 
-	@property
+	@property  # FIXME obsolete
 	def is_r_successful(self):
 		"""Tells if the job R job completed successfully
 		:rtype: bool
 		"""
-		return self.is_done and not isfile(self._failed_file) and not isfile(self._incomplete_file) and \
-			isfile(self._rout_file)
+		return self.is_done and not isfile(self.failed_file_path) and not isfile(self.incomplete_file_path) and \
+			   isfile(self.exec_out_file_path)
 
-	@property
+	@property # FIXME obsolete
 	def is_r_failure(self):
 		"""Tells if the job R job has failed (not equal to the oposite of is_r_successful)
 		:rtype: bool
 		"""
-		return self.is_done and isfile(self._failed_file) and not isfile(self._incomplete_file) and \
-			isfile(self._rout_file)
+		return self.is_done and isfile(self.failed_file_path) and not isfile(self.incomplete_file_path) and \
+			   isfile(self.exec_out_file_path)
 
 	@property
 	def aborting(self):
@@ -1826,31 +1842,50 @@ class Runnable(FolderObj, models.Model):
 		return False
 
 	def write_sh_file(self):
-		"""
-		Generate the SH file that will be executed on the compute target to configure and run the job
-		"""
-		import os
+		""" Generate the SH file that will be executed on the compute target to configure and run the job """
+		from os import chmod
 
-		conf_dict = {
-			'failed_fn'		: self.FAILED_FN,
-			'inc_run_fn'	: self.INC_RUN_FN,
-			'success_fn'	: self.SUCCESS_FN,
-			'done_fn'		: self.SUB_DONE_FN,
-			'file_name'		: self.R_FILE_NAME,
-			'out_file_name'	: self.R_OUT_FILE_NAME,
-			'full_path'		: self.R_FULL_PATH,
-			'cmd'			: self.R_CMD,
-			'failed_txt'	: self.FAILED_TEXT,
-			'user'			: self._author,
-			'date'			: datetime.now(),
-			'poke_url'		: self.poke_url,
+		base_var_dict = { # header variables common to both files
+			'user'         : self._author,
+			'date'         : datetime.now(),
+			'tz'           : time.tzname[time.daylight],
+			'url'          : 'http://%s' % settings.FULL_HOST_NAME,
+			'target'       : 'hardcoded_sge@%s' % settings.SGE_QUEUE_NAME,
 		}
 
-		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, conf_dict, self._sh_file_path)
+		conf_file_dict = {
+			'log_folder'   : self.LOG_FOLDER,
+			'failed_fn'    : self.FAILED_FN,
+			'inc_run_fn'   : self.INC_RUN_FN,
+			'success_fn'   : self.SUCCESS_FN,
+			'done_fn'      : self.SUB_DONE_FN,
+			'in_file_name' : self.R_FILE_NAME,
+			'out_file_name': self.R_OUT_FILE_NAME,
+			'full_path'    : self.R_FULL_PATH,
+			'args'         : '',
+			'cmd'          : self.R_CMD,
+			'failed_txt'   : self.FAILED_TEXT,
+			'poke_url'     : self.poke_url,
+			'arch_cmd'     : "$(%s --slave -e 'cat(R.Version()$platform)')" % self.R_FULL_PATH,
+			'version_cmd'  : "$(%s --slave -e 'cat(c(R.Version()$version.string, %s" %
+				(self.R_FULL_PATH, "\"(\", R.Version()$nickname, \")\"))')"),
+			'engine'       : 'hardcoded_r2',
+		}
+		conf_file_dict.update(base_var_dict)
+		
+		run_file_dict = {
+			'conf_file'    : self.SH_CONF_NAME
+		}
+		run_file_dict.update(base_var_dict)
+
+		# conf file
+		gen_file_from_template(settings.BOOTSTRAP_SH_CONF_TEMPLATE, conf_file_dict, self.sh_conf_file_path) # FIXME
+		# run file
+		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, run_file_dict, self.sh_file_path) # FIXME
 
 		# config should be readable and executable but not writable, same for script.R
-		os.chmod(self._sh_file_path, ACL.RX_RX_)
-		os.chmod(self._r_exec_path.path, ACL.R_R_)
+		chmod(self.sh_file_path, ACL.RX_RX_)
+		chmod(self.source_file_path, ACL.R_R_)
 
 	# INTERFACE for extending assembling process
 	# TODO @abc.abstractmethod ?
@@ -1891,9 +1926,6 @@ class Runnable(FolderObj, models.Model):
 			os.makedirs(self.home_folder_full_path, ACL.RWX_RWX_)
 
 		# BUILD instance specific R-File
-		# self.generate_r_file(kwargs['sections'], kwargs['request_data'], custom_form=kwargs['custom_form'])
-		# self.generate_r_file(sections=kwargs['sections'], request_data=kwargs['request_data'],
-		# 	custom_form=kwargs['custom_form'])
 		self.generate_r_file(*args, **kwargs)
 		# other stuff that might be needed by specific kind of instances (Report and Jobs)
 		self.deferred_instance_specific(*args, **kwargs)
@@ -1925,7 +1957,7 @@ class Runnable(FolderObj, models.Model):
 		if settings.HOST_NAME.startswith('breeze'):
 			import drmaa
 
-		config = self._sh_file_path
+		config = self.sh_file_path
 		log = get_logger('run_%s' % self.instance_type )
 		default_dir = os.getcwd() # Jobs specific ? or Report specific ?
 
@@ -2122,7 +2154,7 @@ class Runnable(FolderObj, models.Model):
 
 		:type ret_val: drmaa.JobInfo
 		"""
-		self.__auto_json_dump(ret_val, self._failed_file)
+		self.__auto_json_dump(ret_val, self.failed_file_path)
 		log = get_logger()
 
 		if drmaa_waiting is not None:
@@ -2251,9 +2283,9 @@ class Runnable(FolderObj, models.Model):
 			self._doc_ml.name = self.home_folder_full_path + os.path.basename(str(self._doc_ml.name))
 
 			utils.remove_file_safe(self._test_file)
-			utils.remove_file_safe(self._failed_file)
-			utils.remove_file_safe(self._incomplete_file)
-			utils.remove_file_safe(self._sh_file_path)
+			utils.remove_file_safe(self.failed_file_path)
+			utils.remove_file_safe(self.incomplete_file_path)
+			utils.remove_file_safe(self.sh_file_path)
 			self.save()
 			self.write_sh_file()
 			# self.submit_to_cluster()
@@ -2333,10 +2365,26 @@ class Runnable(FolderObj, models.Model):
 	@property
 	def short_id(self):
 		return self.instance_type[0], self.id
+	
+	@property
+	def short_id_text(self):
+		return "%s%s" % self.short_id
 
 	@property
 	def text_id(self):
 		return u'%s%s %s' % (self.short_id + (unicode(self.name),))
+		
+	# clem 11/05/2016
+	@property
+	def log(self):
+		return self.log_custom(1)
+	
+	# clem 11/05/2016
+	def log_custom(self, level=0):
+		from logging import LoggerAdapter
+		log_obj = LoggerAdapter(get_logger(level=level + 1), dict())
+		log_obj.process = lambda msg, kwargs: ('%s : %s' % (self.short_id_text, msg), kwargs)
+		return log_obj
 
 	def __unicode__(self): # Python 3: def __str__(self):
 		return u'%s' % self.text_id
@@ -2421,7 +2469,9 @@ class Jobs(Runnable):
 
 		# params = rshell.gen_params_string_job_temp(sections, request_data.POST, self, request_data.FILES) # TODO funct
 		params = self.gen_params_string_job_temp(*args, **kwargs)
+		# code = "options(java.parameters = \"-Xmx2048m\")\n"
 		code = "setwd('%s')\n%s\n" % (self.home_folder_full_path[:-1], self._type.get_R_code(params))
+		# code += "setwd('%s')\n%s\n" % (self.home_folder_full_path[:-1], self._type.get_R_code(params))
 		code += 'system("touch %s")' % self.SUB_DONE_FN
 
 		# save r-file

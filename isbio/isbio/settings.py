@@ -120,7 +120,6 @@ class BreezeSettings(Settings):
 
 	ADMINS = (
 		('Clement FIERE', 'clement.fiere@helsinki.fi'),
-		# ('Dmitrii Bychkov', 'piter.dmitry@gmail.com'),
 	)
 
 	MANAGERS = ADMINS
@@ -190,7 +189,7 @@ class BreezeSettings(Settings):
 
 	# Additional locations of static files
 	STATICFILES_DIRS = (
-		#"/home/comrade/Projects/fimm/isbio/breeze/",
+		# "/home/comrade/Projects/fimm/isbio/breeze/",
 		# Put strings here, like "/home/html/static" or "C:/www/django/static".
 		# Always use forward slashes, even on Windows.
 		# Don't forget to use absolute paths, not relative paths.
@@ -207,11 +206,10 @@ class BreezeSettings(Settings):
 	# Make this unique, and don't share it with anybody.
 	SECRET_KEY = str(getkey())
 
-	# List of callables that know how to import templates from various sources.
+	# List of callable that know how to import templates from various sources.
 	TEMPLATE_LOADERS = (
 		'django.template.loaders.filesystem.Loader',
 		'django.template.loaders.app_directories.Loader',
-		#     'django.template.loaders.eggs.Loader',
 	)
 
 	MIDDLEWARE_CLASSES = (
@@ -228,9 +226,6 @@ class BreezeSettings(Settings):
 		'breeze.middlewares.DataDog' if ENABLE_DATADOG else 'breeze.middlewares.Empty',
 		'breeze.middlewares.RemoteFW' if ENABLE_REMOTE_FW else 'breeze.middlewares.Empty',
 		'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-		# 'breeze.middleware.Log',
-		# Uncomment the next line for simple clickjacking protection:
-		# 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	)
 	# from django_cas.backends import CASBackend
 	AUTHENTICATION_BACKENDS = (
@@ -355,7 +350,7 @@ class DevSettings(BreezeSettings):
 	APPEND_SLASH = True
 
 	ADMINS = (
-	('Clement FIERE', 'clement.fiere@helsinki.fi'),  # ('Dmitrii Bychkov', 'piter.dmitry@gmail.com'),
+		('Clement FIERE', 'clement.fiere@helsinki.fi'),
 	)
 
 	MANAGERS = ADMINS
@@ -368,23 +363,6 @@ class DevSettings(BreezeSettings):
 	pipe = sp.Popen(['/bin/bash', '-c', '%s && %s' % (source, dump)], stdout=sp.PIPE)
 	env = json.loads(pipe.stdout.read())
 	os.environ = env
-
-	# sge_arch = "lx26-amd64"
-	# os.environ['SGE_ROOT'] = '/opt/gridengine'
-	# os.environ['QSTAT_BIN'] = os.environ['SGE_ROOT']+'/bin/'+sge_arch+'/qstat'
-	# Q_BIN = '/usr/bin/'
-	Q_BIN = os.environ.get('Q_BIN', '')
-	QSTAT_BIN = '%sqstat' % Q_BIN
-	QDEL_BIN = '%sqdel' % Q_BIN
-	SGE_QUEUE_NAME = os.environ.get('SGE_QUEUE', '')
-	# os.environ['QSTAT_BIN'] = QSTAT_BIN
-	# os.environ['SGE_ARCH'] = 'UNSUPPORTED-lx3.2.0-40-generic-amd64'
-	# os.environ['LD_LIBRARY_PATH'] = os.environ['SGE_ROOT'] + '/lib/' + os.environ['SGE_ARCH']
-	# os.environ['SGE_QMASTER_PORT'] = '6444'
-	# os.environ['SGE_EXECD_PORT'] = '6445'
-	# os.environ['SGE_CELL'] = 'default'
-	# os.environ['DRMAA_LIBRARY_PATH'] = os.environ['SGE_ROOT']+'/lib/'+sge_arch+'/libdrmaa.so'
-	# os.environ['DRMAA_LIBRARY_PATH'] = os.environ['SGE_ROOT'] + '/lib/' + sge_arch + '/libdrmaa.so.1.0'
 	os.environ['MAIL'] = '/var/mail/dbychkov'
 
 	DATABASES = {
@@ -396,9 +374,8 @@ class DevSettings(BreezeSettings):
 			'HOST': '/var/run/mysqld/mysqld.sock',  # Set to empty string for localhost. Not used with sqlite3.
 			'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
 			'OPTIONS': {
-
 				"init_command": "SET default_storage_engine=INNODB; SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", }
-				# "init_command": "SET transaction isolation level READ COMMITTED", }
+			# "init_command": "SET transaction isolation level READ COMMITTED", }
 		}
 	}
 
@@ -411,8 +388,15 @@ class DevSettings(BreezeSettings):
 	DEV_MODE = RUN_MODE == 'dev'
 	MODE_PROD = RUN_MODE == 'prod'
 	PHARMA_MODE = False
+	
+	# monitoring only
+	LEGACY_MONITORING_SGE_QUEUE_NAME = 'breeze.q' if DEV_MODE else 'all.q'
+	Q_BIN = os.environ.get('Q_BIN', '')
+	QSTAT_BIN = '%sqstat' % Q_BIN
+	QDEL_BIN = '%sqdel' % Q_BIN
+	SGE_QUEUE_NAME = os.environ.get('SGE_QUEUE', LEGACY_MONITORING_SGE_QUEUE_NAME)
 
-	# Super User on breeze can Access all datas
+	# Super User on breeze can Access all data
 	SU_ACCESS_OVERRIDE = True
 
 	# contains everything else (including breeze generated content) than the breeze web source code and static files
@@ -458,18 +442,21 @@ class DevSettings(BreezeSettings):
 	UPLOAD_FOLDER = MEDIA_ROOT + 'upload_temp/'
 	DATASETS_FOLDER = MEDIA_ROOT + 'datasets/'
 	STATIC_ROOT = SOURCE_ROOT + 'static/'
-	# STATIC_ROOT = SOURCE_ROOT + 'static/'
 	TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/'
 	MOULD_FOLDER = MEDIA_ROOT + DATA_TEMPLATES_FN
 	NO_TAG_XML = TEMPLATE_FOLDER + 'notag.xml'
-	# GENERAL_SH_NAME = 'sgeconfig.sh'
-	GENERAL_SH_NAME = 'run_job.sh'
+	
+	SH_LOG_FOLDER = '.log'
+	GENERAL_SH_BASE_NAME = 'run_job'
+	GENERAL_SH_NAME = '%s.sh' % GENERAL_SH_BASE_NAME
+	GENERAL_SH_CONF_NAME = '%s_conf.sh' % GENERAL_SH_BASE_NAME
+	DOCKER_SH_NAME = 'run.sh'
+	SGE_REQUEST_FN = '.sge_request'
 	INCOMPLETE_RUN_FN = '.INCOMPLETE_RUN'
 	FAILED_FN = '.failed'
 	SUCCESS_FN = '.done'
 	R_DONE_FN = '.sub_done'
-	# SGE_QUEUE_NAME = 'breeze.q'
-	# SGE_QUEUE_NAME = 'breeze.q' # monitoring only
+	
 
 
 
@@ -477,6 +464,9 @@ class DevSettings(BreezeSettings):
 	# Report config
 	##
 	BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_NAME
+	BOOTSTRAP_SH_CONF_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_CONF_NAME
+	DOCKER_BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + DOCKER_SH_NAME
+	SGE_REQUEST_TEMPLATE = TEMPLATE_FOLDER + SGE_REQUEST_FN
 
 	NOZZLE_TEMPLATE_FOLDER = TEMPLATE_FOLDER + 'nozzle_templates/'
 	TAGS_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'tag.R'
@@ -729,7 +719,6 @@ class DevSettings(BreezeSettings):
 
 	else:
 		VERBOSE = False
-
 
 	try:
 		import rollbar
