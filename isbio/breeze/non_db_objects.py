@@ -941,7 +941,7 @@ class RunServer(object):
 		if type(self._add_source) is list and self._add_source != list():
 			added = ''
 			for each in self._add_source:
-				if isfile(each) and not islink(each):
+				if isfile(each[1]) and not islink(each[1]):
 					added += 'source("%s") # %s\n' % each
 			the_file_p.add_on_top('##### following sources ADDED BY BREEZE :\n%s' % added +
 				'##### END OF BREEZE ADDITIONS ###')
