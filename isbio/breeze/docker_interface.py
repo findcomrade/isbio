@@ -8,10 +8,10 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.7.1'
+__version__ = '0.8'
 __author__ = 'clem'
 __date__ = '15/03/2016'
-KEEP_TEMP_FILE = False # i.e. debug
+KEEP_TEMP_FILE = True # i.e. debug
 
 
 # clem 21/10/2016
@@ -641,7 +641,8 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 			return out
 
 		return custom_copytree(self.runnable_path, self.assembly_folder_path + self.relative_runnable_path,
-			ignore=remote_ignore)
+			ignore=remote_ignore) and custom_copytree(settings.SPECIAL_CODE_FOLDER,
+			self.assembly_folder_path + settings.SPECIAL_CODE_FOLDER)
 
 	# clem 23/05/2016
 	def _gen_kick_start_file(self):
@@ -671,7 +672,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		:return: is success
 		:rtype: bool
 		"""
-		return self.run_server.parse_all()
+		return self.run_server.parse_all(settings.SPECIAL_CODE_FOLDER)
 
 	# clem 24/05/2016
 	@property

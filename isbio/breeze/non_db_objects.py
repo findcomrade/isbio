@@ -834,9 +834,10 @@ class RunServer(object):
 	added = [
 		('%scfiere/csc_taito_dyn_lib_load_and_install.R' % norm_proj_p(settings.SPECIAL_CODE_FOLDER),
 		'dynamic library loading and installer by clem 19-20/10/2015'),
+		('%sRORALib' % norm_proj_p(settings.PROJECT_PATH), 'symlink to the Breeze-DB lib'),
 	]
 
-	def __init__(self, run_instance):
+	def __init__(self, run_instance, exclude_path=None):
 		from models import Runnable
 		assert isinstance(run_instance, Runnable)
 		self._run_inst = run_instance # instance or Runnable using this RunServer instance
@@ -857,7 +858,20 @@ class RunServer(object):
 		self.count['abs'] = 0
 		self._parsed = dict()
 		self._rev = dict()
+		self._exclude_path = exclude_path
 
+	# 18/11/2016
+	def _not_excluded(self, a_path):
+		if self._exclude_path:
+			print "not_ex %s of %s" % (a_path, self._exclude_path)
+			if type(self._exclude_path) is basestring:
+				return not a_path.startswith(self._exclude_path)
+			elif type(self._exclude_path) is list:
+				for each in self._exclude_path:
+					if a_path.startswith(each):
+						return False
+		return True
+	
 	# 23/05/2016
 	def generate_source_tree(self):
 		return self._generate_source_tree(self._run_inst.source_file_path)
@@ -906,14 +920,15 @@ class RunServer(object):
 		self._run_inst.log.debug('assembling completed : lib/load/abs : %s / %s / %s' % (
 			self.count['lib'], self.count['load'], self.count['abs']))
 
-	def parse_all(self):
+	def parse_all(self, exclude_path=None):
 		import os
+		self._exclude_path = exclude_path
 		d = date_t()
 		# source
 		the_path = str(self._run_inst.source_file_path)
 		# destination
 		new_path = '%s%s%s%s' % \
-				   (self.storage_path, self._reports_path, self._run_inst.home_folder_rel, os.path.basename(the_path))
+			(self.storage_path, self._reports_path, self._run_inst.home_folder_rel, os.path.basename(the_path))
 		# parser
 		the_file_p = FileParser(the_path, new_path)
 		# add some source that may help with specific env / Renv / cluster / etc
@@ -922,7 +937,7 @@ class RunServer(object):
 			for each in self._add_source:
 				added += 'source("%s") # %s\n' % each
 			the_file_p.add_on_top('##### following sources ADDED BY BREEZE :\n%s' % added +
-								  '##### END OF BREEZE ADDITIONS ###')
+				'##### END OF BREEZE ADDITIONS ###')
 		the_file_p.add_on_top('## Transferred to %s started by BREEZE on %s' % (self.target_name, d))
 		# parse the file to change path, library loading, and link files related to source()
 		the_file_p.parse(self.LOAD_PATTERN,
@@ -954,18 +969,19 @@ class RunServer(object):
 			# deals with the found sub-file (it's a load so it should be a R file)
 			line = SrcObj(el[0])
 			new_path = '%s%s' % (self.storage_path, line.path)
-			sub_file_p = FileParser(line.path, new_path)
-
-			self.count['load'] += 1
-			# local sourcing
-			file_obj.replace(line, line.new)
-
-			# Lower level recursion (will parse this sourced file for loads, library, and paths)
-			if not self.already_parsed(sub_file_p):
-				sub_file_p.parse(pattern, self._parser_main_recur_call_back)
-
-			imp_text += '## Imported and parsed sourced file %s to %s (local path on %s) \n' % \
-						(line.base_name, line.new.dir_name, self.target_name)
+			if self._not_excluded(line.path):
+				sub_file_p = FileParser(line.path, new_path)
+	
+				self.count['load'] += 1
+				# local sourcing
+				file_obj.replace(line, line.new)
+	
+				# Lower level recursion (will parse this sourced file for loads, library, and paths)
+				if not self.already_parsed(sub_file_p):
+					sub_file_p.parse(pattern, self._parser_main_recur_call_back)
+	
+				imp_text += '## Imported and parsed sourced file %s to %s (local path on %s) \n' % \
+					(line.base_name, line.new.dir_name, self.target_name)
 
 		# FOR every file_obj, even those with no match of self.LOAD_PATTERN
 		# DO NOT MOVE THIS SECTION in parse_all (recursive lower-lever call-backs) !
@@ -979,7 +995,7 @@ class RunServer(object):
 		dep = ''
 		if len(match) > 0:
 			dep = '## %s sourced dependencies found, parsed and imported (plus %s library, %s total load) :\n%s' % \
-				  (len(match), self.count['lib'], self.count['load'], imp_text)
+				(len(match), self.count['lib'], self.count['load'], imp_text)
 		file_obj.add_on_top(
 			'##### BREEZE SUMMARY of file parsing to run on %s :\n' % self.target_name +
 			u'## Parsed on %s (org. modified on %s) for %s (%s) \n' %
@@ -1009,15 +1025,16 @@ class RunServer(object):
 		for el in match:
 			self.count['abs'] += 1
 			line = SrcObj(el[0])
-			# change the path to a relative one for the target server
-			file_obj.replace(line, line.new)
-			print 'replacing #%s# with #%s#' % (line, line.new)
-			# remote location on a local mount
-			new_path = '%s%s' % (self.storage_path, line.path)
-			new_file = FileParser(line.path, new_path)
-			ext = new_file.ext.lower()
-			if new_file.load() and ext and ext != 'r': # existing file
-				new_file.save_file() # copy to remote location
+			if self._not_excluded(line.path):
+				# change the path to a relative one for the target server
+				file_obj.replace(line, line.new)
+				print 'replacing #%s# with #%s#' % (line, line.new)
+				# remote location on a local mount
+				new_path = '%s%s' % (self.storage_path, line.path)
+				new_file = FileParser(line.path, new_path)
+				ext = new_file.ext.lower()
+				if new_file.load() and ext and ext != 'r': # existing file
+					new_file.save_file() # copy to remote location
 
 	def __enter__(self):
 		return self
