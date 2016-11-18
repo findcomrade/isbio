@@ -862,8 +862,14 @@ class RunServer(object):
 
 	# 18/11/2016
 	def _not_excluded(self, a_path):
+		val = self._is_not_excluded(a_path)
+		if not val:
+			print "Skipping %s as it is in %s" % (a_path, self._exclude_path)
+		return val
+	
+	# 18/11/2016
+	def _is_not_excluded(self, a_path):
 		if self._exclude_path:
-			print "not_ex %s of %s" % (a_path, self._exclude_path)
 			if type(self._exclude_path) is basestring:
 				return not a_path.startswith(self._exclude_path)
 			elif type(self._exclude_path) is list:
@@ -935,7 +941,8 @@ class RunServer(object):
 		if type(self._add_source) is list and self._add_source != list():
 			added = ''
 			for each in self._add_source:
-				added += 'source("%s") # %s\n' % each
+				if isfile(each) and not islink(each):
+					added += 'source("%s") # %s\n' % each
 			the_file_p.add_on_top('##### following sources ADDED BY BREEZE :\n%s' % added +
 				'##### END OF BREEZE ADDITIONS ###')
 		the_file_p.add_on_top('## Transferred to %s started by BREEZE on %s' % (self.target_name, d))
