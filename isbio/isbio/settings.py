@@ -284,7 +284,8 @@ LOGGING = {
 }
 
 AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
-ALLOWED_HOSTS = ['web-breeze.fimm.fi', 'breeze.fimm.fi'] + AUTH0_IP_LIST
+PROD_DOMAINS = ['breeze.fimm.fi', '52.164.211.188']
+DEV_DOMAINS = ['breeze-dev.cloudapp.net', '40.113.91.111']
 
 DEBUG = True
 VERBOSE = False
@@ -320,6 +321,11 @@ RUN_MODE = 'dev' if MODE_FILE_CONTENT == 'dev' else 'prod'
 DEV_MODE = RUN_MODE == 'dev'
 MODE_PROD = RUN_MODE == 'prod'
 PHARMA_MODE = False
+
+if MODE_PROD:
+	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
+else:
+	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
