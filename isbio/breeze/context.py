@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import SimpleLazyObject
+from django.conf import settings
 
 
 def site(request):
@@ -28,3 +29,7 @@ def user_context(request):
 def date_context(_):
     import datetime
     return { 'now': datetime.datetime.now() }
+
+
+def run_mode_name(_):
+    return 'dev' if settings.DEV_MODE else ''
