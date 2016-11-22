@@ -624,7 +624,6 @@ def check_shiny():
 	:rtype: bool
 	"""
 	try:
-		print 'shiny check: %s' % settings.SHINY_CHECK_URL
 		return test_url(settings.SHINY_CHECK_URL)
 	except Exception:
 		pass
