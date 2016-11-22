@@ -799,7 +799,7 @@ CHECK_LIST = [
 		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
 	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
-	SysCheckUnit(check_ssh_tunnel, 'breeze-shiny', 'Local Shiny', 'SHINY SERV\t\t', RunType.runtime,
+	SysCheckUnit(check_shiny, 'breeze-shiny', 'Local Shiny', 'SHINY SERV\t\t', RunType.both,
 		ex=ShinyNotResponding),
 	# SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime,
 	# 	ex=DockerNotResponding),
