@@ -216,6 +216,7 @@ AUTH0_CLIENT_ID = get_key(AUTH0_ID_FILE_N)
 AUTH0_SECRET_FILE_N = 'auth0'
 AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
 # AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
+AUTH0_CALLBACK_URL_BASE = 'https://%s/login/'
 AUTH0_CALLBACK_URL = 'https://breeze.fimm.fi/login/'
 AUTH0_SUCCESS_URL = '/home/'
 AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
@@ -326,6 +327,8 @@ if MODE_PROD:
 	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
 else:
 	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
+# FIXME : replace with Site.objects.get(pk=0)
+AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
