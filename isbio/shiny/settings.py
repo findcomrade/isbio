@@ -1,4 +1,4 @@
-from isbio.settings import MEDIA_ROOT, TEMPLATE_FOLDER, REPORTS_FN, MOULD_FOLDER
+from isbio.settings import MEDIA_ROOT, TEMPLATE_FOLDER, REPORTS_FN, MOULD_FOLDER, HOST_NAME
 
 # FIXME obsolete
 # SHINY_APPS = MEDIA_ROOT + 'shinyApps/'
@@ -59,3 +59,5 @@ SHINY_MIN_FILE_SIZE = 14 # library(shiny) is 14 byte long
 # NOZZLE_TARGET_URL = 'http://' + FULL_HOST_NAME + '/'
 # Install shiny library : install.packages('name of the lib', lib='/usr/local/lib/R/site-library', dependencies=TRUE)
 SHINY_URL = '/shiny/rep/' # FIXME
+
+SHINY_CHECK_URL = HOST_NAME + 'shiny/pub'

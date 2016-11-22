@@ -67,6 +67,10 @@ class DockerNotResponding(TargetNotResponding):
 	pass
 
 
+class ShinyNotResponding(TargetNotResponding):
+	pass
+
+
 class WatcherIsNotRunning(SystemCheckFailed):
 	pass
 

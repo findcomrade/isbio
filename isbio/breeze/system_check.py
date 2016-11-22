@@ -624,7 +624,8 @@ def check_shiny():
 	:rtype: bool
 	"""
 	try:
-		return test_url(settings.SHINY_LOCAL_LIBS_TARGET_URL)
+		print 'shiny check: %s' % settings.SHINY_CHECK_URL
+		return test_url(settings.SHINY_CHECK_URL)
 	except Exception:
 		pass
 	return False
@@ -798,6 +799,8 @@ CHECK_LIST = [
 		run_after=saved_fs_sig, ex=FileSystemNotMounted, mandatory=True),
 	db_conn, fs_mount,
 	SysCheckUnit(check_ssh_tunnel, 'breeze-ssh', 'SSH tunnel', 'SSH TUNNEL\t\t', RunType.both, ex=NoSshTunnel),
+	SysCheckUnit(check_ssh_tunnel, 'breeze-shiny', 'Local Shiny', 'SHINY SERV\t\t', RunType.runtime,
+		ex=ShinyNotResponding),
 	# SysCheckUnit(check_docker_connection, 'docker-endp', 'Docker Endpoint', '', RunType.runtime,
 	# 	ex=DockerNotResponding),
 	SysCheckUnit(check_csc_shiny, 'csc_shiny', 'CSC Shiny %s server' % proto, 'CSC SHINY %s\t\t' % proto,
