@@ -60,4 +60,4 @@ SHINY_MIN_FILE_SIZE = 14 # library(shiny) is 14 byte long
 # Install shiny library : install.packages('name of the lib', lib='/usr/local/lib/R/site-library', dependencies=TRUE)
 SHINY_URL = '/shiny/rep/' # FIXME
 
-SHINY_CHECK_URL = HOST_NAME + 'shiny/pub'
+SHINY_CHECK_URL = 'http://breeze-shiny/'
