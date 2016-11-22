@@ -1,6 +1,8 @@
 from django.template.defaultfilters import slugify
 from django.db import models
 from utils import *
+from django import VERSION
+from django.template.context import RequestContext as ReqCont
 
 __version__ = '0.1'
 __author__ = 'clem'
@@ -1053,3 +1055,13 @@ class RunServer(object):
 #
 # *END* NEW distributed POC
 #
+
+# clem 22/11/2016
+# Forward compatibility with Django > 1.9
+if VERSION[0] >= 1 and VERSION[1] >= 9:
+	class RequestContext(dict):
+		def __init__(self, _, dict_=None, *args, **kwargs):
+			super(RequestContext, self).__init__()
+			self = dict_
+else:
+	RequestContext = ReqCont
