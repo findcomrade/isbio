@@ -1058,7 +1058,7 @@ class RunServer(object):
 
 # clem 22/11/2016
 # Forward compatibility with Django > 1.9
-if VERSION[0] >= 1 and VERSION[1] >= 9:
+if False and VERSION[0] >= 1 and VERSION[1] >= 9:
 	class RequestContext(dict):
 		def __init__(self, _, dict_=None, *args, **kwargs):
 			super(RequestContext, self).__init__()

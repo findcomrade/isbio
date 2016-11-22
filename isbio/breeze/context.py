@@ -31,5 +31,5 @@ def date_context(_):
     return { 'now': datetime.datetime.now() }
 
 
-def run_mode_name(_):
-    return 'dev' if settings.DEV_MODE else ''
+def run_mode_context(_):
+    return { 'run_mode_text': 'dev' if settings.DEV_MODE else ''}

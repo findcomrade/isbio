@@ -25,7 +25,7 @@ from django.core.urlresolvers import reverse
 from django.db.models.query_utils import Q
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
-# from django.template.context import RequestContext
+from django.template.context import RequestContext
 from django.template import loader
 from django.template.loader import render_to_string
 from django.utils import timezone

@@ -83,7 +83,7 @@ TEMPLATES = [
 				'django.core.context_processors.static',
 				'breeze.context.user_context',
 				'breeze.context.date_context',
-				'breeze.context.run_mode_name',
+				'breeze.context.run_mode_context',
 				'django_auth0.context_processors.auth0',
 				# "breeze.context.site",
 			],
