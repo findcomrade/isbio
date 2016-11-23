@@ -1118,7 +1118,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 	def institute(self):
 		try:
 			self._author.get_profile()
-		except ValueError: # for some reason and because of using custom OrderedUser the first call
+		except ValueError: # for some reason and because of using custom CustomUser the first call
 			# raise this exception while actually populating the cache for this value...
 			pass
 		return self._author.get_profile().institute_info
@@ -1148,7 +1148,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 	def has_access_to_shiny(self, this_user=None):
 		"""
 		To be overridden by Report
-		:type this_user: User | OrderedUser
+		:type this_user: User | CustomUser
 		:rtype: bool
 		"""
 		return None # raise NotImplementedError
@@ -2109,10 +2109,10 @@ class Report(Runnable):
 		"""
 		States if specific user is entitled to access this report through Shiny and if this report is entitled to Shiny
 		And the attached Shiny Report if any is Enabled
-		:type this_user: User | OrderedUser
+		:type this_user: User | CustomUser
 		:rtype: bool
 		"""
-		assert isinstance(this_user, (User, OrderedUser))
+		assert isinstance(this_user, (User, CustomUser))
 		return this_user and (this_user in self.shared.all() or self._author == this_user) \
 			   and self.is_shiny_enabled
 

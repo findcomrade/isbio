@@ -429,7 +429,7 @@ class ShinyReport(CustomModel):
 
 		SEP = '\n  '
 
-		if a_user is None or not isinstance(a_user, (User, OrderedUser)):
+		if a_user is None or not isinstance(a_user, (User, CustomUser)):
 			a_user = self.author
 		# opens server.R template file
 		filein = open(self.path_server_r_template)
@@ -480,7 +480,7 @@ class ShinyReport(CustomModel):
 		SEP = '\n'
 		SEP2 = ',\n  '
 
-		if a_user is None or not isinstance(a_user, (User, OrderedUser)):
+		if a_user is None or not isinstance(a_user, (User, CustomUser)):
 			a_user = self.author
 		# opens ui.R template file
 		filein = open(self.path_ui_r_template)
@@ -537,7 +537,7 @@ class ShinyReport(CustomModel):
 
 		SEP = '\n'
 
-		if a_user is None or not isinstance(a_user, (User, OrderedUser)):
+		if a_user is None or not isinstance(a_user, (User, breeze.models.CustomUser)):
 			a_user = self.author
 		# opens ui.R template file
 		filein = open(self.path_global_r_template)

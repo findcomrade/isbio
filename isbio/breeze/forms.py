@@ -103,7 +103,7 @@ class GroupForm(forms.Form):
 
 	group_team = forms.ModelMultipleChoiceField(
 		required=False,
-		queryset=breeze.models.OrderedUser.objects.all(),
+		queryset=breeze.models.CustomUser.objects.all(),
 		widget=forms.SelectMultiple(
 			attrs={'class': 'multiselect', }
 		)
@@ -122,7 +122,7 @@ class GroupForm(forms.Form):
 class EditGroupForm(forms.Form):
 	group_team = forms.ModelMultipleChoiceField(
 		required=False,
-		queryset=breeze.models.OrderedUser.objects.all(),
+		queryset=breeze.models.CustomUser.objects.all(),
 		widget=forms.SelectMultiple(
 			attrs={'class': 'multiselect', }
 		)
@@ -132,7 +132,7 @@ class EditGroupForm(forms.Form):
 class EditReportAccessForm(forms.Form):
 	access_list = forms.ModelMultipleChoiceField(
 		# required=True, # implicit
-		queryset=breeze.models.OrderedUser.objects.all(),
+		queryset=breeze.models.CustomUser.objects.all(),
 		widget=forms.SelectMultiple(
 			attrs={'class': 'multiselect', }
 		)
@@ -164,7 +164,7 @@ class SendReportTo(forms.Form):
 		send_options.append(tuple(('Registered Off-Site users', tuple(users_list_of_tuples))))
 
 		self.fields["recipients"] = forms.MultipleChoiceField(
-			choices=send_options,  # queryset=breeze.models.OrderedUser.objects.all(),
+			choices=send_options,  # queryset=breeze.models.CustomUser.objects.all(),
 			widget=forms.SelectMultiple(
 				attrs={'class': 'multiselect', }
 			)
@@ -251,7 +251,7 @@ class ReportPropsFormMixin(object):
 			group_list_of_tuples = list()
 			users_list_of_tuples = list()
 
-			for ur in breeze.models.OrderedUser.objects.all():
+			for ur in breeze.models.CustomUser.objects.all():
 				users_list_of_tuples.append(tuple((ur.id, ur.username)))
 
 			for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):

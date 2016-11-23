@@ -2525,7 +2525,7 @@ def new_rtype_dialog(request):
 @login_required(login_url='/')
 def user_list(request):
 	# user_lst = User.objects.all().order_by('username')
-	user_lst = OrderedUser.objects.all()
+	user_lst = CustomUser.objects.all()
 
 	# lst = dict()
 	lst = OrderedDict([])
@@ -2678,7 +2678,7 @@ def edit_group_dialog(request, gid):
 def update_user_info_dialog(request):
 	__self__ = this_function_name()  # instance to self
 	# user_info = User.objects.get(username=request.user)
-	user_info = OrderedUser.objects.get(id=request.user.id)
+	user_info = CustomUser.objects.get(id=request.user.id)
 
 	if request.method == 'POST':
 		personal_form = breezeForms.PersonalInfo(request.POST)
@@ -3029,7 +3029,7 @@ def user_list_advanced(request):
 	# user_lst = User.objects.all().order_by('username')
 	if not (request.user.is_superuser or request.user.is_staff):
 		raise PermissionDenied
-	user_lst = OrderedUser.objects.all()
+	user_lst = CustomUser.objects.all()
 
 	lst = list()
 	lst2 = list()
