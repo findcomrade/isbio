@@ -158,6 +158,7 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 # )
 
 # AUTH_USER_MODEL = 'breeze.OrderedUser'
+AUTH_USER_MODEL = 'breeze.CustomUser'
 
 INSTALLED_APPS = [
 	'django.contrib.admin',
@@ -329,7 +330,8 @@ if MODE_PROD:
 else:
 	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
 # FIXME : replace with Site.objects.get(pk=0)
-AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
+CURRENT_FQDN = ALLOWED_HOSTS[0]
+AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % CURRENT_FQDN
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True

@@ -12,6 +12,7 @@ from utils import *
 from django.db import models
 import importlib
 from non_db_objects import *
+from shiny.models import ShinyReport
 # , ShinyTag
 
 
@@ -29,51 +30,6 @@ sge_lock = Lock()
 
 
 JOB_PS = JobStat.job_ps # legacy
-
-
-# clem 20/06/2016
-class CustomModelAbstract(models.Model): # TODO move to a common base app
-	""" Provides and enforce read-only property ( read_only ). This property is set by the CustomManager """
-
-	__prop_read_only = False
-	objects = managers.ObjectsWithAuth()
-
-	@property
-	def read_only(self):
-		""" Tells if the object read only (in a DataBase sense).
-
-		If RO, any changes can be made to the object (except changing the RO property),
-		but keep in mind that there will be no effect on the DataBse.
-
-		:return: if model object is read-only or not
-		:rtype: bool
-		"""
-		return self.__prop_read_only
-
-	@read_only.setter
-	def read_only(self, val):
-		""" Switch the object to read-only mode (in a DataBase sense).
-
-		Once set to True, this cannot be changed back, and any change to the object WONT be saved to DB.
-
-		:param val: only accepts True
-		:type val: bool
-		"""
-		if not self.__prop_read_only and val:
-			self.__prop_read_only = True
-
-	def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-		if not self.read_only:
-			return super(CustomModelAbstract, self).save(force_insert, force_update, using, update_fields)
-		return False
-
-	def delete(self, using=None, keep_parents=False):
-		if not self.read_only:
-			return super(CustomModelAbstract, self).delete(using, keep_parents)
-		return False
-
-	class Meta:
-		abstract = True
 
 
 class Institute(CustomModelAbstract):
@@ -98,29 +54,12 @@ class CustomModel(CustomModelAbstract):
 
 		_ institute field, that is mandatory for all db objects
 	"""
-
+	
 	institute = models.ForeignKey(Institute, default=Institute.default)
 	""" Store the institute which own this object, to efficiently segregate data """
-
-	class Meta:
-		abstract = True
-
-
-from shiny.models import ShinyReport
-
-
-# 04/06/2015
-class OrderedUser(User):
-	# objects = managers.CustomUserManager()
 	
 	class Meta:
-		ordering = ["username"]
-		proxy = True
-		auto_created = True # FIXEME Hack
-		# db_table = 'auth_user'
-
-
-# User = OrderedUser
+		abstract = True
 
 
 # TODO add an Institute db field
