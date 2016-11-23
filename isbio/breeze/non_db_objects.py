@@ -1119,17 +1119,10 @@ class CustomUser(User):
 	objects = managers.CustomUserManager()
 	
 	class Meta:
+		ordering = ["username"]
 		proxy = True
 		auto_created = True # FIXEME Hack
 	# db_table = 'auth_user'
 
 
-# 04/06/2015
-class OrderedUser(User):
-	# objects = managers.CustomUserManager()
-	
-	class Meta:
-		ordering = ["username"]
-		proxy = True
-		auto_created = True # FIXEME Hack
-		# db_table = 'auth_user'
+OrderedUser = CustomUser
