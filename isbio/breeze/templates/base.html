@@ -336,6 +336,12 @@
 				  type = "text/javascript";
 				e.parentNode.insertBefore($, e)
 			})(document, "script");
+			{% if user.is_authenticated %}
+				$zopim(function () {
+					$zopim.livechat.setName('{{ user.get_full_name }}');
+					$zopim.livechat.setEmail('{{ user.email }}');
+				});
+			{% endif %}
 		</script>
 		<!--End of Zopim Live Chat Script-->
 	{% endblock %}
