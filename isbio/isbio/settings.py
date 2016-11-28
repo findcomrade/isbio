@@ -326,11 +326,16 @@ MODE_PROD = RUN_MODE == 'prod'
 PHARMA_MODE = False
 
 if MODE_PROD:
-	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST + ['127.0.0.1', 'localhost']
+	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
 else:
-	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST + ['127.0.0.1', 'localhost']
+	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
 # FIXME : replace with Site.objects.get(pk=0)
 AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
+
+NOTEBOOK_ARGUMENTS = [
+	'--ip', '0.0.0.0',
+	'--port', '8888',
+]
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
