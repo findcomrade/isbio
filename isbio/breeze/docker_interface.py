@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.8'
+__version__ = '0.9'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = True # i.e. debug
@@ -309,7 +309,7 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 # clem 15/03/2016
 class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# ssh_tunnel = None
-	auto_remove = True
+	auto_remove = False
 	__docker_storage = None
 	_data_storage = None
 	_jobs_storage = None
@@ -319,7 +319,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# _client = None
 	_container_lock = None
 	_label = ''
-	my_volume = DockerVolume('/home/breeze/data/', '/breeze')
+	my_volume = DockerVolume('/home/breeze/data/', '/breeze') # FIXME (shouldn't be static)
 	my_run = None
 	_container = None
 	_container_logs = ''
@@ -840,7 +840,8 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 					except Exception as e:
 						self.log.exception('Killing container failed : %s' % str(e))
 					try:
-						self.container.remove_container()
+						if self.auto_remove:
+							self.container.remove_container()
 					except Exception as e:
 						self.log.exception('Removing container failed : %s' % str(e))
 			except Exception as e:

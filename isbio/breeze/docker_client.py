@@ -11,7 +11,7 @@ import time
 import re
 import string
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __author__ = 'clem'
 DOCKER_HUB_URL = 'https://index.docker.io'
 
