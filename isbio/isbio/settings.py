@@ -184,6 +184,7 @@ INSTALLED_APPS = [
 	'django_requestlogging',
 	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',
+	'django_extensions'
 ]
 
 MIDDLEWARE_CLASSES = [
