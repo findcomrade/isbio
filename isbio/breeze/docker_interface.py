@@ -309,7 +309,7 @@ class DockerInterfaceConnector(ComputeInterfaceBase):
 # clem 15/03/2016
 class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# ssh_tunnel = None
-	auto_remove = False
+	auto_remove = True
 	__docker_storage = None
 	_data_storage = None
 	_jobs_storage = None
@@ -793,7 +793,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 			env = { 'AZURE_KEY': self._job_storage.ACCOUNT_KEY } # passing the blob storage secret key to the cont
 			# TODO add host_sup passing
 			self.my_run = DockerRun(self.config_container, self.config_cmd % self.run_id, self.my_volume, env=env,
-				cont_name='%s_%s' % (self._runnable.author , self._runnable.short_id))
+				cont_name='%s_%s' % (self._runnable.short_id , self._runnable.author))
 			self._attach_event_manager()
 			if self._run():
 				return True
