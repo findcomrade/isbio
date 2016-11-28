@@ -60,7 +60,7 @@ class DockerRun:
 	_image = None
 	cmd = ''
 	_volumes = list()
-	auto_rm = True
+	auto_rm = False
 	container_given_name = ''
 	created_container_id = ''
 	created_container = None
@@ -77,12 +77,12 @@ class DockerRun:
 	# _volume_exists deleted 14/03/2016 (last git commit 32844a2)
 
 	def __init__(self, image_full_name_tag, cmd='', volumes=None, ev_listener=None, stream=False, auto_rm=False,
-		env=None, cont_name=None):
+		env=None, cont_name=''):
 		assert isinstance(image_full_name_tag, (DockerImage, basestring)) and isinstance(cmd, basestring) and\
 			(volumes is None or isinstance(volumes, (list, DockerVolume))) and type(auto_rm) is bool and\
 			(env is None or isinstance(env, dict)) and isinstance(cont_name, basestring)
 		self.env = env
-		self.container_given_name = cont_name
+		self.container_given_name = re.compile('[\W]+').sub('', cont_name) if cont_name else ''
 		self.image_full_name = image_full_name_tag
 		self.cmd = cmd
 		self.stream = stream # TODO #notImplemented
@@ -124,7 +124,7 @@ class DockerRun:
 		# host_conf = dict()
 		a_host = 'breeze-db'
 		a_addr = '10.0.0.4'
-		host_conf = { 'ExtraHosts': ['%s:%s' % (a_host, a_addr), ] }
+		host_conf = ['%s:%s' % (a_host, a_addr), ]
 		return host_conf
 
 	# clem 28/11/2016
@@ -1179,7 +1179,7 @@ class DockerClient:
 		# container name
 		name_str = ''
 		if run.container_given_name:
-			kwargs.update({'name' : re.compile('[\W_]+').sub('', run.container_given_name)})
+			kwargs.update({'name' : run.container_given_name })
 			name_str = '--name %s ' % kwargs['name']
 		
 		self._log('docker run %s %s %s-e %s\n%s' % (image_name, run.cmd, name_str, run.env, str(host_conf)))
