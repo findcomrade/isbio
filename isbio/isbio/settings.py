@@ -159,6 +159,7 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 # AUTH_USER_MODEL = 'breeze.OrderedUser'
 
 INSTALLED_APPS = [
+	'suit',
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
