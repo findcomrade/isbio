@@ -8,6 +8,8 @@ import curses
 import json
 import requests
 import time
+import re
+import string
 
 __version__ = '0.1.5'
 __author__ = 'clem'
@@ -59,6 +61,7 @@ class DockerRun:
 	cmd = ''
 	_volumes = list()
 	auto_rm = True
+	container_given_name = ''
 	created_container_id = ''
 	created_container = None
 	event_listener = None
@@ -73,11 +76,13 @@ class DockerRun:
 	# _check_if_volume_exists deleted 14/03/2016 (last git commit 32844a2)
 	# _volume_exists deleted 14/03/2016 (last git commit 32844a2)
 
-	def __init__(self, image_full_name_tag, cmd='', volumes=None, ev_listener=None, stream=False, auto_rm=False, env=None):
+	def __init__(self, image_full_name_tag, cmd='', volumes=None, ev_listener=None, stream=False, auto_rm=False,
+		env=None, cont_name=None):
 		assert isinstance(image_full_name_tag, (DockerImage, basestring)) and isinstance(cmd, basestring) and\
 			(volumes is None or isinstance(volumes, (list, DockerVolume))) and type(auto_rm) is bool and\
-			(env is None or isinstance(env, dict))
+			(env is None or isinstance(env, dict)) and isinstance(cont_name, basestring)
 		self.env = env
+		self.container_given_name = cont_name
 		self.image_full_name = image_full_name_tag
 		self.cmd = cmd
 		self.stream = stream # TODO #notImplemented
@@ -100,15 +105,32 @@ class DockerRun:
 				container.register_event_listener(self.event_listener)
 
 	# clem 14/03/2016
-	def config_dict(self):
+	@property # renamed from config_dict on 28/11/2016
+	def volume_dict(self):
 		a_dict = dict()
 		vol_list = self._volumes if isinstance(self._volumes, list) else [self._volumes]
 		for each in vol_list:
 			assert isinstance(each, DockerVolume)
-			a_dict[each.path] = { 'bind': each.mount_point,
-									'mode': each.mode,
+			a_dict[each.path] = {
+				'bind': each.mount_point,
+				'mode': each.mode,
 			}
 		return a_dict
+	
+	# clem 28/11/2016
+	@property
+	def extra_host_dict(self):
+		# TODO
+		# host_conf = dict()
+		a_host = 'breeze-db'
+		a_addr = '10.0.0.4'
+		host_conf = { 'ExtraHosts': ['%s:%s' % (a_host, a_addr), ] }
+		return host_conf
+
+	# clem 28/11/2016
+	@property
+	def config_dict(self):
+		return {'binds': self.volume_dict, 'extra_hosts': self.extra_host_dict}
 
 	# clem 16/03/2016
 	@property # temp wrapper
@@ -1125,6 +1147,11 @@ class DockerClient:
 
 	_error_managed = staticmethod(__error_managed)
 
+	# clem 28/11/2016
+	def _host_config_dict(self, run_instance):
+		assert isinstance(run_instance, DockerRun)
+		return self.cli.create_host_config(**run_instance.config_dict)
+
 	# clem 09/03/2016
 	@_error_managed.__func__
 	def _run(self, run):
@@ -1141,16 +1168,24 @@ class DockerClient:
 		if not self._img_exists_or_pulled(run): # if pulled failed
 			return None
 
-		a_dict = run.config_dict() # get the volume config
-		vol_config = self.cli.create_host_config(binds=a_dict) if a_dict else dict()
-		if a_dict:
-			self._log('docker run %s %s -v %s -e %s' % (image_name, run.cmd, run.volumes, run.env))
-		else:
-			self._log('docker run %s %s' % (image_name, run.cmd))
+		host_conf = self._host_config_dict(run)
+		
+		kwargs = {
+			'volumes'    : run.volume_dict.keys(),
+			'environment': run.env,
+			'host_config': host_conf,
+		}
+		
+		# container name
+		name_str = ''
+		if run.container_given_name:
+			kwargs.update({'name' : re.compile('[\W_]+').sub('', run.container_given_name)})
+			name_str = '--name %s ' % kwargs['name']
+		
+		self._log('docker run %s %s %s-e %s\n%s' % (image_name, run.cmd, name_str, run.env, str(host_conf)))
 		
 		# Create the container
-		container = self.get_container(self.cli.create_container(image_name, run.cmd, volumes=a_dict.keys(), \
-			environment=run.env, host_config=vol_config)['Id'])
+		container = self.get_container(self.cli.create_container(image_name, run.cmd, **kwargs)['Id'])
 		if container: # container was successfully created and acquired
 			run.container_created(container)
 			return container
