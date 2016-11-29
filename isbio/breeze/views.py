@@ -1042,7 +1042,7 @@ def report_overview(request, rtype, iname=None, iid=None, mod=None):
 		'props_form': property_form,
 		'tags_available': tags_data_list,
 		'access_script': script,
-		'disable_zopim': True,
+		# 'disable_zopim': True,
 		'title': title
 	}))
 
@@ -2277,6 +2277,10 @@ def shiny_libs(request, path=None):
 @login_required(login_url='/')
 def report_file_view_redir(request, rid):
 	return HttpResponseRedirect(reverse(report_file_view, kwargs={ 'rid': rid }))
+
+
+def report_statics(request, a_dir, a_path):
+	return HttpResponseRedirect('%s%s/%s' % (settings.STATIC_URL, a_dir, a_path))
 
 
 @login_required(login_url='/')

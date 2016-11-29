@@ -85,6 +85,8 @@ else:
 		url(r'^deletecart/(?P<sid>\d+)$', breeze.views.deletecart, name='deletecart'),
 		url(r'^reports/?$', breeze.views.reports, name='reports'),
 		url(r'^reports/search$', breeze.views.report_search, name='report_search'),
+		url(r'^reports/view/\d+/Results/HTMLreport/(?P<a_dir>[^/]+)/(?P<a_path>.+)$', breeze.views.report_statics,
+			name='report.statics'),
 		url(r'^reports/view/(?P<rid>\d+)/(?P<file_name>.+)?$', breeze.views.report_file_view, name='report.view'),
 		url(r'^reports/get/(?P<rid>\d+)/(?P<file_name>.+)?$', breeze.views.report_file_get, name='report_file_get'),
 		url(r'^media/reports/(?P<rid>\d+)_(?P<rest>[^/]+)/(?P<file_name>.+)?$', breeze.views.report_file_wrap,
