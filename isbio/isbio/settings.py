@@ -135,7 +135,7 @@ STATICFILES_DIRS = (
 	# Put strings here, like "/home/html/static" or "C:/www/django/static".
 	# Always use forward slashes, even on Windows.
 	# Don't forget to use absolute paths, not relative paths.
-	"/root/code/static_source",
+	"/root/static_source",
 )
 
 # List of finder classes that know how to find static files in
@@ -333,7 +333,7 @@ else:
 AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
 
 NOTEBOOK_ARGUMENTS = [
-	'--ip', '0.0.0.0',
+	'--ip', '172.17.0.1',
 	'--port', '8888',
 ]
 
