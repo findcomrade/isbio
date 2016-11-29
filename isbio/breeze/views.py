@@ -2280,7 +2280,7 @@ def report_file_view_redir(request, rid):
 
 
 def report_statics(request, a_dir, a_path):
-	return HttpResponseRedirect('%s%s/%s' % (settings.STATIC_URL, a_dir, a_path))
+	return HttpResponseRedirect('%s%s/HTMLreport/%s' % (settings.STATIC_URL, a_dir, a_path))
 
 
 @login_required(login_url='/')
