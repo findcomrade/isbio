@@ -2284,7 +2284,7 @@ def report_statics(request, a_dir, a_path):
 
 
 def favicon(request):
-	return HttpResponsePermanentRedirect('%sfavicon.ico' % settings.STATIC_URL)
+	return HttpResponseRedirect('%sfavicon.ico' % settings.STATIC_URL)
 
 
 @login_required(login_url='/')
