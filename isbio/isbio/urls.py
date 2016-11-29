@@ -197,6 +197,8 @@ else:
 			{'document_root': settings.MEDIA_ROOT + 'pipelines/'}),
 		url(r'^media/mould/(?P<path>.*)$', serve,
 			{'document_root': settings.MEDIA_ROOT + 'mould/'}),
+		url(r'^favicon\.ico$', serve, {'document_root': settings.MEDIA_ROOT }),
+		
 
 		# url(r'^media/(?P<path>.*)$', 'django.breeze.views.static.serve', name='static.serve'',
 		# 			{'document_root': settings.MEDIA_ROOT}),
