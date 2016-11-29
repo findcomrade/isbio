@@ -216,4 +216,4 @@ else:
 			# url(r'^static/(?P<path>.*)$', serve)
 		]
 	# print staticfiles_urlpatterns()
-	urlpatterns += staticfiles_urlpatterns()
+	# urlpatterns += staticfiles_urlpatterns()
