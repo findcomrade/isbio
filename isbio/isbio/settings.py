@@ -302,7 +302,7 @@ MODE_FILE_CONTENT = file_content(MODE_FILE)
 RUN_MODE = MODE_FILE_CONTENT
 DEV_MODE = RUN_MODE == 'dev'
 PHARMA_MODE = RUN_MODE == 'pharma'
-MODE_PROD = RUN_MODE == 'prod' or not (DEV_MODE and PHARMA_MODE)
+MODE_PROD = RUN_MODE == 'prod' or (not DEV_MODE and not PHARMA_MODE)
 
 
 class AuthMethods(object):

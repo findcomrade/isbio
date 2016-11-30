@@ -1,3 +1,5 @@
+import os
+
 SGE_QUEUE_NAME = 'breeze.q' # monitoring only
 
 SGE_MASTER_FILE = '/var/lib/gridengine/default/common/act_qmaster' # FIXME obsolete

@@ -1,6 +1,6 @@
 from isbio.config.CAS import *
 from isbio.settings import PH_DOMAINS
-from new_sge import *
+from isbio.config.new_sge import *
 
 TEMPLATE_DEBUG = False
 DEBUG = False
