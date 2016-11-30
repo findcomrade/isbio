@@ -1,4 +1,6 @@
 from utilz import get_key
+from isbio.settings import PROD_DOMAINS, DEV_DOMAINS, PH_DOMAINS, INSTALLED_APPS, TEMPLATES, MODE_PROD, DEV_MODE, PHARMA_MODE, AUTH_BACKEND, \
+	AuthMethods
 
 AUTHENTICATION_BACKENDS = (
 	'django.contrib.auth.backends.ModelBackend',
@@ -19,13 +21,15 @@ AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
 
 AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
 
-if MODE_PROD:
-	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
-else:
+if DEV_MODE:
 	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
+else:
+	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
 # FIXME : replace with Site.objects.get(pk=0)
 AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
 
 INSTALLED_APPS += ['django_auth0']
 
-TEMPLATES[0]['OPTIONS']['context_processors'] += ['django_auth0.context_processors.auth0',]
+TEMPLATES[0]['OPTIONS']['context_processors'] += ['django_auth0.context_processors.auth0']
+
+AUTH_BACKEND = AuthMethods.AUTH0

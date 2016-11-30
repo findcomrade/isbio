@@ -5,7 +5,8 @@ import os
 import socket
 import time
 from datetime import datetime
-from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content, is_host_online,  test_url
+from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content, is_host_online,  test_url, \
+	magic_const
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
@@ -276,7 +277,7 @@ PROD_DOMAINS = ['breeze.fimm.fi', '52.164.211.188']
 DEV_DOMAINS = ['breeze-dev.cloudapp.net', '40.113.91.111']
 PH_DOMAINS = ['breeze-newph.fimm.fi', ]
 
-DEBUG = True
+DEBUG = False
 VERBOSE = False
 SQL_DUMP = False
 # APPEND_SLASH = True
@@ -289,14 +290,6 @@ ADMINS = (
 SOURCE_ROOT = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/'
 DJANGO_ROOT = recur(2, os.path.dirname, os.path.realpath(__file__)) + '/'
 
-# MANAGERS = ADMINS
-
-# import_env()
-
-Q_BIN = ''
-QSTAT_BIN = ''
-QDEL_BIN = ''
-SGE_QUEUE = ''
 os.environ['MAIL'] = '/var/mail/dbychkov' # FIXME obsolete
 
 CONSOLE_DATE_F = "%d/%b/%Y %H:%M:%S"
@@ -310,7 +303,19 @@ RUN_MODE = MODE_FILE_CONTENT
 DEV_MODE = RUN_MODE == 'dev'
 PHARMA_MODE = RUN_MODE == 'pharma'
 MODE_PROD = RUN_MODE == 'prod' or not (DEV_MODE and PHARMA_MODE)
-# PHARMA_MODE = False
+
+
+class AuthMethods(object):
+	@magic_const
+	def CAS_NG(): pass
+	
+	@magic_const
+	def AUTH0(): pass
+	
+	@magic_const
+	def undefined(): pass
+
+AUTH_BACKEND = AuthMethods.undefined
 
 if MODE_PROD:
 	from isbio.config.mode_prod import *
@@ -382,8 +387,8 @@ FAILED_FN = '.failed'
 SUCCESS_FN = '.done'
 R_DONE_FN = '.sub_done'
 # SGE_QUEUE_NAME = 'breeze.q' # monitoring only
-DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo'
-AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd'
+# DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo' # moved to config/azure_cloud.py
+# AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd' # moved to config/azure_cloud.py
 
 #
 # ComputeTarget configs
@@ -472,11 +477,11 @@ FOLDERS_LST = [TEMPLATE_FOLDER, SHINY_REPORT_TEMPLATE_PATH, SHINY_REPORTS, SHINY
 # LONG_POLL_TIME_OUT_REFRESH = 540 # 9 minutes
 # set to 50 sec to avoid time-out on breeze.fimm.fi
 LONG_POLL_TIME_OUT_REFRESH = 50 # FIXME obsolete
-SGE_MASTER_FILE = '/var/lib/gridengine/default/common/act_qmaster' # FIXME obsolete
-SGE_MASTER_IP = '192.168.67.2' # FIXME obsolete
-DOTM_SERVER_IP = '128.214.64.5' # FIXME obsolete
-RORA_SERVER_IP = '192.168.0.219' # FIXME obsolete
-FILE_SERVER_IP = '192.168.0.107' # FIXME obsolete
+# SGE_MASTER_FILE = '/var/lib/gridengine/default/common/act_qmaster' # FIXME obsolete
+# SGE_MASTER_IP = '192.168.67.2' # FIXME obsolete
+# DOTM_SERVER_IP = '128.214.64.5' # FIXME obsolete
+# RORA_SERVER_IP = '192.168.0.219' # FIXME obsolete
+# FILE_SERVER_IP = '192.168.0.107' # FIXME obsolete
 SPECIAL_CODE_FOLDER = PROJECT_PATH + 'code/'
 FS_SIG_FILE = PROJECT_PATH + 'fs_sig.md5'
 FS_LIST_FILE = PROJECT_PATH + 'fs_checksums.json'
@@ -512,11 +517,12 @@ EMAIL_USE_TLS = True
 #
 
 # if prod mode then auto disable DEBUG, for safety
-if MODE_PROD or PHARMA_MODE:
-	SHINY_MODE = 'remote'
-	SHINY_LOCAL_ENABLE = False
-	DEBUG = False
-	VERBOSE = False
+# moved to config/mode_prod.py and config/mode_pharama.py
+# if MODE_PROD or PHARMA_MODE:
+# 	SHINY_MODE = 'remote'
+# 	SHINY_LOCAL_ENABLE = False
+# 	DEBUG = False
+# 	VERBOSE = False
 
 if DEBUG:
 	import sys
