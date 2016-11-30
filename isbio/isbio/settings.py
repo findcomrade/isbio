@@ -5,7 +5,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content
+from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content, is_host_online,  test_url
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
@@ -83,7 +83,7 @@ TEMPLATES = [
 				'django.core.context_processors.static',
 				'breeze.context.user_context',
 				'breeze.context.date_context',
-				'django_auth0.context_processors.auth0',
+				# 'django_auth0.context_processors.auth0', # moved to config/auth0.py
 				# "breeze.context.site",
 			],
 		},
@@ -176,13 +176,12 @@ INSTALLED_APPS = [
 	# 'south',
 	'gunicorn',
 	'mathfilters',
-	'django_auth0',
+	# 'django_auth0', # moved to config/auth0.py
 	'hello_auth.apps.Config',
 	'api.apps.Config',
 	'webhooks.apps.Config',
 	'utilz.apps.Config',
 	'django_requestlogging',
-	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',
 	'django_extensions'
 ]
@@ -206,23 +205,10 @@ MIDDLEWARE_CLASSES = [
 	'rollbar.contrib.django.middleware.RollbarNotifierMiddleware' if ENABLE_ROLLBAR else 'breeze.middlewares.Empty',
 ]
 
-AUTHENTICATION_BACKENDS = (
-	'django.contrib.auth.backends.ModelBackend',
-	'django_auth0.auth_backend.Auth0Backend',
-)
 
-AUTH0_DOMAIN = 'breeze.eu.auth0.com'
-AUTH0_TEST_URL = 'https://%s/test' % AUTH0_DOMAIN
-AUTH0_ID_FILE_N = 'auth0_id'
-AUTH0_CLIENT_ID = get_key(AUTH0_ID_FILE_N)
-AUTH0_SECRET_FILE_N = 'auth0'
-AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
-# AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
-AUTH0_CALLBACK_URL_BASE = 'https://%s/login/'
-AUTH0_CALLBACK_URL = 'https://breeze.fimm.fi/login/'
-AUTH0_SUCCESS_URL = '/home/'
-AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
-AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
+# AUTHENTICATION_BACKENDS moved to specific auth config files
+
+# AUTH0_* moved to config/auth0.py
 
 SSH_TUNNEL_HOST = 'breeze-ssh'
 SSH_TUNNEL_PORT = '2222'
@@ -286,9 +272,9 @@ LOGGING = {
 	}
 }
 
-AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
 PROD_DOMAINS = ['breeze.fimm.fi', '52.164.211.188']
 DEV_DOMAINS = ['breeze-dev.cloudapp.net', '40.113.91.111']
+PH_DOMAINS = ['breeze-newph.fimm.fi', ]
 
 DEBUG = True
 VERBOSE = False
@@ -320,17 +306,18 @@ HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
 # automatically setting RUN_MODE depending on the host name
 MODE_FILE = SOURCE_ROOT + '.run_mode'
 MODE_FILE_CONTENT = file_content(MODE_FILE)
-RUN_MODE = 'dev' if MODE_FILE_CONTENT == 'dev' else 'prod'
+RUN_MODE = MODE_FILE_CONTENT
 DEV_MODE = RUN_MODE == 'dev'
-MODE_PROD = RUN_MODE == 'prod'
-PHARMA_MODE = False
+PHARMA_MODE = RUN_MODE == 'pharma'
+MODE_PROD = RUN_MODE == 'prod' or not (DEV_MODE and PHARMA_MODE)
+# PHARMA_MODE = False
 
 if MODE_PROD:
-	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
-else:
-	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
-# FIXME : replace with Site.objects.get(pk=0)
-AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % ALLOWED_HOSTS[0]
+	from isbio.config.mode_prod import *
+elif PHARMA_MODE:
+	from isbio.config.mode_pharma import *
+elif DEV_MODE:
+	from isbio.config.mode_dev import *
 
 NOTEBOOK_ARGUMENTS = [
 	'--ip', '172.17.0.1',
@@ -525,7 +512,7 @@ EMAIL_USE_TLS = True
 #
 
 # if prod mode then auto disable DEBUG, for safety
-if MODE_PROD:
+if MODE_PROD or PHARMA_MODE:
 	SHINY_MODE = 'remote'
 	SHINY_LOCAL_ENABLE = False
 	DEBUG = False
@@ -677,6 +664,8 @@ else:
 	logging.info(git_stat)
 	from api import code_v1
 	code_v1.do_self_git_pull()
+	if PHARMA_MODE:
+		print TermColoring.bold('RUNNING WITH PHARMA')
 print('debug mode is %s' % ('ON' if DEBUG else 'OFF'))
 
 
