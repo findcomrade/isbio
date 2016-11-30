@@ -65,6 +65,21 @@ def not_imp(self): # writing shortcut for abstract classes
 class ClassProperty(property):
 	def __get__(self, cls, owner=None):
 		return classmethod(self.fget).__get__(None, owner)()
+	
+
+# clem 30/11/2016
+class StaticPropertyBase(property):
+	def __get__(self, cls, owner=None):
+		return staticmethod(self.fget).__get__(None, owner)
+
+
+# clem 30/11/2016
+class MagicConst(StaticPropertyBase):
+	@StaticPropertyBase
+	def over(self):
+		return self.__name__
+
+magic_const = MagicConst
 
 
 # clem 10/10/2016 from http://stackoverflow.com/a/4506081/5094389
