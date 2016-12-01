@@ -30,6 +30,8 @@ CAS_SERVER_URL = CAS_FRONT_END_URL
 if not check_cas(CAS_SERVER_IP, CAS_SERVER_URL):
 	CAS_SERVER_URL = CAS_BACK_END_URL
 CAS_REDIRECT_URL = '/home/'
+# prevents auto creation of users
+CAS_CREATE_USER = False
 
 INSTALLED_APPS += ['django_cas_ng']
 
