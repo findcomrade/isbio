@@ -12,7 +12,7 @@ def site(request):
 		'site'     : a_site,
 		'site_root': SimpleLazyObject(lambda: "{0}://{1}".format(protocol, a_site.domain)),
 		'site_title': settings.BREEZE_TITLE,
-		'site_title_long': settings.BREEZE_TITLE
+		'site_title_long': settings.BREEZE_TITLE_LONG
 	}
 
 
