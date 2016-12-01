@@ -25,7 +25,7 @@ class ConfigNames(enumerate):
 
 
 # clem 06/05/2016
-class SGEInterface(ComputeInterface):
+class SGEInterface(ComputeInterfaceBase, ComputeInterface):
 	from django.conf import settings
 	DEFAULT_V_MEM = '15G'
 	DEFAULT_H_CPU = '999:00:00'
