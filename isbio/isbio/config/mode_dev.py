@@ -6,4 +6,5 @@ DEBUG = True
 SHINY_MODE = 'local'
 SHINY_LOCAL_ENABLE = True
 BREEZE_TITLE = 'C-BREEZE-DEV'
+BREEZE_TITLE_LONG = 'Cloud Breeze (dev)'
 

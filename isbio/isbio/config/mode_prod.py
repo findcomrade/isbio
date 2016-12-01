@@ -6,3 +6,4 @@ DEBUG = False
 SHINY_MODE = 'remote'
 SHINY_LOCAL_ENABLE = False
 BREEZE_TITLE = 'C-BREEZE'
+BREEZE_TITLE_LONG = 'Cloud Breeze'
