@@ -42,13 +42,13 @@ else:
 			url(r'^auth/', include('django_auth0.urls')),
 		]
 	elif settings.AUTH_BACKEND is settings.AuthMethods.CAS_NG:
-		import django_cas_ng
+		from django_cas_ng.views import login, logout, callback
 		urlpatterns += [
-			url(r'^accounts/login$', django_cas_ng.views.login, name='cas_ng_login'),
-			url(r'^$', django_cas_ng.views.login, name='cas_ng_login1'),
-			url(r'^accounts/logout$', django_cas_ng.views.logout, name='cas_ng_logout'),
-			url(r'^logout/?$', django_cas_ng.views.logout, name='cas_ng_logout1'),
-			url(r'^accounts/callback$', django_cas_ng.views.callback, name='cas_ng_proxy_callback'),
+			url(r'^accounts/login$', login, name='cas_ng_login'),
+			url(r'^$', login, name='cas_ng_login1'),
+			url(r'^accounts/logout$', logout, name='cas_ng_logout'),
+			url(r'^logout/?$', logout, name='cas_ng_logout1'),
+			url(r'^accounts/callback$', callback, name='cas_ng_proxy_callback'),
 		]
 
 	urlpatterns += [
