@@ -12,7 +12,7 @@ __date__ = '04/05/2016'
 
 
 # clem 21/10/2016
-class ComputeInterfaceBase:
+class ComputeInterfaceBase(object):
 	__metaclass__ = abc.ABCMeta
 	_not = "Class %s doesn't implement %s()"
 	storage_backend = None
@@ -110,7 +110,7 @@ class ComputeInterfaceBase:
 
 # clem 04/05/2016
 class ComputeInterface(ComputeInterfaceBase):
-	__metaclass__ = abc.ABCMeta
+	# __metaclass__ = abc.ABCMeta
 	
 	# clem 21/10/2016
 	def __init__(self, compute_target, storage_backend=None):

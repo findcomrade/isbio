@@ -24,18 +24,46 @@ class ConfigNames(enumerate):
 	qdel_bin_path = 'QDEL_BIN'
 
 
-# clem 06/05/2016
-class SGEInterface(ComputeInterfaceBase, ComputeInterface):
-	from django.conf import settings
-	DEFAULT_V_MEM = '15G'
-	DEFAULT_H_CPU = '999:00:00'
-	DEFAULT_H_RT = '999:00:00'
-	SGE_RQ_TEMPLATE = settings.SGE_REQUEST_TEMPLATE
-	SGE_REQUEST_FN = settings.SGE_REQUEST_FN
-
+# clem 01/12/2016
+class SGEInterfaceConnector(ComputeInterfaceBase):
+	connected = False
+	_compute_target = None # FIXME HACK
+	
 	def __init__(self, compute_target, storage_backend=None):
-		super(SGEInterface, self).__init__(compute_target, storage_backend)
-		
+		"""
+
+		:type storage_backend: module
+		"""
+		super(SGEInterfaceConnector, self).__init__(compute_target, storage_backend)
+	
+	# clem 17/05/2016
+	@property  # writing shortcut
+	def config_qstat_bin_path(self):
+		if self.engine_obj:
+			return self.engine_obj.get(ConfigNames.qstat_bin_path)
+		return ''
+	
+	# clem 17/05/2016
+	@property  # writing shortcut
+	def config_qdel_bin_path(self):
+		if self.engine_obj:
+			return self.engine_obj.get(ConfigNames.qdel_bin_path)
+		return ''
+	
+	# clem 17/05/2016
+	@property  # writing shortcut
+	def config_shell_path(self):
+		if self.engine_obj:
+			return self.engine_obj.get(ConfigNames.shell_path)
+		return ''
+	
+	# clem 17/05/2016
+	@property  # writing shortcut
+	def config_queue_name(self):
+		if self.target_obj:
+			return self.target_obj.get(ConfigNames.queue, ConfigNames.engine_section)
+		return ''
+	
 	# clem 20/10/2016
 	@property
 	def online(self):
@@ -54,12 +82,25 @@ class SGEInterface(ComputeInterfaceBase, ComputeInterface):
 				except Exception as e:
 					raise e
 			return False
+		
 		return check_sge()
 	
 	@property
 	def can_connect(self):
 		return self.online
-	
+
+
+# clem 06/05/2016
+class SGEInterface(SGEInterfaceConnector, ComputeInterface):
+	DEFAULT_V_MEM = '15G'
+	DEFAULT_H_CPU = '999:00:00'
+	DEFAULT_H_RT = '999:00:00'
+	SGE_RQ_TEMPLATE = settings.SGE_REQUEST_TEMPLATE
+	SGE_REQUEST_FN = settings.SGE_REQUEST_FN
+
+	def __init__(self, compute_target, storage_backend=None):
+		super(SGEInterface, self).__init__(compute_target, storage_backend)
+
 	# clem 06/10/2016
 	def name(self):
 		return "sge queue %s" % self.config_queue_name
@@ -277,34 +318,6 @@ class SGEInterface(ComputeInterfaceBase, ComputeInterface):
 	# clem 21/04/2016
 	def get_results(self):
 		pass
-
-	# clem 17/05/2016
-	@property  # writing shortcut
-	def config_qstat_bin_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.qstat_bin_path)
-		return ''
-
-	# clem 17/05/2016
-	@property  # writing shortcut
-	def config_qdel_bin_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.qdel_bin_path)
-		return ''
-
-	# clem 17/05/2016
-	@property  # writing shortcut
-	def config_shell_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.shell_path)
-		return ''
-
-	# clem 17/05/2016
-	@property  # writing shortcut
-	def config_queue_name(self):
-		if self.target_obj:
-			return self.target_obj.get(ConfigNames.queue, ConfigNames.engine_section)
-		return ''
 
 
 # clem 04/05/2016
