@@ -85,7 +85,7 @@ TEMPLATES = [
 				'breeze.context.user_context',
 				'breeze.context.date_context',
 				# 'django_auth0.context_processors.auth0', # moved to config/auth0.py
-				# "breeze.context.site",
+				"breeze.context.site",
 			],
 		},
 	},

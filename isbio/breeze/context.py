@@ -1,16 +1,18 @@
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import SimpleLazyObject
+from django.conf import settings
 
 
 def site(request):
-    site = SimpleLazyObject(lambda: get_current_site(request))
-    protocol = 'https' if request.is_secure() else 'http'
-    
-    return {
-        'site'     : site,
-        'site_root': SimpleLazyObject(lambda: "{0}://{1}".format(protocol, site.domain)),
-    }
+	a_site = SimpleLazyObject(lambda: get_current_site(request))
+	protocol = 'https' if request.is_secure() else 'http'
+	
+	return {
+		'site'     : a_site,
+		'site_root': SimpleLazyObject(lambda: "{0}://{1}".format(protocol, a_site.domain)),
+		'site_title': settings.BREEZE_TITLE
+	}
 
 
 def user_context(request):
