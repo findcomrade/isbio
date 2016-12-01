@@ -16,7 +16,8 @@ def check_cas(server_ip, server_url):
 
 AUTHENTICATION_BACKENDS = (
 	'django.contrib.auth.backends.ModelBackend',
-	'django_cas_ng.backends.CASBackend',
+	# 'django_cas_ng.backends.CASBackend',
+	'my_django.cas_ng_custom.CASBackend',
 )
 
 HOME_PAGE = '/jobs/'
