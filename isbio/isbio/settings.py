@@ -289,6 +289,7 @@ ADMINS = (
 # root of the Breeze django project folder, includes 'venv', 'static' folder copy, isbio, logs
 SOURCE_ROOT = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/'
 DJANGO_ROOT = recur(2, os.path.dirname, os.path.realpath(__file__)) + '/'
+TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/' # source templates (not HTML ones)
 
 os.environ['MAIL'] = '/var/mail/dbychkov' # FIXME obsolete
 
@@ -372,7 +373,6 @@ UPLOAD_FOLDER = MEDIA_ROOT + 'upload_temp/'
 DATASETS_FOLDER = MEDIA_ROOT + 'datasets/'
 STATIC_ROOT = SOURCE_ROOT + 'static_source/' # static files for the website
 DJANGO_CONFIG_FOLDER = SOURCE_ROOT + 'config/' # Where to store secrets and deployment conf
-TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/' # source templates (not HTML ones)
 MOULD_FOLDER = MEDIA_ROOT + DATA_TEMPLATES_FN
 NO_TAG_XML = TEMPLATE_FOLDER + 'notag.xml'
 
