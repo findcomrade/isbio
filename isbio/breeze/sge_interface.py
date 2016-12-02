@@ -26,6 +26,11 @@ class ConfigNames(enumerate):
 
 # clem 01/12/2016
 class SGEInterfaceConnector(ComputeInterfaceBase):
+	DEFAULT_V_MEM = '15G'
+	DEFAULT_H_CPU = '999:00:00'
+	DEFAULT_H_RT = '999:00:00'
+	SGE_RQ_TEMPLATE = settings.SGE_REQUEST_TEMPLATE
+	SGE_REQUEST_FN = settings.SGE_REQUEST_FN
 	connected = False
 	_compute_target = None # FIXME HACK
 	
@@ -35,6 +40,7 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 		:type storage_backend: module
 		"""
 		super(SGEInterfaceConnector, self).__init__(compute_target, storage_backend)
+		self.apply_config()
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
@@ -64,6 +70,55 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 			return self.target_obj.get(ConfigNames.queue, ConfigNames.engine_section)
 		return ''
 	
+	# clem 02/12/2016
+	@property  # writing shortcut
+	def config_qmaster_host(self):
+		if self.target_obj:
+			return self.target_obj.get(ConfigNames.q_master, ConfigNames.engine_section)
+		return ''
+	
+	# clem 02/12/2016
+	@property  # writing shortcut
+	def config_qmaster_port(self):
+		if self.target_obj:
+			return self.target_obj.get(ConfigNames.q_master_port, ConfigNames.engine_section)
+		return ''
+	
+	# clem 09/05/2016
+	def write_config(self): # FIXME obsolete
+		""" Writes a custom config file for SGE to read from for config
+
+		:return: success
+		:rtype: bool
+		"""
+		assert isinstance(self.target_obj, ComputeTarget)
+		a_dict = {
+			'shell' : self.config_shell_path,
+			'h_vmem': self.DEFAULT_V_MEM,
+			'h_cpu' : self.DEFAULT_H_CPU,
+			'h_rt'  : self.DEFAULT_H_RT,
+			'queue' : self.config_queue_name,
+		}
+		return gen_file_from_template(self.SGE_RQ_TEMPLATE, a_dict, '~/%s' % self.SGE_REQUEST_FN)
+	
+	# clem 09/05/2016
+	def apply_config(self):
+		""" Applies the proper Django settings, and environement variables for SGE config
+
+		:return: if succeeded
+		:rtype: bool
+		"""
+		if self.target_obj:
+			self.engine_obj.set_local_env()
+			self.execut_obj.set_local_env()
+			# self.target_obj.set_local_env()
+			self.target_obj.set_local_env(self.target_obj.engine_section)
+			self.engine_obj.set_local_env()
+			
+			# return self.write_config()
+			return True
+		return False
+	
 	# clem 20/10/2016
 	@property
 	def online(self):
@@ -73,7 +128,7 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 
 			:rtype: bool
 			"""
-			if is_host_online(settings.SGE_MASTER_IP, 2):
+			if is_host_online(self.config_qmaster_host, 2):
 				try:
 					s = drmaa.Session()
 					s.initialize()
@@ -92,52 +147,12 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 
 # clem 06/05/2016
 class SGEInterface(SGEInterfaceConnector, ComputeInterface):
-	DEFAULT_V_MEM = '15G'
-	DEFAULT_H_CPU = '999:00:00'
-	DEFAULT_H_RT = '999:00:00'
-	SGE_RQ_TEMPLATE = settings.SGE_REQUEST_TEMPLATE
-	SGE_REQUEST_FN = settings.SGE_REQUEST_FN
-
 	def __init__(self, compute_target, storage_backend=None):
 		super(SGEInterface, self).__init__(compute_target, storage_backend)
 
 	# clem 06/10/2016
 	def name(self):
 		return "sge queue %s" % self.config_queue_name
-
-	# clem 09/05/2016
-	def write_config(self):
-		""" Writes a custom config file for SGE to read from for config
-
-		:return: success
-		:rtype: bool
-		"""
-		assert isinstance(self.target_obj, ComputeTarget)
-		a_dict = {
-			'shell'	: self.config_shell_path,
-			'h_vmem': self.DEFAULT_V_MEM,
-			'h_cpu'	: self.DEFAULT_H_CPU,
-			'h_rt'	: self.DEFAULT_H_RT,
-			'queue'	: self.config_queue_name,
-		}
-		return gen_file_from_template(self.SGE_RQ_TEMPLATE, a_dict, '~/%s' % self.SGE_REQUEST_FN)
-
-	# clem 09/05/2016
-	def apply_config(self):
-		""" Applies the proper Django settings, and environement variables for SGE config
-
-		:return: if succeeded
-		:rtype: bool
-		"""
-		if self.target_obj:
-			self.engine_obj.set_local_env()
-			self.execut_obj.set_local_env()
-			# self.target_obj.set_local_env()
-			self.target_obj.set_local_env(self.target_obj.engine_section)
-			self.engine_obj.set_local_env()
-
-			return self.write_config()
-		return False
 
 	# clem 06/05/2016
 	@property
@@ -216,7 +231,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 
 	def send_job(self):
 		# TODO fully switch to qsub, to get finally totally rid of DRMAA F*****G SHIT
-		if drmaa and self.apply_config():
+		if self.apply_config() and drmaa:
 			# self._runnable.old_sge_run()
 			self.__old_job_run()
 			return True
