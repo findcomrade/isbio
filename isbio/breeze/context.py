@@ -14,8 +14,8 @@ def user_context(request):
         'is_authenticated': is_auth,
         'run_mode': settings.RUN_MODE,
         'dev_mode': settings.DEV_MODE,
-        'git_branch': settings.CURRENT_GIT_COMMIT,
-        'git_commit': settings.CURRENT_GIT_BRANCH,
+        'git_branch': settings.CURRENT_GIT_BRANCH,
+        'git_commit': settings.CURRENT_GIT_COMMIT,
     }
 
 
