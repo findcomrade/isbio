@@ -1,5 +1,5 @@
 django_cas
-Django>=1.4.3
+Django=1.4.3
 MySQL-python>=1.2.4c1
 PIL>=1.1.7
 PypeR>=1.1.1
@@ -61,3 +61,5 @@ sshtunnel>=0.0.8.1
 paramiko>=1.9.0
 docker-py>=1.7.2
 azure-storage>=0.31
+django-cas-ng>=3.5.6
+django_auth0
