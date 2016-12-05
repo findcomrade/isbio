@@ -240,13 +240,16 @@
 						<li class="{{ help_status }}">
 							<a href="/help/" id="help"> <i class="icon-question-sign"></i> Help</a>
 						</li>
-						<li>
-
-						</li>
-						<!--
-						<ul class="nav nav-tabs"></ul>
-						<ul class="nav pull-right"></ul>-->
 					</ul>
+					{% if dev_mode %}
+					<ul class="nav pull-right"> <li style="color: #557799;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    /* float: none; */
+    padding: 10px 15px 10px;
+    text-decoration: none;
+    display: block;">Running dev on <strong>{{ git_branch }}</strong> / {{ git_commit }}</li>
+					</ul>
+					{% endif %}
 					{% endif %}
 				</div>
 			</div>
