@@ -122,9 +122,11 @@
 		<label class='control-label'>Label Text
 			<input class='input-medium' type='text' name='label' id='label'></label>
 		<label class='control-label'>Inline Variable Name
-			<input class='input-medium' type='text' name='r_inline' id='r_inline'></label>
+			<input class='input-medium' type='text' name='r_inline' id='r_inline' placeholder='R var name.
+			Must fullfill R variable naming conventions (i.e. no spaces)'></label>
 		<label class='control-label'>File Format :
-			<input class='input-medium' type='text' name='file_format' id='file_format'></label>
+			<input class='input-medium' type='text' name='file_format' id='file_format' placeholder='empty or * for
+								 any, or coma-separated list of acceptable file extensions'></label>
 		<label class='control-label'>Help Text:
 			<textarea class='input-medium' style='min-height: 135px' name='help_text' id='help_text'>
 			</textarea></label>
@@ -139,9 +141,7 @@
 								<label class="control-label valtype" data-valtype="label">File Upload</label>
 								<div class="controls">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="r_inline" value="def_fileup_var">
-									<input type="hidden" placeholder="empty or * for any, or coma-separated list of
-									acceptable file extensions" class="input valtype" data-valtype="file_format"
-									       value="">
+									<input type="hidden" placeholder="" class="input valtype" data-valtype="file_format" value="">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="help_text" value="">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="flag_optional" value="0">
 									<input class="input-file" id="fileInput" type="file">
@@ -325,9 +325,11 @@
 		<label class='control-label'>Label Text
 			<input class='input-medium' type='text' name='label' id='label'></label>
 		<label class='control-label'>Inline Variable Name
-			<input class='input-medium' type='text' name='r_inline' id='r_inline'></label>
+			<input class='input-medium' type='text' name='r_inline' id='r_inline' placeholder='R var name.
+			Must fullfill R variable naming conventions (i.e. no spaces)'></label>
 		<label class='control-label'>File Format:
-			<input class='input-medium' type='text' name='file_format' id='file_format'></label>
+			<input class='input-medium' type='text' name='file_format' id='file_format' placeholder='empty or * for
+								 any, or coma-separated list of acceptable file extensions'></label>
 		<label class='control-label'>Help Text:
 			<textarea class='input-medium' style='min-height: 135px' name='help_text' id='help_text'>
 		</textarea></label>
@@ -345,8 +347,7 @@
 								<label class="control-label valtype" data-valtype="label">Template Upload</label>
 								<div class="controls">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="r_inline" value="def_template_var">
-									<input type="hidden" placeholder="empty or * for any, or coma-separated list of
-									acceptable file extensions" class="input valtype" data-valtype="file_format"
+									<input type="hidden" class="input valtype" data-valtype="file_format"
 									       value="">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="help_text" value="">
 									<input type="hidden" placeholder="" class="input valtype" data-valtype="flag_optional" value="0">
