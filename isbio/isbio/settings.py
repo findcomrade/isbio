@@ -395,6 +395,7 @@ class DevSettings(BreezeSettings):
 	QSTAT_BIN = '%sqstat' % Q_BIN
 	QDEL_BIN = '%sqdel' % Q_BIN
 	SGE_QUEUE_NAME = os.environ.get('SGE_QUEUE', LEGACY_MONITORING_SGE_QUEUE_NAME)
+	LEGACY_MONITORING_SGE_QUEUE_NAME = SGE_QUEUE_NAME
 
 	# Super User on breeze can Access all data
 	SU_ACCESS_OVERRIDE = True
