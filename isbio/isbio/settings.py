@@ -748,6 +748,8 @@ if not BreezeSettings.SECRET_KEY:
 	SECRET_KEY = getkey(DevSettings.SOURCE_ROOT)
 	BreezeSettings.SECRET_KEY = SECRET_KEY
 
+CURRENT_GIT_COMMIT = git_get_commit()
+CURRENT_GIT_BRANCH = git_get_branch()
 
 def make_run_file():
 	f = open('running', 'w+')
@@ -774,8 +776,7 @@ else:
 		(Bcolors.bold(LOG_PATH), Bcolors.ok_blue(git_get_branch()), Bcolors.ok_blue(Bcolors.bold(DevSettings.RUN_MODE)),
 		Bcolors.ok_blue(DevSettings.FULL_HOST_NAME))
 	git_stat = git_get_status()
-	CURRENT_GIT_COMMIT = git_get_commit()
-	CURRENT_GIT_BRANCH = git_get_branch()
+	
 	print git_stat
 	if DevSettings.PHARMA_MODE:
 		print Bcolors.bold('RUNNING WITH PHARMA')
