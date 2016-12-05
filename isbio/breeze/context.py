@@ -1,5 +1,4 @@
 from django.conf import settings
-from breeze.utilities import git_get_branch, git_get_commit
 
 
 def user_context(request):
@@ -15,8 +14,8 @@ def user_context(request):
         'is_authenticated': is_auth,
         'run_mode': settings.RUN_MODE,
         'dev_mode': settings.DEV_MODE,
-        'git_branch': git_get_branch(),
-        'git_commit': git_get_commit(),
+        'git_branch': settings.CURRENT_GIT_COMMIT,
+        'git_commit': settings.CURRENT_GIT_BRANCH,
     }
 
 

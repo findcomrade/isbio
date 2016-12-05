@@ -5,7 +5,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from breeze.utilities import git_get_status, git_get_branch, is_host_online, test_url
+from breeze.utilities import git_get_status, git_get_branch, git_get_commit, is_host_online, test_url
 
 ENABLE_DATADOG = True
 try:
@@ -774,6 +774,8 @@ else:
 		(Bcolors.bold(LOG_PATH), Bcolors.ok_blue(git_get_branch()), Bcolors.ok_blue(Bcolors.bold(DevSettings.RUN_MODE)),
 		Bcolors.ok_blue(DevSettings.FULL_HOST_NAME))
 	git_stat = git_get_status()
+	CURRENT_GIT_COMMIT = git_get_commit()
+	CURRENT_GIT_BRANCH = git_get_branch()
 	print git_stat
 	if DevSettings.PHARMA_MODE:
 		print Bcolors.bold('RUNNING WITH PHARMA')
