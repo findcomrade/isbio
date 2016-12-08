@@ -1,12 +1,11 @@
 from compute_interface_module import * # has os, abc, JobStat, Runnable, ComputeTarget and utilities.*
 from breeze.b_exceptions import NoSuchJob, SGEError # , InvalidArgument
-from import_drmaa import drmaa, drmaa_mutex
 from django.conf import settings
 import StringIO
 import copy
 
 
-__version__ = '0.1.4'
+__version__ = '0.1.6'
 __author__ = 'clem'
 __date__ = '06/05/2016'
 
@@ -41,48 +40,39 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 		"""
 		super(SGEInterfaceConnector, self).__init__(compute_target, storage_backend)
 		self.apply_config()
+		from import_drmaa import drmaa, drmaa_mutex
+		self.drmaa = drmaa
+		self.drmaa_mutex = drmaa_mutex
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def config_qstat_bin_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.qstat_bin_path)
-		return ''
+		return self.engine_obj.get(ConfigNames.qstat_bin_path)
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def config_qdel_bin_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.qdel_bin_path)
-		return ''
+		return self.engine_obj.get(ConfigNames.qdel_bin_path)
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def config_shell_path(self):
-		if self.engine_obj:
-			return self.engine_obj.get(ConfigNames.shell_path)
-		return ''
+		return self.engine_obj.get(ConfigNames.shell_path)
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def config_queue_name(self):
-		if self.target_obj:
-			return self.target_obj.get(ConfigNames.queue, ConfigNames.engine_section)
-		return ''
+		return self.target_obj.get(ConfigNames.queue, ConfigNames.engine_section) if self.target_obj else ''
 	
 	# clem 02/12/2016
 	@property  # writing shortcut
 	def config_qmaster_host(self):
-		if self.target_obj:
-			return self.target_obj.get(ConfigNames.q_master, ConfigNames.engine_section)
-		return ''
+			return self.target_obj.get(ConfigNames.q_master, ConfigNames.engine_section) if self.target_obj else ''
 	
 	# clem 02/12/2016
 	@property  # writing shortcut
 	def config_qmaster_port(self):
-		if self.target_obj:
-			return self.target_obj.get(ConfigNames.q_master_port, ConfigNames.engine_section)
-		return ''
+		return self.target_obj.get(ConfigNames.q_master_port, ConfigNames.engine_section) if self.target_obj else ''
 	
 	# clem 09/05/2016
 	def write_config(self): # FIXME obsolete
@@ -130,7 +120,7 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 			"""
 			if is_host_online(self.config_qmaster_host, 2):
 				try:
-					s = drmaa.Session()
+					s = self.drmaa.Session()
 					s.initialize()
 					s.exit()
 					return True
@@ -193,8 +183,8 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		except Exception as e:
 			self.log.exception('pre-run error %s (process continues)' % e)
 		try:
-			with drmaa_mutex:
-				with drmaa.Session() as session:
+			with self.drmaa_mutex:
+				with self.drmaa.Session() as session:
 					jt = session.createJobTemplate()
 					jt.workingDirectory = a_run.home_folder_full_path
 					jt.jobName = a_run.sge_job_name
@@ -220,7 +210,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 					# waiting for the job to end
 					self.busy_waiting(True)
 					jt.delete()
-		except (drmaa.AlreadyActiveSessionException, drmaa.InvalidArgumentException, drmaa.InvalidJobException,
+		except (self.drmaa.AlreadyActiveSessionException, self.drmaa.InvalidArgumentException, self.drmaa.InvalidJobException,
 		Exception) as e:
 			self.log.error('drmaa submit failed : %s' % e)
 			a_run.manage_run_failed(-1, '')
@@ -231,7 +221,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 
 	def send_job(self):
 		# TODO fully switch to qsub, to get finally totally rid of DRMAA F*****G SHIT
-		if self.apply_config() and drmaa:
+		if self.apply_config() and self.drmaa:
 			# self._runnable.old_sge_run()
 			self.__old_job_run()
 			return True
@@ -257,10 +247,10 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		sge_id = copy.deepcopy(a_run.sgeid) # useless
 		try:
 			ret_val = None
-			if drmaa and drmaa_waiting:
-				with drmaa_mutex:
-					with drmaa.Session() as session:
-						ret_val = session.wait(sge_id, drmaa.Session.TIMEOUT_WAIT_FOREVER)
+			if self.drmaa and drmaa_waiting:
+				with self.drmaa_mutex:
+					with self.drmaa.Session() as session:
+						ret_val = session.wait(sge_id, self.drmaa.Session.TIMEOUT_WAIT_FOREVER)
 			else:
 				try:
 					while True:
@@ -281,7 +271,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 				exit_code = 1
 				a_run.breeze_stat = JobStat.ABORTED
 
-			if drmaa and isinstance(ret_val, drmaa.JobInfo):
+			if self.drmaa and isinstance(ret_val, self.drmaa.JobInfo):
 				if ret_val.hasExited:
 					exit_code = ret_val.exitStatus
 				# dic = ret_val.resourceUsage # TODO FUTURE use for mail reporting

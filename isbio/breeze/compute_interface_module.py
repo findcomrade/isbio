@@ -96,9 +96,10 @@ class ComputeInterfaceBase(object):
 	# clem 17/05/2016
 	@property # writing shortcut
 	def engine_obj(self):
+		from breeze.non_db_objects import FakeConfigObject
 		if self.target_obj and self.target_obj.engine_obj:
 			return self.target_obj.engine_obj
-		return None
+		return FakeConfigObject()
 	
 	# clem 17/05/2016
 	@property  # writing shortcut

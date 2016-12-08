@@ -2,11 +2,30 @@ from django.template.defaultfilters import slugify
 from django.db import models
 from utils import *
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
 
+# TODO re-design
+class __DrmaaJobState(object):
+	UNDETERMINED = 'undetermined'
+	QUEUED_ACTIVE = 'queued_active'
+	SYSTEM_ON_HOLD = 'system_on_hold'
+	USER_ON_HOLD = 'user_on_hold'
+	USER_SYSTEM_ON_HOLD = 'user_system_on_hold'
+	RUNNING = 'running'
+	SYSTEM_SUSPENDED = 'system_suspended'
+	USER_SUSPENDED = 'user_suspended'
+	USER_SYSTEM_SUSPENDED = 'user_system_suspended'
+	DONE = 'done'
+	FAILED = 'failed'
+
+
+job_stat_class = __DrmaaJobState
+
+
+# TODO re-design
 class JobState(job_stat_class):
 	SUSPENDED = 'suspended'
 	PENDING = 'pending'
@@ -16,6 +35,7 @@ class JobState(job_stat_class):
 	SCRIPT_FAILED = 's_failed'
 
 
+# TODO re-design
 # 30/06/2015 & 10/07/2015
 class JobStat(object):
 	"""
@@ -570,6 +590,17 @@ class ConfigObject(FolderObj):
 
 	class Meta(FolderObj.Meta):
 		abstract = True
+
+
+class FakeConfigObject(ConfigObject):
+	def folder_name(self):
+		return ''
+	
+	def get(self, *args, **kwargs):
+		return ''
+	
+	def __nonzero__(self):
+		return False
 
 
 class CustomList(list):
