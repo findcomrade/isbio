@@ -206,9 +206,6 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 						a_run.sgeid = copy.deepcopy(session.runJob(jt))
 						self.log.debug('returned sge_id "%s"' % a_run.sgeid)
 						a_run.breeze_stat = JobStat.SUBMITTED
-					# a_run.waiter(s, True)
-					# a_run.compute_if.busy_waiting(s, True)
-					# a_run.compute_if.busy_waiting(True)
 					# waiting for the job to end
 					self.busy_waiting(True)
 					jt.delete()
@@ -224,8 +221,6 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 	def send_job(self):
 		# TODO fully switch to qsub, to get finally totally rid of DRMAA F*****G SHIT
 		if self.apply_config() and self.drmaa:
-			# self._runnable.old_sge_run
-			print os.environ
 			self.__old_job_run()
 			return True
 		return False
