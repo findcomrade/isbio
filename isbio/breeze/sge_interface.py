@@ -188,15 +188,18 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 					jt = session.createJobTemplate()
 					jt.workingDirectory = a_run.home_folder_full_path
 					jt.jobName = a_run.sge_job_name
-					jt.email = [str(a_run._author.email)]
+					jt.email = [str(a_run.author.email)]
+					jt.nativeSpecification = ""
 					if a_run.mailing != '':
-						jt.nativeSpecification = "-m " + a_run.mailing
+						jt.nativeSpecification += "-m " + a_run.mailing
+					print "target queue :", self.config_queue_name
+					jt.nativeSpecification += "-w n -q %s " % self.config_queue_name
 					if a_run.email is not None and a_run.email != '':
 						jt.email.append(str(a_run.email))
 					jt.blockEmail = False
 
 					jt.remoteCommand = config
-					jt.joinFiles = True
+					jt.joinFiles = False
 
 					a_run.progress = 25
 					a_run.save()
@@ -222,7 +225,8 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 	def send_job(self):
 		# TODO fully switch to qsub, to get finally totally rid of DRMAA F*****G SHIT
 		if self.apply_config() and self.drmaa:
-			# self._runnable.old_sge_run()
+			# self._runnable.old_sge_run
+			print os.environ
 			self.__old_job_run()
 			return True
 		return False
