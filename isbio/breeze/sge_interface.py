@@ -192,8 +192,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 					jt.nativeSpecification = ""
 					if a_run.mailing != '':
 						jt.nativeSpecification += "-m " + a_run.mailing
-					print "target queue :", self.config_queue_name
-					jt.nativeSpecification += "-w n -q %s " % self.config_queue_name
+					jt.nativeSpecification += "-w n -q %s " % self.config_queue_name # FIXME hack
 					if a_run.email is not None and a_run.email != '':
 						jt.email.append(str(a_run.email))
 					jt.blockEmail = False
