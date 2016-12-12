@@ -7,6 +7,7 @@ provide job_stat_class as alias to drmaa.JobState and as an replacement class if
 
 """
 from threading import Lock
+from thread import LockType
 from utilz import logger
 __version__ = '0.1.1'
 __author__ = 'clem'
@@ -22,3 +23,4 @@ except ImportError as e:
 
 
 drmaa_mutex = Lock()
+assert isinstance(drmaa_mutex, LockType)

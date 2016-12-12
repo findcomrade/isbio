@@ -23,6 +23,32 @@ class ConfigNames(enumerate):
 	qdel_bin_path = 'QDEL_BIN'
 
 
+class DrmaaInit(object):
+	def __init__(self):
+		from import_drmaa import drmaa, drmaa_mutex, LockType
+		self.drmaa = drmaa
+		self.drmaa_mutex = drmaa_mutex
+		self.LockType = LockType
+	
+	def __enter__(self):
+		assert isinstance(self.drmaa_mutex, self.LockType)
+		self.drmaa_mutex.acquire()
+		self.session = self.drmaa.Session.initialize()
+		assert self.is_valid
+		return self.session
+	
+	@property
+	def is_valid(self):
+		return isinstance(self.session, self.drmaa.Session)
+	
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		assert isinstance(self.drmaa_mutex, self.LockType)
+		try:
+			self.session.exit()
+		finally:
+			self.drmaa_mutex.release()
+		
+
 # clem 01/12/2016
 class SGEInterfaceConnector(ComputeInterfaceBase):
 	DEFAULT_V_MEM = '15G'
@@ -40,10 +66,17 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 		"""
 		super(SGEInterfaceConnector, self).__init__(compute_target, storage_backend)
 		self.apply_config()
-		from import_drmaa import drmaa, drmaa_mutex
-		self.drmaa = drmaa
-		self.drmaa_mutex = drmaa_mutex
+		# from import_drmaa import drmaa, drmaa_mutex
+		# self.drmaa = drmaa
+		# self.drmaa_mutex = drmaa_mutex
+		self.drmaa_if = DrmaaInit()
+		self.session = self.drmaa_if
 	
+	# clem 12/12/2016
+	@property
+	def drmaa(self):
+		return self.drmaa_if.drmaa
+
 	# clem 17/05/2016
 	@property  # writing shortcut
 	def config_qstat_bin_path(self):
@@ -120,10 +153,13 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 			"""
 			if is_host_online(self.config_qmaster_host, 2):
 				try:
-					s = self.drmaa.Session()
-					s.initialize()
-					s.exit()
-					return True
+					# with self.drmaa_mutex:
+					# 	with self.drmaa.Session() as s:
+					# 		s.initialize()
+					# 		s.exit()
+					with self.session:
+						return self.drmaa_if.is_valid
+					# return True
 				except Exception as e:
 					raise e
 			return False
@@ -183,32 +219,34 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		except Exception as e:
 			self.log.exception('pre-run error %s (process continues)' % e)
 		try:
-			with self.drmaa_mutex:
-				with self.drmaa.Session() as session:
-					jt = session.createJobTemplate()
-					jt.workingDirectory = a_run.home_folder_full_path
-					jt.jobName = a_run.sge_job_name
-					jt.email = [str(a_run.author.email)]
-					jt.nativeSpecification = ""
-					if a_run.mailing != '':
-						jt.nativeSpecification += "-m " + a_run.mailing
-					jt.nativeSpecification += "-w n -q %s " % self.config_queue_name # FIXME hack
-					if a_run.email is not None and a_run.email != '':
-						jt.email.append(str(a_run.email))
-					jt.blockEmail = False
+			# with self.drmaa_mutex:
+				# with self.drmaa.Session() as session:
+			with self.session as session:
+				jt = session.createJobTemplate()
+				jt.workingDirectory = a_run.home_folder_full_path
+				# print "wd '%s'" % jt.workingDirectory
+				jt.jobName = a_run.sge_job_name
+				jt.email = [str(a_run.author.email)]
+				jt.nativeSpecification = ""
+				if a_run.mailing != '':
+					jt.nativeSpecification += "-m " + a_run.mailing
+				jt.nativeSpecification += "-w n -q %s " % self.config_queue_name # FIXME hack
+				if a_run.email is not None and a_run.email != '':
+					jt.email.append(str(a_run.email))
+				jt.blockEmail = False
 
-					jt.remoteCommand = config
-					jt.joinFiles = False
+				jt.remoteCommand = config
+				jt.joinFiles = False
 
-					a_run.progress = 25
-					a_run.save()
-					if not a_run.aborting:
-						a_run.sgeid = copy.deepcopy(session.runJob(jt))
-						self.log.debug('returned sge_id "%s"' % a_run.sgeid)
-						a_run.breeze_stat = JobStat.SUBMITTED
-					# waiting for the job to end
-					self.busy_waiting(True)
-					jt.delete()
+				a_run.progress = 25
+				a_run.save()
+				if not a_run.aborting:
+					a_run.sgeid = copy.deepcopy(session.runJob(jt))
+					self.log.debug('returned sge_id "%s"' % a_run.sgeid)
+					a_run.breeze_stat = JobStat.SUBMITTED
+				# waiting for the job to end
+				self.busy_waiting(True)
+				jt.delete()
 		except (self.drmaa.AlreadyActiveSessionException, self.drmaa.InvalidArgumentException, self.drmaa.InvalidJobException,
 		Exception) as e:
 			self.log.error('drmaa submit failed : %s' % e)
@@ -246,9 +284,10 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		try:
 			ret_val = None
 			if self.drmaa and drmaa_waiting:
-				with self.drmaa_mutex:
-					with self.drmaa.Session() as session:
-						ret_val = session.wait(sge_id, self.drmaa.Session.TIMEOUT_WAIT_FOREVER)
+				# with self.drmaa_mutex:
+				# with self.drmaa.Session() as session:
+				with self.session as session:
+					ret_val = session.wait(sge_id, self.drmaa.Session.TIMEOUT_WAIT_FOREVER)
 			else:
 				try:
 					while True:
