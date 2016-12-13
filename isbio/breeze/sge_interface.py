@@ -23,31 +23,38 @@ class ConfigNames(enumerate):
 	qdel_bin_path = 'QDEL_BIN'
 
 
-class DrmaaInit(object):
+class DrmaaIf(object):
+	_has_session = False
+	
 	def __init__(self):
-		from import_drmaa import drmaa, drmaa_mutex, LockType
+		from import_drmaa import drmaa, drmaa_mutex
 		self.drmaa = drmaa
-		self.drmaa_mutex = drmaa_mutex
-		self.LockType = LockType
+		self.mutex = drmaa_mutex
+		self.session = self.drmaa.Session
+		# self._has_session = False
 	
 	def __enter__(self):
-		assert isinstance(self.drmaa_mutex, self.LockType)
-		self.drmaa_mutex.acquire()
-		self.session = self.drmaa.Session.initialize()
-		assert self.is_valid
+		if self.has_session:
+			return self.session
+		# with self.mutex:
+		self.session.initialize()
+		self._has_session = True
 		return self.session
 	
 	@property
-	def is_valid(self):
-		return isinstance(self.session, self.drmaa.Session)
+	def has_session(self):
+		return self._has_session or self.mutex.locked()
 	
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		assert isinstance(self.drmaa_mutex, self.LockType)
 		try:
 			self.session.exit()
 		finally:
-			self.drmaa_mutex.release()
-		
+			self._has_session = False
+			try:
+				self.mutex.release() # just in case
+			except:
+				pass
+
 
 # clem 01/12/2016
 class SGEInterfaceConnector(ComputeInterfaceBase):
@@ -69,13 +76,18 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 		# from import_drmaa import drmaa, drmaa_mutex
 		# self.drmaa = drmaa
 		# self.drmaa_mutex = drmaa_mutex
-		self.drmaa_if = DrmaaInit()
+		self.drmaa_if = DrmaaIf()
 		self.session = self.drmaa_if
 	
 	# clem 12/12/2016
 	@property
 	def drmaa(self):
 		return self.drmaa_if.drmaa
+
+	# clem 12/12/2016
+	@property
+	def has_session(self):
+		return self.drmaa_if.has_session
 
 	# clem 17/05/2016
 	@property  # writing shortcut
@@ -153,13 +165,11 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 			"""
 			if is_host_online(self.config_qmaster_host, 2):
 				try:
-					# with self.drmaa_mutex:
-					# 	with self.drmaa.Session() as s:
-					# 		s.initialize()
-					# 		s.exit()
-					with self.session:
-						return self.drmaa_if.is_valid
-					# return True
+					if self.has_session:
+						return True
+					else:
+						with self.session:
+							return True
 				except Exception as e:
 					raise e
 			return False
@@ -241,11 +251,13 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 				a_run.progress = 25
 				a_run.save()
 				if not a_run.aborting:
-					a_run.sgeid = copy.deepcopy(session.runJob(jt))
+					with self.drmaa_if.mutex:
+						a_run.sgeid = copy.deepcopy(session.runJob(jt))
 					self.log.debug('returned sge_id "%s"' % a_run.sgeid)
 					a_run.breeze_stat = JobStat.SUBMITTED
 				# waiting for the job to end
-				self.busy_waiting(True)
+				# self.busy_waiting(True)
+				self.busy_waiting()
 				jt.delete()
 		except (self.drmaa.AlreadyActiveSessionException, self.drmaa.InvalidArgumentException, self.drmaa.InvalidJobException,
 		Exception) as e:
@@ -287,6 +299,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 				# with self.drmaa_mutex:
 				# with self.drmaa.Session() as session:
 				with self.session as session:
+					# with self.drmaa_if.mutex:
 					ret_val = session.wait(sge_id, self.drmaa.Session.TIMEOUT_WAIT_FOREVER)
 			else:
 				try:
@@ -338,8 +351,8 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 
 	# clem 06/05/2016
 	def busy_waiting(self, *args):
-		assert len(args) >= 1
-		do_drmaa_waiting = args[0]
+		# assert len(args) >= 1
+		do_drmaa_waiting = args[0] if len(args) >= 1 else False
 		return self.__old_drmaa_waiting(do_drmaa_waiting)
 
 	# clem 09/05/2016

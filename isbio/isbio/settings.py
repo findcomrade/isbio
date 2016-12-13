@@ -587,7 +587,7 @@ if DEBUG:
 			},
 			'': {
 				'handlers': ['default'],
-				'level': logging.INFO,
+				'level': logging.INFO if not DEBUG else logging.DEBUG,
 				'propagate': True
 			},
 			'django.request': {
