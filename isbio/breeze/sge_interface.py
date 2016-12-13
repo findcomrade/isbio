@@ -450,7 +450,7 @@ class SgeJob(object):
 		while init != init.replace('  ', ' '):
 			init = init.replace('  ', ' ')
 		a_list = init.split(' ')
-		self.id = int(a_list[0]) # SgeId
+		self.id = int(a_list[0] or 0) # SgeId
 		self.prior = a_list[1]
 		self.name = a_list[2]
 		# self.full_name = ''
@@ -630,7 +630,7 @@ class Qstat(object): # would need some proper error management if SGE is not set
 			jid = self.runnable.sgeid
 		if jid is not None:
 			if type(jid) == unicode:
-				jid = int(jid)
+				jid = int(jid or 0 )
 			self._refresh_qstat()
 			if jid in self._job_list:
 				return self._job_list[jid]
