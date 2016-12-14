@@ -265,6 +265,7 @@
 			</ul>
 		{% endif %}
 		<div class="row-fluid" style="display: none;">&nbsp;</div>
+		{% if run_mode == 'pharma' %}
 		<div class="row-fluid">
 			<div class="span10 offset1 alert alert-info" style="padding-bottom: 12px;padding-top: 12px;">
 				<h4 style="text-decoration: underline;padding-bottom: 8px;">Welcome to the new Breeze-Pharma !</h4>
@@ -272,7 +273,7 @@
 			    href="https://breeze-oldph.fimm.fi"
 			  rel="noreferrer">old breeze-pharma</a>, and further on from our backup upon request.
 			</div>
-		</div>
+		{% endif %}
 		{% block content %}
 
 		{% endblock %}

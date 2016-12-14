@@ -34,4 +34,7 @@ def date_context(_):
 
 
 def run_mode_context(_):
-	return { 'run_mode_text': '-DEV' if settings.DEV_MODE else ''}
+	return {
+		'run_mode_text': '-DEV' if settings.DEV_MODE else '',
+		'run_mode': settings.RUN_MODE
+	}
