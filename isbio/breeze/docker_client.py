@@ -11,7 +11,7 @@ import time
 import re
 import string
 
-__version__ = '0.1.6'
+__version__ = '0.1.6.1'
 __author__ = 'clem'
 DOCKER_HUB_URL = 'https://index.docker.io'
 
@@ -1664,6 +1664,8 @@ class DockerClient:
 		except requests.packages.urllib3.exceptions.ProtocolError as e:
 			self._raw_cli = None
 			self._exception_handler(e, 'Lost connection to docker daemon: %s' % e)
+		except IndexError as e:
+			self._exception_handler(e, 'Unusual behavior: %s' % e)
 		except Exception as e:
 			# let'as try to restart it
 			self._restart_event_watcher()
