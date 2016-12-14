@@ -408,7 +408,7 @@ def build_report(report_data, request_data, report_property, sections):
 		return False
 	if not target.is_ready:
 		from django.contrib import messages
-		messages.add_message(request_data, messages.ERROR, 'target %s is either disable or not ready' % target)
+		messages.add_message(request_data, messages.ERROR, 'target %s is either disabled or not ready' % target)
 		return False
 	# target = ComputeTarget.objects.get(pk=request_data.POST.get('target'))
 	# if target.id not in rt.ready_id_list: # TODO make a validator in the form section

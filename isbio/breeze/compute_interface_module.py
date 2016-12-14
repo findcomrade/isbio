@@ -12,7 +12,7 @@ __date__ = '04/05/2016'
 
 
 # clem 21/10/2016
-class ComputeInterfaceBase:
+class ComputeInterfaceBase(object):
 	__metaclass__ = abc.ABCMeta
 	_not = "Class %s doesn't implement %s()"
 	storage_backend = None
@@ -96,9 +96,10 @@ class ComputeInterfaceBase:
 	# clem 17/05/2016
 	@property # writing shortcut
 	def engine_obj(self):
+		from breeze.non_db_objects import FakeConfigObject
 		if self.target_obj and self.target_obj.engine_obj:
 			return self.target_obj.engine_obj
-		return None
+		return FakeConfigObject()
 	
 	# clem 17/05/2016
 	@property  # writing shortcut
@@ -110,7 +111,7 @@ class ComputeInterfaceBase:
 
 # clem 04/05/2016
 class ComputeInterface(ComputeInterfaceBase):
-	__metaclass__ = abc.ABCMeta
+	# __metaclass__ = abc.ABCMeta
 	
 	# clem 21/10/2016
 	def __init__(self, compute_target, storage_backend=None):

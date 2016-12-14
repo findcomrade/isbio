@@ -5,7 +5,8 @@ import os
 import socket
 import time
 from datetime import datetime
-from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content
+from utilz import git, TermColoring, recur, recur_rec, get_key, import_env, file_content, is_host_online,  test_url, \
+	magic_const
 
 ENABLE_DATADOG = False
 ENABLE_ROLLBAR = False
@@ -84,8 +85,8 @@ TEMPLATES = [
 				'breeze.context.user_context',
 				'breeze.context.date_context',
 				'breeze.context.run_mode_context',
-				'django_auth0.context_processors.auth0',
-				# "breeze.context.site",
+				# 'django_auth0.context_processors.auth0', # moved to config/auth0.py
+				"breeze.context.site",
 			],
 		},
 	},
@@ -178,13 +179,12 @@ INSTALLED_APPS = [
 	# 'south',
 	'gunicorn',
 	'mathfilters',
-	'django_auth0',
+	# 'django_auth0', # moved to config/auth0.py
 	'hello_auth.apps.Config',
 	'api.apps.Config',
 	'webhooks.apps.Config',
 	'utilz.apps.Config',
 	'django_requestlogging',
-	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',
 	'django_extensions'
 ]
@@ -208,23 +208,10 @@ MIDDLEWARE_CLASSES = [
 	'rollbar.contrib.django.middleware.RollbarNotifierMiddleware' if ENABLE_ROLLBAR else 'breeze.middlewares.Empty',
 ]
 
-AUTHENTICATION_BACKENDS = (
-	'django.contrib.auth.backends.ModelBackend',
-	'django_auth0.auth_backend.Auth0Backend',
-)
 
-AUTH0_DOMAIN = 'breeze.eu.auth0.com'
-AUTH0_TEST_URL = 'https://%s/test' % AUTH0_DOMAIN
-AUTH0_ID_FILE_N = 'auth0_id'
-AUTH0_CLIENT_ID = get_key(AUTH0_ID_FILE_N)
-AUTH0_SECRET_FILE_N = 'auth0'
-AUTH0_SECRET = get_key(AUTH0_SECRET_FILE_N)
-# AUTH0_CALLBACK_URL = 'https://breeze-www.cloudapp.net/login/'
-AUTH0_CALLBACK_URL_BASE = 'https://%s/login/'
-AUTH0_CALLBACK_URL = 'https://breeze.fimm.fi/login/'
-AUTH0_SUCCESS_URL = '/home/'
-AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
-AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
+# AUTHENTICATION_BACKENDS moved to specific auth config files
+
+# AUTH0_* moved to config/auth0.py
 
 SSH_TUNNEL_HOST = 'breeze-ssh'
 SSH_TUNNEL_PORT = '2222'
@@ -288,11 +275,11 @@ LOGGING = {
 	}
 }
 
-AUTH0_IP_LIST = ['52.169.124.164', '52.164.211.188', '52.28.56.226', '52.28.45.240', '52.16.224.164', '52.16.193.66']
 PROD_DOMAINS = ['breeze.fimm.fi', '52.164.211.188']
 DEV_DOMAINS = ['breeze-dev.cloudapp.net', '40.113.91.111']
+PH_DOMAINS = ['breeze-newph.fimm.fi', ]
 
-DEBUG = True
+DEBUG = False
 VERBOSE = False
 SQL_DUMP = False
 # APPEND_SLASH = True
@@ -304,15 +291,8 @@ ADMINS = (
 # root of the Breeze django project folder, includes 'venv', 'static' folder copy, isbio, logs
 SOURCE_ROOT = recur(3, os.path.dirname, os.path.realpath(__file__)) + '/'
 DJANGO_ROOT = recur(2, os.path.dirname, os.path.realpath(__file__)) + '/'
+TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/' # source templates (not HTML ones)
 
-# MANAGERS = ADMINS
-
-# import_env()
-
-Q_BIN = ''
-QSTAT_BIN = ''
-QDEL_BIN = ''
-SGE_QUEUE = ''
 os.environ['MAIL'] = '/var/mail/dbychkov' # FIXME obsolete
 
 CONSOLE_DATE_F = "%d/%b/%Y %H:%M:%S"
@@ -322,18 +302,30 @@ HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
 # automatically setting RUN_MODE depending on the host name
 MODE_FILE = SOURCE_ROOT + '.run_mode'
 MODE_FILE_CONTENT = file_content(MODE_FILE)
-RUN_MODE = 'dev' if MODE_FILE_CONTENT == 'dev' else 'prod'
+RUN_MODE = MODE_FILE_CONTENT
 DEV_MODE = RUN_MODE == 'dev'
-MODE_PROD = RUN_MODE == 'prod'
-PHARMA_MODE = False
+PHARMA_MODE = RUN_MODE == 'pharma'
+MODE_PROD = RUN_MODE == 'prod' or (not DEV_MODE and not PHARMA_MODE)
+
+
+class AuthMethods(object):
+	@magic_const
+	def CAS_NG(): pass
+	
+	@magic_const
+	def AUTH0(): pass
+	
+	@magic_const
+	def undefined(): pass
+
+AUTH_BACKEND = AuthMethods.undefined
 
 if MODE_PROD:
-	ALLOWED_HOSTS = PROD_DOMAINS + AUTH0_IP_LIST
-else:
-	ALLOWED_HOSTS = DEV_DOMAINS + AUTH0_IP_LIST
-# FIXME : replace with Site.objects.get(pk=0)
-CURRENT_FQDN = ALLOWED_HOSTS[0]
-AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % CURRENT_FQDN
+	from isbio.config.mode_prod import *
+elif PHARMA_MODE:
+	from isbio.config.mode_pharma import *
+elif DEV_MODE:
+	from isbio.config.mode_dev import *
 
 NOTEBOOK_ARGUMENTS = [
 	'--ip', '172.17.0.1',
@@ -343,28 +335,18 @@ NOTEBOOK_ARGUMENTS = [
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
 
-# contains everything else (including breeze generated content) than the breeze web source code and static files
-PROJECT_FOLDER_NAME = 'projects'
-# PROJECT_FOLDER_PREFIX = '/fs'
-PROJECT_FOLDER_PREFIX = ''
-PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
-BREEZE_PROD_FOLDER = 'breeze'
-# BREEZE_DEV_FOLDER = '%s-dev' % BREEZE_PROD_FOLDER
-# BREEZE_FOLDER = '%s/' % BREEZE_DEV_FOLDER if DEV_MODE else BREEZE_PROD_FOLDER
-BREEZE_FOLDER = '%s/' % BREEZE_PROD_FOLDER
-
 PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
 if not os.path.isdir(PROJECT_PATH):
 	PROJECT_FOLDER = '/%s/' % PROJECT_FOLDER_NAME
-PROD_PATH = '%s%s/' % (PROJECT_FOLDER, BREEZE_PROD_FOLDER)
+PROD_PATH = '%s%s' % (PROJECT_FOLDER, BREEZE_FOLDER)
 R_ENGINE_SUB_PATH = 'R/bin/R ' # FIXME LEGACY ONLY
 R_ENGINE_PATH = PROD_PATH + R_ENGINE_SUB_PATH
 if not os.path.isfile( R_ENGINE_PATH.strip()):
 	PROJECT_FOLDER = '/%s/' % PROJECT_FOLDER_NAME
-	PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
+	# PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
 	R_ENGINE_PATH = PROD_PATH + R_ENGINE_SUB_PATH # FIXME Legacy
 
-PROJECT_PATH = PROJECT_PATH + '/' if not PROJECT_PATH.endswith('/') else PROD_PATH
+# PROJECT_PATH = PROJECT_PATH + '/' if not PROJECT_PATH.endswith('/') else PROD_PATH
 
 PROJECT_FHRB_PM_PATH = '/%s/fhrb_pm/' % PROJECT_FOLDER_NAME
 JDBC_BRIDGE_PATH = PROJECT_FHRB_PM_PATH + 'bin/start-jdbc-bridge' # Every other path has a trailing /
@@ -383,7 +365,6 @@ UPLOAD_FOLDER = MEDIA_ROOT + 'upload_temp/'
 DATASETS_FOLDER = MEDIA_ROOT + 'datasets/'
 STATIC_ROOT = SOURCE_ROOT + 'static_source/' # static files for the website
 DJANGO_CONFIG_FOLDER = SOURCE_ROOT + 'config/' # Where to store secrets and deployment conf
-TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/' # source templates (not HTML ones)
 MOULD_FOLDER = MEDIA_ROOT + DATA_TEMPLATES_FN
 NO_TAG_XML = TEMPLATE_FOLDER + 'notag.xml'
 
@@ -392,14 +373,14 @@ GENERAL_SH_BASE_NAME = 'run_job'
 GENERAL_SH_NAME = '%s.sh' % GENERAL_SH_BASE_NAME
 GENERAL_SH_CONF_NAME = '%s_conf.sh' % GENERAL_SH_BASE_NAME
 DOCKER_SH_NAME = 'run.sh'
-SGE_REQUEST_FN = '.sge_request'
+
 INCOMPLETE_RUN_FN = '.INCOMPLETE_RUN'
 FAILED_FN = '.failed'
 SUCCESS_FN = '.done'
 R_DONE_FN = '.sub_done'
 # SGE_QUEUE_NAME = 'breeze.q' # monitoring only
-DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo'
-AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd'
+# DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo' # moved to config/azure_cloud.py
+# AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd' # moved to config/azure_cloud.py
 
 #
 # ComputeTarget configs
@@ -431,7 +412,6 @@ SWAP_PATH = MEDIA_ROOT + SWAP_FN
 BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_NAME
 BOOTSTRAP_SH_CONF_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_CONF_NAME
 DOCKER_BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + DOCKER_SH_NAME
-SGE_REQUEST_TEMPLATE = TEMPLATE_FOLDER + SGE_REQUEST_FN
 
 NOZZLE_TEMPLATE_FOLDER = TEMPLATE_FOLDER + 'nozzle_templates/'
 TAGS_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'tag.R'
@@ -488,11 +468,11 @@ FOLDERS_LST = [TEMPLATE_FOLDER, SHINY_REPORT_TEMPLATE_PATH, SHINY_REPORTS, SHINY
 # LONG_POLL_TIME_OUT_REFRESH = 540 # 9 minutes
 # set to 50 sec to avoid time-out on breeze.fimm.fi
 LONG_POLL_TIME_OUT_REFRESH = 50 # FIXME obsolete
-SGE_MASTER_FILE = '/var/lib/gridengine/default/common/act_qmaster' # FIXME obsolete
-SGE_MASTER_IP = '192.168.67.2' # FIXME obsolete
-DOTM_SERVER_IP = '128.214.64.5' # FIXME obsolete
-RORA_SERVER_IP = '192.168.0.219' # FIXME obsolete
-FILE_SERVER_IP = '192.168.0.107' # FIXME obsolete
+# SGE_MASTER_FILE = '/var/lib/gridengine/default/common/act_qmaster' # FIXME obsolete
+# SGE_MASTER_IP = '192.168.67.2' # FIXME obsolete
+# DOTM_SERVER_IP = '128.214.64.5' # FIXME obsolete
+# RORA_SERVER_IP = '192.168.0.219' # FIXME obsolete
+# FILE_SERVER_IP = '192.168.0.107' # FIXME obsolete
 SPECIAL_CODE_FOLDER = PROJECT_PATH + 'code/'
 FS_SIG_FILE = PROJECT_PATH + 'fs_sig.md5'
 FS_LIST_FILE = PROJECT_PATH + 'fs_checksums.json'
@@ -528,11 +508,12 @@ EMAIL_USE_TLS = True
 #
 
 # if prod mode then auto disable DEBUG, for safety
-if MODE_PROD:
-	SHINY_MODE = 'remote'
-	SHINY_LOCAL_ENABLE = False
-	DEBUG = False
-	VERBOSE = False
+# moved to config/mode_prod.py and config/mode_pharama.py
+# if MODE_PROD or PHARMA_MODE:
+# 	SHINY_MODE = 'remote'
+# 	SHINY_LOCAL_ENABLE = False
+# 	DEBUG = False
+# 	VERBOSE = False
 
 if DEBUG:
 	import sys
@@ -608,7 +589,7 @@ if DEBUG:
 			},
 			'': {
 				'handlers': ['default'],
-				'level': logging.INFO,
+				'level': logging.INFO if not DEBUG else logging.DEBUG,
 				'propagate': True
 			},
 			'django.request': {
@@ -680,6 +661,8 @@ else:
 	logging.info(git_stat)
 	from api import code_v1
 	code_v1.do_self_git_pull()
+	if PHARMA_MODE:
+		print TermColoring.bold('RUNNING WITH PHARMA')
 print('debug mode is %s' % ('ON' if DEBUG else 'OFF'))
 
 

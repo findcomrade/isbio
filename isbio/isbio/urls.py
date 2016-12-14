@@ -14,7 +14,8 @@ Including another URLconf
 	2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-from django.conf import settings
+# from django.conf import settings
+from isbio import settings
 from django.contrib.staticfiles.views import serve
 from breeze.middlewares import is_on
 
@@ -23,7 +24,6 @@ if not is_on():
 
 	urlpatterns = [url(r'^.*$', views.down, name='down')]
 else:
-	from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 	import breeze
 	import breeze.views
 	from api import views_legacy as legacy # forward
@@ -33,11 +33,26 @@ else:
 
 	email_pattern = r'\b[\w.\'-]+@(?:(?:[^_+,!@#$%^&*();\/\\|<>"\'\n -][-\w]+[^_+,!@#$%^&*();\/\\|<>"\' ' \
 		r'\n-]|\w+)\.)+\w{2,63}\b'
+	
+	urlpatterns = []
 
-	urlpatterns = [
-		url(r'^', include('hello_auth.urls')),
+	if settings.AUTH_BACKEND is settings.AuthMethods.AUTH0:
+		urlpatterns += [
+			url(r'^', include('hello_auth.urls')),
+			url(r'^auth/', include('django_auth0.urls')),
+		]
+	elif settings.AUTH_BACKEND is settings.AuthMethods.CAS_NG:
+		from django_cas_ng.views import login, logout, callback
+		urlpatterns += [
+			url(r'^accounts/login$', login, name='cas_ng_login'),
+			url(r'^$', login, name='cas_ng_login1'),
+			url(r'^accounts/logout$', logout, name='cas_ng_logout'),
+			url(r'^logout/?$', logout, name='cas_ng_logout1'),
+			url(r'^accounts/callback$', callback, name='cas_ng_proxy_callback'),
+		]
+
+	urlpatterns += [
 		url(r'^api/', include('api.urls')),
-		url(r'^auth/', include('django_auth0.urls')),
 		url(r'^user_list/?$', breeze.views.user_list, name='user_list'),
 		url(r'^test1/?', breeze.views.job_list, name='job_list'),
 		url(r'^mail_list/?$', breeze.views.user_list_advanced, name='user_list_advanced'),

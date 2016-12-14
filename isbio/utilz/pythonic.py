@@ -1,6 +1,7 @@
 from . import Thread
 import gc
 import inspect
+from collections import OrderedDict
 
 __version__ = '0.1.1'
 __author__ = 'clem'
@@ -65,6 +66,21 @@ def not_imp(self): # writing shortcut for abstract classes
 class ClassProperty(property):
 	def __get__(self, cls, owner=None):
 		return classmethod(self.fget).__get__(None, owner)()
+	
+
+# clem 30/11/2016
+class StaticPropertyBase(property):
+	def __get__(self, cls, owner=None):
+		return staticmethod(self.fget).__get__(None, owner)
+
+
+# clem 30/11/2016
+class MagicConst(StaticPropertyBase):
+	@StaticPropertyBase
+	def over(self):
+		return self.__name__
+
+magic_const = MagicConst
 
 
 # clem 10/10/2016 from http://stackoverflow.com/a/4506081/5094389
@@ -124,3 +140,168 @@ def this_function_caller_name(delta=0):
 	:rtype: str
 	"""
 	return inspect.currentframe(2 + delta).f_code.co_name
+
+
+####################
+# CUSTOMIZED TYPES #
+####################
+class SupStr(str):
+	""" string that supports minus operation """
+	_empty = ''
+	
+	def __init__(self, string=_empty):
+		super(SupStr, self).__init__(string)
+	
+	def __sub__(self, other):
+		""" minus operation as remove substring """
+		assert isinstance(other, str)
+		return self.replace(other, self._empty)
+
+
+class EnsDict(dict):
+	""" dict that supports ensembles (like in set) operations on its keys"""
+	_empty = iter(())
+	
+	def __init__(self, iterable=_empty, **kwargs):
+		super(EnsDict, self).__init__(iterable=iterable, **kwargs)
+	
+	@property
+	def sd(self):
+		return self.__data()
+	
+	def __data(self, obj=None):
+		"""
+		:type obj: dict |  EnsDict
+		:rtype: dict
+		"""
+		if not obj:
+			obj = self
+		if type(obj) is dict:
+			return obj
+		elif type(obj) is EnsDict:
+			return obj.get('iterable')
+		else:
+			raise TypeError
+	
+	def __sub__(self, other): # A / B (everything in A that is not in B)
+		assert isinstance(other, dict)
+		sd, od = self.sd, self.__data(other)
+		a, b = set(sd.keys()), set(od.keys())
+		c = a - b
+		new_dict = dict()
+		for each in c:
+			new_dict.update({ each: sd.get(each, None) })
+		return new_dict
+	
+	def __and__(self, other): # A inter B (everything that is both in A and B)
+		assert isinstance(other, dict)
+		sd, od = self.sd, self.__data(other)
+		a, b = set(sd.keys()), set(od.keys())
+		c = a & b
+		new_dict = dict()
+		for each in c:
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		return new_dict
+	
+	def __or__(self, other): # A union B (A union B, everything from A, and everything from B) i.e. (A / B) + A inter
+		#  B + (B / A)
+		assert isinstance(other, dict)
+		sd, od = self.sd, self.__data(other)
+		a, b = set(sd.keys()), set(od.keys())
+		c = a | b
+		new_dict = dict()
+		for each in c:
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		return new_dict
+	
+	def __xor__(self, other): # (A + B) / (A inter B) (everything in A and not in B, and everything in B and not in A)
+		sd, od = self.sd, self.__data(other)
+		myself, other = EnsDict(sd), EnsDict(od)
+		return EnsDict(myself - other) + EnsDict(other - myself)
+	
+	def weired(self, other): # ???
+		assert isinstance(other, dict)
+		sd, od = self.sd, self.__data(other)
+		a, b = set(sd.keys()), set(od.keys())
+		c = a - b
+		d = b - a
+		new_dict = dict()
+		for each in c:
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		for each in d:
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		return new_dict
+	
+	def __add__(self, other): # ???
+		assert isinstance(other, dict)
+		sd, od = self.sd, self.__data(other)
+		new_dict = dict()
+		for each in sd.keys():
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		for each in od.keys():
+			new_dict.update({ each: (sd.get(each, None), od.get(each, None)) })
+		return new_dict
+	
+	def __repr__(self):
+		return self.sd.__repr__()
+
+
+class EnsList(list): # FIXME should use set instead of manual parsing
+	""" list that supports minus and plus operations as in ensemble deprived and union """
+	_empty = iter(())
+	
+	def __init__(self, iterable=_empty):
+		super(EnsList, self).__init__(iterable)
+	
+	def __sub__(self, other):
+		""" as deprived ensemble operation """
+		res = self.__class__(self._empty)
+		assert isinstance(other, list)
+		for each in self:
+			if each not in other:
+				res.append(each)
+		return res
+	
+	def __add__(self, other):
+		""" as union ensemble operation """
+		res = self.__class__(self._empty)
+		assert isinstance(other, list)
+		for each in self:
+			if each not in other:
+				res.append(each)
+		for each in other:
+			if each not in self:
+				res.append(each)
+		return res
+	
+	def filter(self, contains):
+		""" returns only items of the list that contains a specific string """
+		res = self.__class__(self._empty)
+		for each in self:
+			if contains in each:
+				res.append(each)
+		return res
+
+
+class AutoOrderedDict(OrderedDict):
+	""" Store items in the order the keys were last added, and create sorted dicts, from dicts and key order list """
+	
+	def __init__(self, a_dict=None, order_list=list()):
+		super(AutoOrderedDict, self).__init__()
+		a_dict = a_dict or dict()
+		if a_dict and order_list: # values in same order as the list of keys
+			for each in order_list:
+				if each in a_dict:
+					self[each] = a_dict[each]
+		elif a_dict and not order_list: # values in same "order" as the original dict
+			for k, v in a_dict.iteritems():
+				self[k] = v
+		elif order_list and not a_dict: # order without values, save the order, init all value to None
+			for each in order_list:
+				self[each] = None
+	
+	def __setitem__(self, key, value, _=dict.__setitem__):
+		if key in self:
+			del self[key]
+		OrderedDict.__setitem__(self, key, value)
+
