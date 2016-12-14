@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.8'
+__version__ = '0.9'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = True # i.e. debug
@@ -319,7 +319,7 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 	# _client = None
 	_container_lock = None
 	_label = ''
-	my_volume = DockerVolume('/home/breeze/data/', '/breeze')
+	my_volume = DockerVolume('/home/breeze/data/', '/breeze') # FIXME (shouldn't be static)
 	my_run = None
 	_container = None
 	_container_logs = ''
@@ -791,7 +791,9 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 		self._set_global_status(self.js.PREPARE_RUN) # TODO change
 		if self._upload_assembly():
 			env = { 'AZURE_KEY': self._job_storage.ACCOUNT_KEY } # passing the blob storage secret key to the cont
-			self.my_run = DockerRun(self.config_container, self.config_cmd % self.run_id, self.my_volume, env=env)
+			# TODO add host_sup passing
+			self.my_run = DockerRun(self.config_container, self.config_cmd % self.run_id, self.my_volume, env=env,
+				cont_name='%s_%s' % (self._runnable.short_id , self._runnable.author))
 			self._attach_event_manager()
 			if self._run():
 				return True
@@ -838,7 +840,8 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 					except Exception as e:
 						self.log.exception('Killing container failed : %s' % str(e))
 					try:
-						self.container.remove_container()
+						if self.auto_remove:
+							self.container.remove_container()
 					except Exception as e:
 						self.log.exception('Removing container failed : %s' % str(e))
 			except Exception as e:

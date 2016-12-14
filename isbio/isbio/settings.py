@@ -136,7 +136,7 @@ STATICFILES_DIRS = (
 	# Put strings here, like "/home/html/static" or "C:/www/django/static".
 	# Always use forward slashes, even on Windows.
 	# Don't forget to use absolute paths, not relative paths.
-	"/root/code/static_source",
+	"/root/static_source",
 )
 
 # List of finder classes that know how to find static files in
@@ -161,6 +161,7 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 AUTH_USER_MODEL = 'breeze.CustomUser'
 
 INSTALLED_APPS = [
+	'suit',
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
@@ -185,6 +186,7 @@ INSTALLED_APPS = [
 	'django_requestlogging',
 	# Uncomment the next line to enable admin documentation:
 	'django.contrib.admindocs',
+	'django_extensions'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -332,6 +334,11 @@ else:
 # FIXME : replace with Site.objects.get(pk=0)
 CURRENT_FQDN = ALLOWED_HOSTS[0]
 AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % CURRENT_FQDN
+
+NOTEBOOK_ARGUMENTS = [
+	'--ip', '172.17.0.1',
+	'--port', '8888',
+]
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True

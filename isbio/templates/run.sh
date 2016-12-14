@@ -27,6 +27,8 @@ RED='\033[31m'
 ln -s $HOME /fs
 ln -s $HOME/projects /fs/projects
 ln -s $HOME/projects /projects
+ln -s /projects/breeze/code/RMySqlLib /projects/breeze/RORALib
+ln -s /projects/breeze/code/RMySqlLib /projects/breeze/code/RORALib
 # move to the job sub folder
 echo -e ${BLUE}'cd '${JOB_FOLDER}''${END_C}
 cd ${JOB_FOLDER}
