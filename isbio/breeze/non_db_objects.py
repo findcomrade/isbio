@@ -1154,7 +1154,7 @@ class CustomUser(User):
 	
 	class Meta:
 		ordering = ["username"]
-		proxy = True
+		proxy = False
 		auto_created = True # FIXEME Hack
 	# db_table = 'auth_user'
 
