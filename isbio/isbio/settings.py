@@ -159,7 +159,7 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 # )
 
 # AUTH_USER_MODEL = 'breeze.OrderedUser'
-AUTH_USER_MODEL = 'breeze.CustomUser'
+# AUTH_USER_MODEL = 'breeze.CustomUser'
 
 INSTALLED_APPS = [
 	'suit',
