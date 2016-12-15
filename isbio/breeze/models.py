@@ -12,7 +12,7 @@ from utils import *
 from django.db import models
 import importlib
 from non_db_objects import *
-from shiny.models import ShinyReport
+
 # , ShinyTag
 
 
@@ -60,6 +60,8 @@ class CustomModel(CustomModelAbstract):
 	
 	class Meta:
 		abstract = True
+	
+from shiny.models import ShinyReport
 
 
 # TODO add an Institute db field
