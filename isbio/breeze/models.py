@@ -64,6 +64,20 @@ class CustomModel(CustomModelAbstract):
 from shiny.models import ShinyReport
 
 
+# 04/06/2015
+class OrderedUser(User):
+	# objects = managers.CustomUserManager()
+	
+	class Meta:
+		ordering = ["username"]
+		proxy = True
+		auto_created = True # FIXEME Hack
+		# db_table = 'auth_user'
+
+
+# User = OrderedUser
+
+
 # TODO add an Institute db field
 # TODO change to CustomModel
 class Post(CustomModelAbstract):
@@ -2114,7 +2128,7 @@ class Report(Runnable):
 		:type this_user: User | CustomUser
 		:rtype: bool
 		"""
-		assert isinstance(this_user, (User, CustomUser))
+		assert isinstance(this_user, (User, OrderedUser))
 		return this_user and (this_user in self.shared.all() or self._author == this_user) \
 			   and self.is_shiny_enabled
 
