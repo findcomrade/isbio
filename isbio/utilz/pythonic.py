@@ -93,14 +93,17 @@ class MagicAutoConstEnum(object):
 	""" type that enables iteration of MagicConst list of static class """
 	@classmethod
 	def __iter__(self):
-		for k, v in self.__dict__.iteritems():
-			# print k, v, type(v)
+		for k, v in self.__dict__.items():
 			if type(v) is MagicConst:
 				yield k
 	
 	@classmethod
 	def __contains__(cls, item):
-		return item in cls.__dict__
+		# return item in cls.__dict__
+		for each in cls.__dict__.keys():
+			if str(item).lower() ==  each.lower():
+				return True
+		return False
 	
 	def __call__(self):
 		return self
