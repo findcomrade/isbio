@@ -30,6 +30,14 @@ class BreezeImproperlyConfigured(ImproperlyConfigured):
 	pass
 
 
+class SettingNotDefined(BreezeImproperlyConfigured):
+	pass
+
+
+class EmptyMandatorySetting(BreezeImproperlyConfigured):
+	pass
+
+
 def auto_conf_from_file(a_name, file_name, object_enum):
 	""" check the content of a var file (which shall be one of named object_enum) and return the content if valid """
 	file_path = SOURCE_ROOT + file_name
@@ -41,10 +49,18 @@ def auto_conf_from_file(a_name, file_name, object_enum):
 	return content
 
 
-def check_defined_filled(*args):
+def check_defined(*args):
 	for each in args:
-		if each not in globals() or not globals().get(each, None):
-			raise ImproperlyConfigured('%s is not defined, or not filled.' % each)
+		if each not in globals():
+			raise SettingNotDefined('%s setting const was not declared.' % each)
+	return True
+
+
+def check_defined_filled(*args):
+	if check_defined(*args):
+		for each in args:
+			if not globals().get(each, None):
+				raise EmptyMandatorySetting('%s setting const cannot be empty.' % each)
 	return True
 
 # Static object describing available Auth Backends
@@ -95,6 +111,7 @@ elif DEV_MODE:
 	from mode.dev import *
 	RUN_MODE_CLASS = ConfigRunModes.dev
 
+check_defined('PROJECT_FOLDER_PREFIX')
 check_defined_filled('PROJECT_FOLDER_PREFIX', 'PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 # then environement
