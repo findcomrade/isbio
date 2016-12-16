@@ -1148,15 +1148,15 @@ class CustomModelAbstract(models.Model): # TODO move to a common base app
 		abstract = True
 
 
-# 23/11/2015
+# 23/11/2015 # FIXME
 class CustomUser(User):
 	objects = managers.CustomUserManager()
 	
 	class Meta:
 		ordering = ["username"]
 		proxy = False
-		auto_created = True # FIXEME Hack
+		auto_created = True # FIXME Hack
 	# db_table = 'auth_user'
 
-
-OrderedUser = CustomUser
+# broken
+# OrderedUser = CustomUser

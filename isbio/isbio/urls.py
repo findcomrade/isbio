@@ -36,12 +36,12 @@ else:
 	
 	urlpatterns = []
 
-	if settings.AUTH_BACKEND is settings.AuthMethods.AUTH0:
+	if settings.AUTH_BACKEND is settings.ConfigAuthMethods.AUTH0:
 		urlpatterns += [
 			url(r'^', include('hello_auth.urls')),
 			url(r'^auth/', include('django_auth0.urls')),
 		]
-	elif settings.AUTH_BACKEND is settings.AuthMethods.CAS_NG:
+	elif settings.AUTH_BACKEND is settings.ConfigAuthMethods.CAS_NG:
 		from django_cas_ng.views import login, logout, callback
 		urlpatterns += [
 			url(r'^accounts/login$', login, name='cas_ng_login'),

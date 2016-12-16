@@ -1,0 +1,19 @@
+from utilz import magic_const, MagicAutoConstEnum
+
+# __all__ = ['config_list']
+# modules = 'dev pharma prod'
+
+
+# Static object describing available Run Modes
+class ConfigRunModesList(MagicAutoConstEnum):
+	@magic_const
+	def dev(): pass
+	
+	@magic_const
+	def prod(): pass
+	
+	@magic_const
+	def pharma(): pass
+
+
+config_list = ConfigRunModesList()
