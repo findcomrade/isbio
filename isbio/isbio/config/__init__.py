@@ -50,8 +50,9 @@ def auto_conf_from_file(a_name, file_name, object_enum):
 
 
 def check_defined(*args):
+	scope = globals().keys() + locals().keys()
 	for each in args:
-		if each not in globals():
+		if each not in scope:
 			raise SettingNotDefined('%s setting const was not declared.' % each)
 	return True
 
@@ -59,7 +60,7 @@ def check_defined(*args):
 def check_defined_filled(*args):
 	if check_defined(*args):
 		for each in args:
-			if not globals().get(each, None):
+			if not globals().get(each, None) and not locals().get(each, None):
 				raise EmptyMandatorySetting('%s setting const cannot be empty.' % each)
 	return True
 
@@ -123,6 +124,6 @@ elif RUN_ENV == 'FIMM':
 	from env.FIMM import *
 	RUN_ENV_CLASS = ConfigEnvironments.FIMM
 
-check_defined_filled('BREEZE_FOLDER', 'PROJECT_FOLDER_NAME', 'ALLOWED_HOSTS', 'BREEZE_TITLE', 'BREEZE_TITLE_LONG',
+check_defined_filled('BREEZE_FOLDER', 'ALLOWED_HOSTS', 'BREEZE_TITLE', 'BREEZE_TITLE_LONG',
 	'AUTHENTICATION_BACKENDS', 'STATICFILES_DIRS')
 
