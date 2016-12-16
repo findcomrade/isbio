@@ -1,8 +1,8 @@
 from isbio.config.execution.sge import * # !important, do not delete
 from isbio.config.execution.docker import * # !important, do not delete
 from auth.CAS import *
-from isbio.settings import DomainList, DEV_MODE, PHARMA_MODE
-from isbio.config import PROJECT_FOLDER
+from isbio.settings import DomainList
+from isbio.config import PROJECT_FOLDER, DEV_MODE, PHARMA_MODE
 
 DOMAIN = DomainList.FIMM_DEV if DEV_MODE else DomainList.FIMM_PH if PHARMA_MODE else DomainList.FIMM_PROD
 ALLOWED_HOSTS = DOMAIN + [CAS_SERVER_IP]

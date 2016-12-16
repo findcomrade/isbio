@@ -1,5 +1,6 @@
 from isbio.config.execution.docker import * # !important, do not delete
-from isbio.settings import SOURCE_ROOT, DomainList, DEV_MODE
+from isbio.settings import SOURCE_ROOT, DomainList
+from isbio.config import DEV_MODE
 
 DOMAIN = DomainList.CLOUD_DEV if DEV_MODE else DomainList.CLOUD_PROD
 
