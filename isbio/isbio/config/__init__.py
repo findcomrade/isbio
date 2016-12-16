@@ -49,18 +49,18 @@ def auto_conf_from_file(a_name, file_name, object_enum):
 	return content
 
 
-def check_defined(*args):
-	scope = globals().keys() + locals().keys()
+def assert_defined(*args):
+	scope = globals().keys()
 	for each in args:
 		if each not in scope:
 			raise SettingNotDefined('%s setting const was not declared.' % each)
 	return True
 
 
-def check_defined_filled(*args):
-	if check_defined(*args):
+def assert_filled(*args):
+	if assert_defined(*args):
 		for each in args:
-			if not globals().get(each, None) and not locals().get(each, None):
+			if not globals().get(each, None):
 				raise EmptyMandatorySetting('%s setting const cannot be empty.' % each)
 	return True
 
@@ -98,7 +98,7 @@ PROJECT_FOLDER_NAME = 'projects'
 BREEZE_PROD_FOLDER = 'breeze'
 
 # checks
-check_defined_filled('TEMPLATE_FOLDER', 'SOURCE_ROOT')
+assert_filled('TEMPLATE_FOLDER', 'SOURCE_ROOT')
 
 # run mode first
 
@@ -112,8 +112,8 @@ elif DEV_MODE:
 	from mode.dev import *
 	RUN_MODE_CLASS = ConfigRunModes.dev
 
-check_defined('PROJECT_FOLDER_PREFIX')
-check_defined_filled('PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
+assert_defined('PROJECT_FOLDER_PREFIX')
+assert_filled('PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 # then environement
 
@@ -124,6 +124,6 @@ elif RUN_ENV == 'FIMM':
 	from env.FIMM import *
 	RUN_ENV_CLASS = ConfigEnvironments.FIMM
 
-check_defined_filled('BREEZE_FOLDER', 'ALLOWED_HOSTS', 'BREEZE_TITLE', 'BREEZE_TITLE_LONG',
+assert_filled('BREEZE_FOLDER', 'ALLOWED_HOSTS', 'BREEZE_TITLE', 'BREEZE_TITLE_LONG',
 	'AUTHENTICATION_BACKENDS', 'STATICFILES_DIRS')
 
