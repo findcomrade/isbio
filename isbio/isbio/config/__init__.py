@@ -112,7 +112,7 @@ elif DEV_MODE:
 	RUN_MODE_CLASS = ConfigRunModes.dev
 
 check_defined('PROJECT_FOLDER_PREFIX')
-check_defined_filled('PROJECT_FOLDER_PREFIX', 'PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
+check_defined_filled('PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 # then environement
 
