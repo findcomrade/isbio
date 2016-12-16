@@ -30,11 +30,15 @@ class BreezeImproperlyConfigured(ImproperlyConfigured):
 	pass
 
 
-class SettingNotDefined(BreezeImproperlyConfigured):
+class SettingNotDefined(NameError):
 	pass
 
 
 class EmptyMandatorySetting(BreezeImproperlyConfigured):
+	pass
+
+
+class ProgramingError(RuntimeError):
 	pass
 
 
@@ -53,7 +57,7 @@ def assert_defined(*args):
 	scope = globals().keys()
 	for each in args:
 		if each not in scope:
-			raise SettingNotDefined('%s setting const was not declared.' % each)
+			raise SettingNotDefined('setting %s is not defined' % each)
 	return True
 
 
@@ -61,7 +65,7 @@ def assert_filled(*args):
 	if assert_defined(*args):
 		for each in args:
 			if not globals().get(each, None):
-				raise EmptyMandatorySetting('%s setting const cannot be empty.' % each)
+				raise EmptyMandatorySetting('setting %s is empty' % each)
 	return True
 
 # Static object describing available Auth Backends
@@ -81,6 +85,7 @@ ConfigRunModes = mode.config_list # ConfigRunModesList()
 #  CONFIGURES RUN MODE SETTINGS #
 #################################
 RUN_MODE = auto_conf_from_file('Run mode', '.run_mode', ConfigRunModes)
+RUN_MODE_CLASS = ConfigRunModes.get(RUN_MODE)
 DEV_MODE = RUN_MODE == 'dev'
 PHARMA_MODE = RUN_MODE == 'pharma'
 MODE_PROD = RUN_MODE == 'prod'
@@ -88,6 +93,7 @@ MODE_PROD = RUN_MODE == 'prod'
 #  CONFIGURES RUN ENVIRONEMENT SETTINGS #
 #########################################
 RUN_ENV = auto_conf_from_file('Run env', '.run_env', ConfigEnvironments)
+RUN_ENV_CLASS = ConfigEnvironments.get(RUN_ENV)
 
 # TODO
 # ## NOW import everything
@@ -102,27 +108,32 @@ assert_filled('TEMPLATE_FOLDER', 'SOURCE_ROOT')
 
 # run mode first
 
-if MODE_PROD:
+if RUN_MODE_CLASS is ConfigRunModes.prod:
 	from mode.prod import *
-	RUN_MODE_CLASS = ConfigRunModes.prod
-elif PHARMA_MODE:
+	MODE_PROD = True
+elif RUN_MODE_CLASS is ConfigRunModes.pharma:
 	from mode.pharma import *
-	RUN_MODE_CLASS = ConfigRunModes.pharma
-elif DEV_MODE:
+	PHARMA_MODE = True
+elif RUN_MODE_CLASS is ConfigRunModes.dev:
 	from mode.dev import *
-	RUN_MODE_CLASS = ConfigRunModes.dev
+	DEV_MODE = True
+else: # FIXME debug
+	raise ProgramingError('Impossible')
 
 assert_defined('PROJECT_FOLDER_PREFIX')
 assert_filled('PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 # then environement
 
-if RUN_ENV == 'AzureCloud':
+# if RUN_ENV == 'AzureCloud':
+if RUN_ENV_CLASS is ConfigEnvironments.AzureCloud:
 	from env.azure_cloud import *
-	RUN_ENV_CLASS = ConfigEnvironments.AzureCloud
-elif RUN_ENV == 'FIMM':
+	# RUN_ENV_CLASS = ConfigEnvironments.AzureCloud
+elif RUN_ENV_CLASS is ConfigEnvironments.FIMM: # RUN_ENV == 'FIMM':
 	from env.FIMM import *
-	RUN_ENV_CLASS = ConfigEnvironments.FIMM
+	# RUN_ENV_CLASS = ConfigEnvironments.FIMM
+else: # FIXME debug
+	raise ProgramingError('Impossible')
 
 assert_filled('BREEZE_FOLDER', 'ALLOWED_HOSTS', 'BREEZE_TITLE', 'BREEZE_TITLE_LONG',
 	'AUTHENTICATION_BACKENDS', 'STATICFILES_DIRS')

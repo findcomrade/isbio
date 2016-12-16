@@ -107,6 +107,9 @@ class MagicAutoConstEnum(object):
 				return True
 		return False
 	
+	def get(self, item):
+		return self.__getattribute__(item)
+	
 	def __call__(self):
 		return self
 	
