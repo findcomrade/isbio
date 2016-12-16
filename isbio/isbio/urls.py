@@ -70,7 +70,7 @@ else:
 		url(r'^media/reports/(?P<rid>\d+)/(?P<fname>.+)?$', views.report_file_wrap2),
 		url(r'^reports/delete/(?P<rid>\d+)(?P<redir>-[a-z]+)?$', views.delete_report),
 		url(r'^reports/edit_access/(?P<rid>\d+)$', views.edit_report_access),
-		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/-]+)-(?P<iid>[^/-]+)$', views.report_overview),
+		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/]+)-(?P<iid>[^/-]+)$', views.report_overview),
 		url(r'^reports/edit/(?P<jid>\d+)?$', views.edit_report),  # Re Run report
 		url(r'^reports/check/?$', views.check_reports),  # Re Run report
 		url(r'^reports/send/(?P<rid>\d+)$', views.send_report),
