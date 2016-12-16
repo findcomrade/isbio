@@ -108,6 +108,9 @@ class MagicAutoConstEnum(object):
 		return False
 	
 	def get(self, item):
+		for key in self.__iter__():
+			if key.lower() == item.lowe():
+				item = key
 		return self.__getattribute__(item)
 	
 	def __call__(self):
