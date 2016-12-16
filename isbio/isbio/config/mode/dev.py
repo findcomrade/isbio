@@ -98,3 +98,8 @@ import logging.config
 logging.config.dictConfig(LOGGING)
 
 ENABLE_NOTEBOOK = True
+NOTEBOOK_ARGUMENTS = [
+	'--ip', '0.0.0.0',
+	'--port', '8888',
+]
+

@@ -303,12 +303,6 @@ HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
 
 from config import *
 
-if ENABLE_NOTEBOOK:
-	NOTEBOOK_ARGUMENTS = [
-		'--ip', '172.17.0.1',
-		'--port', '8888',
-	]
-
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
 
