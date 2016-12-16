@@ -1,9 +1,12 @@
 from isbio.config.execution.docker import * # !important, do not delete
 from isbio.settings import SOURCE_ROOT, DomainList
 from isbio.config import DEV_MODE
-DOMAIN = DomainList.CLOUD_DEV if DEV_MODE else DomainList.CLOUD_PROD
 from auth.auth0 import *
+
+DOMAIN = DomainList.CLOUD_DEV if DEV_MODE else DomainList.CLOUD_PROD
 ALLOWED_HOSTS = DOMAIN + AUTH0_IP_LIST
+# FIXME : replace with Site.objects.get(pk=0)
+AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % DOMAIN
 
 # might go into docker config ?
 DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo'

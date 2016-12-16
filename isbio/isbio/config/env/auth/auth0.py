@@ -1,6 +1,6 @@
 from utilz import get_key
 from isbio.settings import INSTALLED_APPS, TEMPLATES
-from isbio.config import DOMAIN, ConfigAuthMethods
+from isbio.config import ConfigAuthMethods
 
 AUTHENTICATION_BACKENDS = (
 	'django.contrib.auth.backends.ModelBackend',
@@ -19,9 +19,6 @@ AUTH0_CALLBACK_URL_BASE = 'https://%s/login/'
 AUTH0_SUCCESS_URL = '/home/'
 AUTH0_LOGOUT_URL = 'https://breeze.eu.auth0.com/v2/logout'
 AUTH0_LOGOUT_REDIRECT = 'https://www.fimm.fi'
-
-# FIXME : replace with Site.objects.get(pk=0)
-AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % DOMAIN
 
 INSTALLED_APPS += ['django_auth0']
 
