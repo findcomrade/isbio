@@ -37,7 +37,7 @@ def auto_conf_from_file(a_name, file_name, object_enum):
 	if not content:
 		raise BreezeImproperlyConfigured('%s not specified in %s or file not found' % (a_name, file_path))
 	if content not in object_enum:
-		raise BreezeImproperlyConfigured('%s "%s" not listed in %s' % (a_name, content, object_enum.__name__))
+		raise BreezeImproperlyConfigured('%s "%s" not listed in %s' % (a_name, content, object_enum.__class__.__name__))
 	return content
 
 
