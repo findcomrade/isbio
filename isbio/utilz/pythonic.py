@@ -99,9 +99,11 @@ class MagicAutoConstEnum(object):
 	
 	@classmethod
 	def __contains__(cls, item):
+		""" provides case insensitive filtering amongst the class properties names """
 		# return item in cls.__dict__
-		for each in cls.__dict__.keys():
-			if str(item).lower() ==  each.lower():
+		# for each in cls.__dict__.keys():
+		for each in cls.__iter__():
+			if str(item).lower() == each.lower():
 				return True
 		return False
 	

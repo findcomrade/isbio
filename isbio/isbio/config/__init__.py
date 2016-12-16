@@ -17,7 +17,7 @@
 		_ while env/* will import the desired auth/* and exec/* configuration modules
 	
 """
-from isbio.settings import SOURCE_ROOT
+from isbio.settings import SOURCE_ROOT, TEMPLATE_FOLDER
 from utilz import file_content # , magic_const, MagicAutoConstEnum, magic_const_object_from_list
 from django.core.exceptions import ImproperlyConfigured
 import mode
