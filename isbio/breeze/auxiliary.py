@@ -19,8 +19,8 @@ DASHED_LINE = '-' * 111
 
 
 def update_server_routine():
-	from sge_interface import Qstat, SGEError
 	if False:
+		from sge_interface import Qstat, SGEError
 		try:
 			server_info = object() # Qstat().queue_stat
 

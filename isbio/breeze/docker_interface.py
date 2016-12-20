@@ -11,7 +11,7 @@ container_lock = Lock()
 __version__ = '0.9'
 __author__ = 'clem'
 __date__ = '15/03/2016'
-KEEP_TEMP_FILE = True # i.e. debug
+KEEP_TEMP_FILE = False # i.e. debug
 
 
 # clem 21/10/2016

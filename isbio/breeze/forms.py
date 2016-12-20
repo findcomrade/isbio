@@ -164,7 +164,7 @@ class SendReportTo(forms.Form):
 		send_options.append(tuple(('Registered Off-Site users', tuple(users_list_of_tuples))))
 
 		self.fields["recipients"] = forms.MultipleChoiceField(
-			choices=send_options,  # queryset=breeze.models.OrderedUser.objects.all(),
+			choices=send_options,  # queryset=breeze.models.CustomUser.objects.all(),
 			widget=forms.SelectMultiple(
 				attrs={'class': 'multiselect', }
 			)

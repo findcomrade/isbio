@@ -594,11 +594,17 @@ class CompTargetsManager(CustomManager):
 
 # clem 26/10/2016
 class CustomUserManager(Manager):
+	def __send_mail(self, user):
+		from django.core.mail import EmailMessage
+
+		msg_text = 'User %s : %s %s (%s) was just created at %s.' % \
+			(user.username, user.first_name, user.last_name, user.email, settings.CURRENT_FQDN)
+		msg = EmailMessage('New user "%s" created' % user.username, msg_text, 'Breeze PMS', [settings.ADMINS[1]])
+		result = msg.send()
+	
 	def create(self, **kwargs):
 		print 'custom_user_create'
-		# from django.contrib.auth.models import User
-		from breeze.models import OrderedUser
-		has_name_info_domains = ['fimm.fi', ]
+		has_name_info_domains = ['fimm.fi', 'ki.se', 'scilifelab.se']
 		email = kwargs.get('email', '')
 		pass_on = kwargs
 		pass_on['is_active'] = True
@@ -607,6 +613,8 @@ class CustomUserManager(Manager):
 			full_split = email.split('@')
 			nick = full_split[0].split('.')
 			domain = full_split[1]
+			if domain == 'ki.se':
+				domain = 'scilifelab.se'
 			if domain in has_name_info_domains:
 				pass_on['first_name'] = nick[0]
 				pass_on['last_name'] = nick[1]
@@ -618,10 +626,11 @@ class CustomUserManager(Manager):
 				logger.exception(str(e))
 			
 		user = super(CustomUserManager, self).create(**pass_on)
+		
 		# TODO alert admin about new user
-		assert isinstance(user, OrderedUser)
 		if user_institute:
 			user.userprofile.institute_info = user_institute
 			user.userprofile.save()
 			user.save()
+		self.__send_mail(user)
 		return user
