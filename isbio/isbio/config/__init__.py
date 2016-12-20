@@ -87,7 +87,7 @@ ConfigRunModes = mode.config_list # ConfigRunModesList()
 RUN_MODE = auto_conf_from_file('Run mode', '.run_mode', ConfigRunModes)
 RUN_MODE_CLASS = ConfigRunModes.get(RUN_MODE)
 DEV_MODE = RUN_MODE == 'dev'
-PHARMA_MODE = RUN_MODE == 'pharma'
+PHARMA_MODE = RUN_MODE == 'pharma' or RUN_MODE == 'pharma_dev'
 MODE_PROD = RUN_MODE == 'prod'
 #########################################
 #  CONFIGURES RUN ENVIRONEMENT SETTINGS #
@@ -118,6 +118,12 @@ elif RUN_MODE_CLASS is ConfigRunModes.dev:
 	from mode.dev import *
 	DEV_MODE = True
 	assert_filled('ENABLE_NOTEBOOK')
+elif RUN_MODE_CLASS is ConfigRunModes.pharma_dev:
+	from mode.dev import *
+	DEV_MODE = True
+	from mode.pharma import *
+	PHARMA_MODE = True
+	DEBUG = True
 else: # FIXME debug
 	raise ProgramingError('Impossible')
 

@@ -15,5 +15,8 @@ class ConfigRunModesList(MagicAutoConstEnum):
 	@magic_const
 	def pharma(): pass
 
+	@magic_const
+	def pharma_dev(): pass
+
 
 config_list = ConfigRunModesList()
