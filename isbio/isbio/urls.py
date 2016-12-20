@@ -36,12 +36,12 @@ else:
 	
 	urlpatterns = []
 
-	if settings.AUTH_BACKEND is settings.AuthMethods.AUTH0:
+	if settings.AUTH_BACKEND is settings.ConfigAuthMethods.AUTH0:
 		urlpatterns += [
 			url(r'^', include('hello_auth.urls')),
 			url(r'^auth/', include('django_auth0.urls')),
 		]
-	elif settings.AUTH_BACKEND is settings.AuthMethods.CAS_NG:
+	elif settings.AUTH_BACKEND is settings.ConfigAuthMethods.CAS_NG:
 		from django_cas_ng.views import login, logout, callback
 		urlpatterns += [
 			url(r'^accounts/login$', login, name='cas_ng_login'),
@@ -101,7 +101,7 @@ else:
 		url(r'^reports/?$', breeze.views.reports, name='reports'),
 		url(r'^reports/search$', breeze.views.report_search, name='report_search'),
 		url(r'^reports/view/\d+/Results/HTMLreport/(?P<a_dir>[^/]+)/(?P<a_path>.+)$', breeze.views.report_statics,
-			name='report.statics'),
+			name='report.statics'), # FIXME deprecated
 		url(r'^reports/view/(?P<rid>\d+)/(?P<file_name>.+)?$', breeze.views.report_file_view, name='report.view'),
 		url(r'^reports/get/(?P<rid>\d+)/(?P<file_name>.+)?$', breeze.views.report_file_get, name='report_file_get'),
 		url(r'^media/reports/(?P<rid>\d+)_(?P<rest>[^/]+)/(?P<file_name>.+)?$', breeze.views.report_file_wrap,
@@ -109,7 +109,7 @@ else:
 		url(r'^media/reports/(?P<rid>\d+)/(?P<file_name>.+)?$', breeze.views.report_file_wrap2, name='report_file_wrap2'),
 		url(r'^reports/delete/(?P<rid>\d+)(?P<redir>-[a-z]+)?$', breeze.views.delete_report, name='delete_report'),
 		url(r'^reports/edit_access/(?P<rid>\d+)$', breeze.views.edit_report_access, name='edit_report_access'),
-		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/-]+)-(?P<iid>[^/-]+)$', breeze.views.report_overview,
+		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/]+)-(?P<iid>[^/-]+)$', breeze.views.report_overview,
 			name='report_overview'),
 		url(r'^reports/edit/(?P<jid>\d+)?$', breeze.views.edit_report, name='edit_report'),  # Re Run report
 		url(r'^reports/check/?$', breeze.views.check_reports, name='check_reports'),  # Re Run report

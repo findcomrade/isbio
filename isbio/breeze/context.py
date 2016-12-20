@@ -17,17 +17,24 @@ def site(request):
 
 
 def user_context(request):
-    is_auth = request.user.is_authenticated()
-    is_admin = False
-    # assert isinstance(request.user, User)
-    is_admin = is_auth and (request.user.is_staff or request.user.is_superuser)
-
-    return {
-        'is_local_admin': is_admin,
-        'is_authenticated': is_auth
-    }
+	is_auth = request.user.is_authenticated()
+	is_admin = False
+	# assert isinstance(request.user, User)
+	is_admin = is_auth and (request.user.is_staff or request.user.is_superuser)
+	
+	return {
+		'is_local_admin': is_admin,
+		'is_authenticated': is_auth
+	}
 
 
 def date_context(_):
-    import datetime
-    return { 'now': datetime.datetime.now() }
+	import datetime
+	return { 'now': datetime.datetime.now() }
+
+
+def run_mode_context(_):
+	return {
+		'run_mode_text': '-DEV' if settings.DEV_MODE else '',
+		'run_mode': settings.RUN_MODE
+	}

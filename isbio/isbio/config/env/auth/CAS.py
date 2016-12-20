@@ -1,5 +1,6 @@
 from utilz import is_host_online, test_url
-from isbio.settings import INSTALLED_APPS, AuthMethods
+from isbio.settings import INSTALLED_APPS
+from isbio.config import ConfigAuthMethods
 
 
 def check_cas(server_ip, server_url):
@@ -16,12 +17,10 @@ def check_cas(server_ip, server_url):
 
 AUTHENTICATION_BACKENDS = (
 	'django.contrib.auth.backends.ModelBackend',
-	# 'django_cas_ng.backends.CASBackend',
 	'my_django.cas_ng_custom.CASBackend',
 )
 
 HOME_PAGE = '/jobs/'
-ROOT_URLCONF = 'isbio.urls'
 
 CAS_SERVER_IP = 'cas-prot.fimm.fi'
 CAS_FRONT_END_URL = 'https://%s/cas/' % CAS_SERVER_IP
@@ -36,4 +35,5 @@ CAS_CREATE_USER = False
 
 INSTALLED_APPS += ['django_cas_ng']
 
-AUTH_BACKEND = AuthMethods.CAS_NG
+AUTH_BACKEND = ConfigAuthMethods.CAS_NG
+AUTH_BACKEND_CLASS = ConfigAuthMethods.CAS_NG

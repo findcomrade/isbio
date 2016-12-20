@@ -80,10 +80,11 @@ TEMPLATES = [
 				'django.template.context_processors.request',
 				'django.contrib.auth.context_processors.auth',
 				'django.contrib.messages.context_processors.messages',
-				'django.core.context_processors.media',
-				'django.core.context_processors.static',
+				'django.template.context_processors.media',
+				'django.template.context_processors.static',
 				'breeze.context.user_context',
 				'breeze.context.date_context',
+				'breeze.context.run_mode_context',
 				# 'django_auth0.context_processors.auth0', # moved to config/auth0.py
 				"breeze.context.site",
 			],
@@ -124,20 +125,17 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-# STATIC_ROOT = ''
+# STATIC_ROOT = '' # ** moved lower in this file
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
-	# "/home/comrade/Projects/fimm/isbio/breeze/",
-	# Put strings here, like "/home/html/static" or "C:/www/django/static".
-	# Always use forward slashes, even on Windows.
-	# Don't forget to use absolute paths, not relative paths.
-	"/root/static_source",
-)
+# ** moved to configs/env/*
+# STATICFILES_DIRS = (
+# 	"/root/static_source",
+# )
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -158,6 +156,7 @@ SECRET_KEY = get_key(SECRET_KEY_FN)
 # )
 
 # AUTH_USER_MODEL = 'breeze.OrderedUser'
+# AUTH_USER_MODEL = 'breeze.CustomUser'
 
 INSTALLED_APPS = [
 	'suit',
@@ -207,9 +206,9 @@ MIDDLEWARE_CLASSES = [
 ]
 
 
-# AUTHENTICATION_BACKENDS moved to specific auth config files
+# ** AUTHENTICATION_BACKENDS moved to specific auth config files (config/env/auth/*)
 
-# AUTH0_* moved to config/auth0.py
+# ** AUTH0_* moved to config/env/auth/auth0.py
 
 SSH_TUNNEL_HOST = 'breeze-ssh'
 SSH_TUNNEL_PORT = '2222'
@@ -273,9 +272,13 @@ LOGGING = {
 	}
 }
 
-PROD_DOMAINS = ['breeze.fimm.fi', '52.164.211.188']
-DEV_DOMAINS = ['breeze-dev.cloudapp.net', '40.113.91.111']
-PH_DOMAINS = ['breeze-newph.fimm.fi', ]
+
+class DomainList(object):
+	CLOUD_PROD = ['breeze.fimm.fi', '52.164.211.188', ]
+	CLOUD_DEV = ['breeze-dev.cloudapp.net', '40.113.91.111', ]
+	FIMM_PH = ['breeze-newph.fimm.fi', 'breeze-ph.fimm.fi', ]
+	FIMM_DEV = ['breeze-dev.fimm.fi', ]
+	FIMM_PROD = ['breeze-fimm.fimm.fi', 'breeze-new.fimm.fi', ]
 
 DEBUG = False
 VERBOSE = False
@@ -297,38 +300,8 @@ CONSOLE_DATE_F = "%d/%b/%Y %H:%M:%S"
 # auto-sensing if running on dev or prod, for dynamic environment configuration
 FULL_HOST_NAME = socket.gethostname()
 HOST_NAME = str.split(FULL_HOST_NAME, '.')[0]
-# automatically setting RUN_MODE depending on the host name
-MODE_FILE = SOURCE_ROOT + '.run_mode'
-MODE_FILE_CONTENT = file_content(MODE_FILE)
-RUN_MODE = MODE_FILE_CONTENT
-DEV_MODE = RUN_MODE == 'dev'
-PHARMA_MODE = RUN_MODE == 'pharma'
-MODE_PROD = RUN_MODE == 'prod' or (not DEV_MODE and not PHARMA_MODE)
 
-
-class AuthMethods(object):
-	@magic_const
-	def CAS_NG(): pass
-	
-	@magic_const
-	def AUTH0(): pass
-	
-	@magic_const
-	def undefined(): pass
-
-AUTH_BACKEND = AuthMethods.undefined
-
-if MODE_PROD:
-	from isbio.config.mode_prod import *
-elif PHARMA_MODE:
-	from isbio.config.mode_pharma import *
-elif DEV_MODE:
-	from isbio.config.mode_dev import *
-
-NOTEBOOK_ARGUMENTS = [
-	'--ip', '172.17.0.1',
-	'--port', '8888',
-]
+from config import *
 
 # Super User on breeze can Access all data
 SU_ACCESS_OVERRIDE = True
@@ -341,15 +314,12 @@ R_ENGINE_SUB_PATH = 'R/bin/R ' # FIXME LEGACY ONLY
 R_ENGINE_PATH = PROD_PATH + R_ENGINE_SUB_PATH
 if not os.path.isfile( R_ENGINE_PATH.strip()):
 	PROJECT_FOLDER = '/%s/' % PROJECT_FOLDER_NAME
-	# PROJECT_PATH = PROJECT_FOLDER + BREEZE_FOLDER
 	R_ENGINE_PATH = PROD_PATH + R_ENGINE_SUB_PATH # FIXME Legacy
-
-# PROJECT_PATH = PROJECT_PATH + '/' if not PROJECT_PATH.endswith('/') else PROD_PATH
 
 PROJECT_FHRB_PM_PATH = '/%s/fhrb_pm/' % PROJECT_FOLDER_NAME
 JDBC_BRIDGE_PATH = PROJECT_FHRB_PM_PATH + 'bin/start-jdbc-bridge' # Every other path has a trailing /
 
-TEMP_FOLDER = SOURCE_ROOT + 'tmp/' # /homes/dbychkov/dev/isbio/tmp/
+TEMP_FOLDER = SOURCE_ROOT + 'tmp/'
 ####
 # 'db' folder, containing : reports, scripts, jobs, datasets, pipelines, upload_temp
 ####
@@ -357,7 +327,7 @@ DATA_TEMPLATES_FN = 'mould/'
 
 RE_RUN_SH = SOURCE_ROOT + 're_run.sh'
 
-MEDIA_ROOT = PROJECT_PATH + 'db/'  # '/project/breeze[-dev]/db/'
+MEDIA_ROOT = PROJECT_PATH + 'db/'
 RORA_LIB = PROJECT_PATH + 'RORALib/'
 UPLOAD_FOLDER = MEDIA_ROOT + 'upload_temp/'
 DATASETS_FOLDER = MEDIA_ROOT + 'datasets/'
@@ -376,9 +346,11 @@ INCOMPLETE_RUN_FN = '.INCOMPLETE_RUN'
 FAILED_FN = '.failed'
 SUCCESS_FN = '.done'
 R_DONE_FN = '.sub_done'
+# ** moved to config/execution/sge.py
 # SGE_QUEUE_NAME = 'breeze.q' # monitoring only
-# DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo' # moved to config/azure_cloud.py
-# AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd' # moved to config/azure_cloud.py
+# ** moved to config/env/azure_cloud.py
+# DOCKER_HUB_PASS_FILE = SOURCE_ROOT + 'docker_repo'
+# AZURE_PASS_FILE = SOURCE_ROOT + 'azure_pwd' # moved to config/env/azure_cloud.py
 
 #
 # ComputeTarget configs
@@ -453,7 +425,7 @@ WATCHER_PROC_REFRESH = 2 # number of seconds to wait before refreshing processes
 #
 # SHINY RELATED CONFIG
 #
-from shiny.settings import *
+from shiny.settings import * # FIXME obsolete
 
 FOLDERS_LST = [TEMPLATE_FOLDER, SHINY_REPORT_TEMPLATE_PATH, SHINY_REPORTS, SHINY_TAGS,
 	NOZZLE_TEMPLATE_FOLDER, SCRIPT_TEMPLATE_FOLDER, JOBS_PATH, REPORT_TYPE_PATH, REPORTS_PATH, RSCRIPTS_PATH, MEDIA_ROOT,
@@ -486,6 +458,7 @@ MOULD_URL = MEDIA_URL + DATA_TEMPLATES_FN
 # number of seconds after witch a job that has not received a sgeid should be marked as aborted or re-run
 NO_SGEID_EXPIRY = 30
 
+# FIXME obsolete
 TMP_CSC_TAITO_MOUNT = '/mnt/csc-taito/'
 TMP_CSC_TAITO_REPORT_PATH = 'breeze/'
 TMP_CSC_TAITO_REMOTE_CHROOT = '/homeappl/home/clement/'
@@ -495,7 +468,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'breeze.fimm@gmail.com'
 EMAIL_HOST_PASSWORD = 'mult24mult24'
 EMAIL_PORT = '587'
-EMAIL_SUBJECT_PREFIX = '[' + FULL_HOST_NAME + '] '
+# EMAIL_SUBJECT_PREFIX = '[' + FULL_HOST_NAME + '] '
+EMAIL_SUBJECT_PREFIX = '[' + BREEZE_TITLE + '] '
 EMAIL_USE_TLS = True
 
 #
@@ -505,102 +479,15 @@ EMAIL_USE_TLS = True
 # ** NO CONFIGURATION CONST BEYOND THIS POINT **
 #
 
+# ** moved to config/env/*
 # if prod mode then auto disable DEBUG, for safety
-# moved to config/mode_prod.py and config/mode_pharama.py
 # if MODE_PROD or PHARMA_MODE:
 # 	SHINY_MODE = 'remote'
 # 	SHINY_LOCAL_ENABLE = False
 # 	DEBUG = False
 # 	VERBOSE = False
 
-if DEBUG:
-	import sys
-	LOGGING = {
-		'version': 1,
-		'disable_existing_loggers': False,
-		'formatters': {
-			'verbose': {
-				'datefmt': USUAL_DATE_FORMAT,
-				'format': USUAL_LOG_FORMAT,
-			},
-			'standard': {
-				'format': USUAL_LOG_FORMAT,
-				'datefmt': USUAL_DATE_FORMAT,
-			},
-			'request_format': {
-				'format': '%(remote_addr)s %(username)s "%(request_method)s '
-				'%(path_info)s %(server_protocol)s" %(http_user_agent)s '
-				'%(message)s %(asctime)s',
-			},
-		},
-		'filters': {
-			'request': {
-				'()': 'django_requestlogging.logging_filters.RequestFilter',
-			},
-			'require_debug_false': {
-				'()': 'django.utils.log.RequireDebugFalse'
-			}
-		},
-		'handlers': {
-			'default': {
-				'level': 'DEBUG',
-				'class': 'logging.handlers.RotatingFileHandler',
-				'filename': LOG_PATH,
-				'maxBytes': 1024 * 1024 * 5, # 5 MB
-				'backupCount': 10,
-				'formatter': 'standard',
-			},
-			'mail_admins': {
-				'level': 'ERROR',
-				'filters': ['require_debug_false'],
-				'class': 'django.utils.log.AdminEmailHandler'
-			},
-			'console': {
-				'level': 'INFO',
-				'class': 'logging.StreamHandler',
-				'stream': sys.stdout,
-				'formatter': 'verbose',
-			},
-			'access_log': {
-				'class': 'logging.handlers.RotatingFileHandler',
-				'filename': LOG_HIT_PATH,
-				'maxBytes': 1024 * 1024 * 10, # 5 MB
-				'backupCount': 900,
-				'filters': ['request'],
-				'formatter': 'request_format',
-			},
-		},
-		'loggers': {
-			'isbio': {
-				'handlers': ['console'],
-				'level': 'DEBUG',
-				'propagate': True,
-			},
-			'breeze': {
-				'handlers': ['console', 'access_log'],
-				'level': 'DEBUG',
-				'propagate': True,
-			},
-			'breeze2': {
-				'handlers': ['access_log'],
-				'filters': ['request'],
-			},
-			'': {
-				'handlers': ['default'],
-				'level': logging.INFO if not DEBUG else logging.DEBUG,
-				'propagate': True
-			},
-			'django.request': {
-				'handlers': ['mail_admins'],
-				'level': 'ERROR',
-				'propagate': True,
-			},
-		}
-	}
-	import logging.config
-	logging.config.dictConfig(LOGGING)
-else:
-	VERBOSE = False
+# ** DEV logging config moved to config/env/dev.py
 
 # FIXME obsolete
 if ENABLE_ROLLBAR:
@@ -618,15 +505,6 @@ if ENABLE_ROLLBAR:
 		ENABLE_ROLLBAR = False
 		logging.getLogger().error('Unable to init rollbar')
 		pass
-# FIXME obsolete
-if SHINY_MODE == 'remote':
-	SHINY_TARGET_URL = SHINY_REMOTE_TARGET_URL
-	SHINY_LIBS_TARGET_URL = SHINY_REMOTE_LIBS_TARGET_URL
-	SHINY_LIBS_BREEZE_URL = SHINY_REMOTE_LIBS_BREEZE_URL
-else:
-	SHINY_TARGET_URL = SHINY_LOCAL_TARGET_URL
-	SHINY_LIBS_TARGET_URL = SHINY_LOCAL_LIBS_TARGET_URL
-	SHINY_LIBS_BREEZE_URL = SHINY_LOCAL_LIBS_BREEZE_URL
 
 
 def make_run_file():
@@ -634,6 +512,7 @@ def make_run_file():
 	f.write(str(datetime.now().strftime(USUAL_DATE_FORMAT)))
 	f.close()
 
+# FIXME obsolete
 if os.path.isfile('running'):
 	# First time
 	print '__breeze__started__'
@@ -664,5 +543,6 @@ else:
 print('debug mode is %s' % ('ON' if DEBUG else 'OFF'))
 
 
+# FIXME obsolete
 def project_folder_path(breeze_folder=BREEZE_FOLDER):
 	return PROJECT_FOLDER + breeze_folder

@@ -3,7 +3,7 @@ import gc
 import inspect
 from collections import OrderedDict
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __author__ = 'clem'
 __date__ = '27/05/2016'
 
@@ -61,6 +61,11 @@ def not_imp(self): # writing shortcut for abstract classes
 	raise NotImplementedError("%s was not implemented in concrete class %s." % (
 		this_function_caller_name(), self.__class__.__name__))
 
+##############################################################
+# DISCLAIMER :                                               #
+# If you don't want to bleed from the eyes, look no further. #
+##############################################################
+
 
 # clem 27/05/2016
 class ClassProperty(property):
@@ -81,6 +86,69 @@ class MagicConst(StaticPropertyBase):
 		return self.__name__
 
 magic_const = MagicConst
+
+
+# clem 15/12/2016
+class MagicAutoConstEnum(object):
+	""" type that enables iteration of MagicConst list of static class """
+	@classmethod
+	def __iter__(self):
+		for k, v in self.__dict__.items():
+			if type(v) is MagicConst:
+				yield k
+	
+	@classmethod
+	def __contains__(cls, item):
+		""" provides case insensitive filtering amongst the class properties names """
+		# return item in cls.__dict__
+		# for each in cls.__dict__.keys():
+		for each in cls.__iter__():
+			if str(item).lower() == each.lower():
+				return True
+		return False
+	
+	def get(self, item):
+		for key in self.__iter__():
+			if key.lower() == str(item).lower():
+				item = key
+		return self.__getattribute__(item)
+	
+	def __call__(self):
+		return self
+	
+	@magic_const
+	def undefined():
+		pass
+
+
+# clem 15/12/2016
+class Struct:
+	def __init__(self, **entries):
+		self.__dict__.update(entries)
+
+
+# clem 15/12/2016
+def magic_const_object_from_list(a_list):
+	magic_dict = dict()
+	for each in a_list:
+		magic_dict.update({ each: magic_const(property()) })
+	return Struct(**magic_dict)
+
+
+MODULE_EXTENSIONS = ('.py', '.pyc', '.pyo')
+
+
+# Clem 15/12/2016 from StackOverflow
+def package_contents(package_name):
+	import imp
+	import os
+	a_file, pathname, description = imp.find_module(package_name)
+	if a_file:
+		raise ImportError('Not a package: %r', package_name)
+	# Use a set because some may be both source and compiled.
+	return set([os.path.splitext(module)[0]
+		for module in os.listdir(pathname)
+		if module.endswith(MODULE_EXTENSIONS)])
 
 
 # clem 10/10/2016 from http://stackoverflow.com/a/4506081/5094389

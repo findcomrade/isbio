@@ -537,7 +537,7 @@ class ShinyReport(CustomModel):
 
 		SEP = '\n'
 
-		if a_user is None or not isinstance(a_user, (User, OrderedUser)):
+		if a_user is None or not isinstance(a_user, (User, breeze.models.OrderedUser)):
 			a_user = self.author
 		# opens ui.R template file
 		filein = open(self.path_global_r_template)
