@@ -117,11 +117,12 @@ elif RUN_MODE_CLASS is ConfigRunModes.pharma:
 elif RUN_MODE_CLASS is ConfigRunModes.dev:
 	from mode.dev import *
 	DEV_MODE = True
+	assert_filled('ENABLE_NOTEBOOK')
 else: # FIXME debug
 	raise ProgramingError('Impossible')
 
 assert_defined('PROJECT_FOLDER_PREFIX')
-assert_filled('PROJECT_FOLDER_NAME', 'ENABLE_NOTEBOOK')
+assert_filled('PROJECT_FOLDER_NAME')
 PROJECT_FOLDER = '%s/%s/' % (PROJECT_FOLDER_PREFIX, PROJECT_FOLDER_NAME)
 # then environement
 
