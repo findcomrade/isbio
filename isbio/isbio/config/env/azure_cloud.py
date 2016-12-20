@@ -6,7 +6,7 @@ from auth.auth0 import *
 DOMAIN = DomainList.CLOUD_DEV if DEV_MODE else DomainList.CLOUD_PROD
 ALLOWED_HOSTS = DOMAIN + AUTH0_IP_LIST
 # FIXME : replace with Site.objects.get(pk=0)
-AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % DOMAIN
+AUTH0_CALLBACK_URL = AUTH0_CALLBACK_URL_BASE % DOMAIN[0]
 
 # override the dev config
 BREEZE_FOLDER = '%s/' % BREEZE_PROD_FOLDER
