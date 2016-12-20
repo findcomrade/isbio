@@ -13,17 +13,22 @@ INCOMPLETE_FN="$inc_run_fn"
 SUCCESS_FN="$success_fn"
 DONE_FN="$done_fn"
 IN="$in_file_name"
-OUT="$out_file_name"
+OUT=${IN}".Rout"
+# OUT="$out_file_name"
 EXEC_PATH="$full_path"
 EXEC_ARGS="$args"
 EXEC_CMD="$cmd"
-RUN_LINE="$EXEC_PATH $EXEC_CMD"
+RUN_LINE=${EXEC_PATH}" "${EXEC_CMD}" ./"${IN}
 FAILED_TEXT="$failed_txt"
 POKE_URL="$poke_url"
 TARGET="$target"
 ENGINE_NAME="$engine"
 ARCH=$arch_cmd
-VERSION=$version_cmd
+EXEC_VERSION=$version_cmd
+# TOTAL_MEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+TOTAL_MEM=$(getconf -a | grep PAGES | awk 'BEGIN {total = 1} {if (NR == 1 || NR == 3) total *=$NF} END {print total / 1024^3" GiBi"}')
 LOG_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.logicalcpu_max || lscpu -p | egrep -v '^#' | wc -l)
 PHY_CORES=$([[ $(uname) = 'Darwin' ]] && sysctl -n hw.physicalcpu_max || lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l)
+### ENV SPECIFIC ###
+export _JAVA_OPTIONS=-Xmx4096m
 ## END OF CONFIGURATION
