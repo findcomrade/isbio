@@ -119,11 +119,8 @@ elif RUN_MODE_CLASS is ConfigRunModes.dev:
 	DEV_MODE = True
 	assert_filled('ENABLE_NOTEBOOK')
 elif RUN_MODE_CLASS is ConfigRunModes.pharma_dev:
-	from mode.dev import *
-	DEV_MODE = True
-	from mode.pharma import *
+	from mode.pharma_dev import *
 	PHARMA_MODE = True
-	DEBUG = True
 else: # FIXME debug
 	raise ProgramingError('Impossible')
 
