@@ -290,6 +290,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		aborted = False
 		log = get_logger()
 		a_run = self._runnable
+		log.debug('got %s, gonna block : %s' % (a_run, drmaa_waiting))
 		if a_run.is_sgeid_empty or a_run.is_done:
 			return
 		sge_id = copy.deepcopy(a_run.sgeid) # useless
