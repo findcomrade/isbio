@@ -5,11 +5,12 @@
 # Target is $target
 
 # Non language specific, non target specific, job bootstrap file
-# breeze run_job.sh version 0.3.1 clement.fiere@helsinki.fi 06/10/2016
+# breeze run_job.sh version 0.3.2 clement.fiere@helsinki.fi 20/12/2016
 # compatible with :
 # 	compute targets : sge, docker
 # 	language 	: R (possibly others)
 source $conf_file
+export AZURE_KEY='' # FIXME hack
 RELEASE='/etc/os-release'
 if [ -f "$RELEASE" ];
 then
@@ -22,13 +23,16 @@ echo 'host    : '`hostname`' @ '`hostname -i`
 echo 'os      : '${PRETTY_NAME}
 echo 'kernel  : '`uname -mrs`
 echo 'arch    : '${ARCH}
-echo 'CPUs    : '${LOG_CORES}
-echo 'cores   : '${PHY_CORES}
+echo 'CPU     : '${LOG_CORES}' / '${PHY_CORES}' (logical / physical)'
+echo 'memory  : '${TOTAL_MEM}
 echo 'dir     : '`pwd`
 echo 'target  : '${TARGET}
 echo 'engine  : '${ENGINE_NAME}
-echo 'exec    : '${RUN_LINE}
-echo 'version : '${VERSION}
+echo 'version : '${EXEC_VERSION}
+echo 'command : '${RUN_LINE}
+echo '######################################################### ENV #########################################################'
+env
+echo '######################################################### END #########################################################'
 echo
 # removing possibly existing files generated from a previous run
 rm *~ ${OUT} ${FAILED_FN} ${INCOMPLETE_FN} ${SUCCESS_FN} ${DONE_FN} > /dev/null 2>&1
@@ -48,7 +52,7 @@ echo `date --rfc-3339=second | sed 's/ /T/'`
 rm ./${INCOMPLETE_FN} > /dev/null 2>&1
 CMD=`tail -n1<./${OUT}`
 # check the last line of the Rout file for possible job internal failure
-if [ "$CMD" = "$FAILED_TEXT" ] || [ ! -f "$DONE_FN" ]; 
+if [ "$CMD" = "$FAILED_TEXT" ] || [ ! -f "$DONE_FN" ];
 then
 	touch ./${FAILED_FN}
 	# cat ${OUT}
