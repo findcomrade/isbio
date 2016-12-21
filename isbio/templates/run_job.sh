@@ -10,6 +10,7 @@
 # 	compute targets : sge, docker
 # 	language 	: R (possibly others)
 source $conf_file
+export AZURE_KEY='' # FIXME hack
 RELEASE='/etc/os-release'
 if [ -f "$RELEASE" ];
 then
