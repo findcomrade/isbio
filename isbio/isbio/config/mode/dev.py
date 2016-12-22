@@ -9,6 +9,8 @@ BREEZE_FOLDER = '%s-dev/' % BREEZE_PROD_FOLDER
 SHINY_MODE = 'local'
 SHINY_LOCAL_ENABLE = True
 
+VERBOSE = True
+
 import sys
 from isbio.settings import USUAL_DATE_FORMAT, USUAL_LOG_FORMAT, LOG_PATH, LOG_HIT_PATH, logging
 LOGGING = {
