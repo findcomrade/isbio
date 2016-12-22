@@ -77,10 +77,6 @@ def refresh_proc():
 		try:
 			dbitem = proc_item.db_item
 			proc = proc_item.process
-			try:
-				dbitem.log.verbose('%s' % dbitem)
-			except:
-				dbitem.log.error('verbose function not found')
 
 			if not proc.is_alive: # thread finished
 				exit_c = 0

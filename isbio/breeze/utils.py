@@ -217,15 +217,16 @@ class ContentType(object):
 c_t = ContentType
 
 
+# clem 22/12/2012 add a verbose level
+def verbose_base(self, msg, *args, **kwargs):
+	if settings.VERBOSE:
+		self.debug(msg, *args, **kwargs)
+
+
 # clem 22/12/2012 override get_logger to add a verbose level
-def get_logger_bis(name=None, level=0):
+def get_logger(name=None, level=0):
 	import utilz
-	
-	def verbose_base(self, msg, *args, **kwargs):
-		if settings.VERBOSE:
-			self.debug(msg, *args, **kwargs)
-	level += 1
-	log_obj = utilz.get_logger(name, level)
+	log_obj = utilz.get_logger(name, level + 1)
 	log_obj.verbose = verbose_base
 	return log_obj
 

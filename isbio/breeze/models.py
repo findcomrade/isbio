@@ -1835,6 +1835,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 	def log_custom(self, level=0):
 		log_obj = LoggerAdapter(get_logger(level=level + 1), dict())
 		log_obj.process = lambda msg, kwargs: ('%s : %s' % (self.short_id, msg), kwargs)
+		log_obj.verbose = verbose_base
 		return log_obj
 
 	def __unicode__(self): # Python 3: def __str__(self):
