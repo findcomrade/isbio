@@ -230,10 +230,13 @@ def get_logger_bis(name=None, level=0):
 	return log_obj
 
 
+# clem 22/12/2012 override get_logger to add a verbose level
 class MyLogger(Logger):
-	pass
+	def verbose(self, msg, *args, **kwargs):
+		if settings.VERBOSE:
+			self.debug(msg, *args, **kwargs)
 
 import logging
 logging.setLoggerClass(MyLogger)
 
-get_logger = get_logger_bis
+# get_logger = get_logger_bis
