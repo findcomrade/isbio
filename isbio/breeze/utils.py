@@ -220,6 +220,7 @@ c_t = ContentType
 # clem 22/12/2012 override get_logger to add a verbose level
 def get_logger_bis(name=None, level=0):
 	import utilz
+	
 	def verbose_base(self, msg, *args, **kwargs):
 		if settings.VERBOSE:
 			self.debug(msg, *args, **kwargs)
