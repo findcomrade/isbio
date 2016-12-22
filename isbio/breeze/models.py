@@ -1838,7 +1838,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 		
 		def verbose_proxy(msg, *args, **kwargs):
 			if settings.VERBOSE:
-				log_obj.logger.debug(msg, *args, **kwargs)
+				log_obj.debug(msg, *args, **kwargs)
 		
 		log_obj.verbose = verbose_proxy
 		return log_obj
