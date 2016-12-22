@@ -229,4 +229,11 @@ def get_logger_bis(name=None, level=0):
 	log_obj.verbose = verbose_base
 	return log_obj
 
+
+class MyLogger(Logger):
+	pass
+
+import logging
+logging.setLoggerClass(MyLogger)
+
 get_logger = get_logger_bis
