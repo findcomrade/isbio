@@ -161,7 +161,7 @@ def get_key(name='', caching=True):
 	
 	def read_key():
 		with open(full_path) as f:
-			logger.info('Read key %s from %s' % (full_path, this_function_caller_name(2)))
+			logger.debug('Read key %s from %s' % (full_path, this_function_caller_name(2)))
 			return str(f.read())[:-1]
 	
 	try: # FIXME caching seems not to work with docker_if
@@ -170,8 +170,8 @@ def get_key(name='', caching=True):
 	except Exception as e:
 		logger.exception(str(e))
 		pass
-	msg = 'WARNING: could not read key %s from %s' % (name, config_root)
-	print (msg)
+	msg = 'could not read key %s from %s' % (name, config_root)
+	print 'WARNING: %s' % msg
 	logger.warning(msg)
 	return ''
 

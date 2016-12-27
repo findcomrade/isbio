@@ -219,7 +219,6 @@ c_t = ContentType
 
 # clem 22/12/2012 add a verbose level
 def verbose_base(self):
-	
 	def embd(msg, *args, **kwargs):
 		if settings.VERBOSE:
 			self.debug(msg, *args, **kwargs)
@@ -234,11 +233,11 @@ def get_logger(name=None, level=0):
 	return log_obj
 
 
-# clem 22/12/2012 override get_logger to add a verbose level
+# clem 22/12/2012 override Logger class to add a verbose level
 class MyLogger(Logger):
-	def verbose(self, msg, *args, **kwargs):
-		if settings.VERBOSE:
-			self.debug(msg, *args, **kwargs)
+	def __init__(self, name, level=0):
+		super(MyLogger, self).__init__(name, level + 1)
+		self.verbose = verbose_base(self)
 
 import logging
 logging.setLoggerClass(MyLogger)
