@@ -8,7 +8,7 @@ import os
 a_lock = Lock()
 container_lock = Lock()
 
-__version__ = '0.9'
+__version__ = '0.9.1'
 __author__ = 'clem'
 __date__ = '15/03/2016'
 KEEP_TEMP_FILE = False # i.e. debug
@@ -428,8 +428,9 @@ class DockerInterface(DockerInterfaceConnector, ComputeInterface):
 								self.log.warning('container is dead !')
 					except AttributeError:
 						self.log.exception('AttributeError: %s' % str(self._container.status_obj))
-				else:
+				else: # TODO : has to set job to failed
 					self.log.error('Container not found !')
+					self._set_global_status(self.js.FAILED)
 		return self._container
 
 	# clem 12/05/2016
