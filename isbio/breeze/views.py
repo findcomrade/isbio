@@ -2060,7 +2060,7 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 	raise PermissionDenied(request=request)
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
-		raise PermissionDenied(request=request)(request=request)
+		raise PermissionDenied(request=request)
 
 	try:
 		wrapper, name, size = run_instance.download_zip(mod)
@@ -2318,7 +2318,7 @@ def report_file_server(request, rid, category, file_name=None):
 	# Enforce user access restrictions
 	if request.user not in report_inst.shared.all() and report_inst.author != request.user\
 		and not request.user.is_superuser:
-		raise PermissionDenied(request=request)(request)
+		raise PermissionDenied(request=request)
 
 	return report_file_server_sub(request, rid, category, fname=file_name, report_inst=report_inst)
 
