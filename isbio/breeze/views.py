@@ -2048,7 +2048,7 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 02/10/2015 migrated to Runnable and FolderObj
 	assert issubclass(serv_obj, Runnable)
 	try:
-		run_instance = serv_obj.objects.get(id=jid)
+		run_instance = serv_obj.objects.secure_get(id=jid, user=request.user) # TODO should fix the auth issue below
 		assert isinstance(run_instance, Runnable)
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no record with id ' + jid + ' in DB')

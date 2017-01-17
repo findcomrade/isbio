@@ -144,7 +144,7 @@ else:
 			name='edit_job'),
 		url(r'^jobs/show-code/(?P<jid>\d+)$', breeze.views.show_rcode, name='show_rcode'),
 		url(r'^jobs/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.send_zipfile_j, name='send_zipfile_j'),
-		url(r'^report/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.send_zipfile_r, name='send_zipfile_r'),
+		url(r'^reports?/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', breeze.views.send_zipfile_r, name='send_zipfile_r'),
 		# url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'),
 		#  FIXME DEPRECATED
 		url(r'^jobs/info/(?P<jid>\d+)-(?P<item>[a-z]+)$', breeze.views.update_jobs, name='update_jobs'),
