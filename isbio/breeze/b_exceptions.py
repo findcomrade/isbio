@@ -179,7 +179,7 @@ class PermissionDenied(PermissionDenied_org):
 			user = get_user()
 			return user.username if user else ''
 		
-		super(PermissionDenied, self).__init__(*args, **kwargs)
+		super(PermissionDenied, self).__init__()
 		user_name = get_username()
 		message = get_message()
 		final_text = 'Access denied to %s for %s' % (user_name or '?', this_function_caller_name())
