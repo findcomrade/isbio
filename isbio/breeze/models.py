@@ -1048,7 +1048,6 @@ class Runnable(FolderObj, CustomModelAbstract):
 	RQ_SPECIFICS = ['request_data', 'sections']
 	FAILED_TEXT = 'Execution halted'
 	
-
 	HIDDEN_FILES = [SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ? #
 	SYSTEM_FILES = HIDDEN_FILES + [INC_RUN_FN, FAILED_FN]
 
@@ -1644,7 +1643,7 @@ class Runnable(FolderObj, CustomModelAbstract):
 		"""
 		if self.breeze_stat == JobState.SCRIPT_FAILED or (self.breeze_stat == JobState.FAILED and self.is_r_failure):
 			return JobState.SCRIPT_FAILED
-		if self.breeze_stat == JobState.DONE or self.breeze_stat == JobState.RUNNING:
+		if self.breeze_stat == JobState.DONE: # or self.breeze_stat == JobState.RUNNING:
 			return JobStat.textual(self._status, self)
 		return JobStat.textual(self.breeze_stat, self)
 

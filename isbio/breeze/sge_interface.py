@@ -197,6 +197,7 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 
 	# clem 06/05/2016
 	def status(self): # TODO move it all here
+		# self.log.debug("status from %s says : %s" % (repr(self), self._sge_obj.state))
 		return self._sge_obj.state
 
 	# clem 16/03/2016
@@ -288,27 +289,47 @@ class SGEInterface(SGEInterfaceConnector, ComputeInterface):
 		"""
 		exit_code = 42
 		aborted = False
-		log = get_logger()
+		# log = get_logger()
 		a_run = self._runnable
 		if a_run.is_sgeid_empty or a_run.is_done:
 			return
 		sge_id = copy.deepcopy(a_run.sgeid) # useless
 		try:
 			ret_val = None
-			if self.drmaa and drmaa_waiting:
+			if drmaa_waiting and self.drmaa :
+				self.log.debug('start drmaa_waiting')
 				# with self.drmaa_mutex:
 				# with self.drmaa.Session() as session:
 				with self.session as session:
 					# with self.drmaa_if.mutex:
 					ret_val = session.wait(sge_id, self.drmaa.Session.TIMEOUT_WAIT_FOREVER)
 			else:
+				# acquire job
+				time_out = settings.NO_SGEID_EXPIRY
+				wait_sec = 0.25
+				i = 0
+				self.log.debug('waiting until the job shows up in SGE (t_out=%s)' % time_out)
+				while True:
+					try:
+						time.sleep(wait_sec)
+						i += wait_sec
+						if self._sge_obj:
+							break
+						if i >= time_out:
+							a_run.log.info('Job never showed up on SGE !')
+							exit_code = 666
+					except NoSuchJob:
+						pass
+				self.log.debug('Job acquired, starts polling')
 				try:
 					while True:
+						self.status()
 						time.sleep(1)
-						a_run.compute_if.status()
 						if a_run.aborting:
+							self.log.debug('Got user abort')
 							break
 				except NoSuchJob:
+					self.log.debug('NoSuchJob')
 					exit_code = 0
 
 			# ?? FIXME

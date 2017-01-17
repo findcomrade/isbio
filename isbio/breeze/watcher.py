@@ -76,6 +76,7 @@ def refresh_proc():
 		assert isinstance(proc_item, ProcItem)
 		try:
 			dbitem = proc_item.db_item
+			dbitem.log.debug("refresh_proc")
 			proc = proc_item.process
 
 			if not proc.is_alive: # thread finished
@@ -111,13 +112,17 @@ def refresh_qstat(proc_item):
 	if not dbitem.is_sgeid_empty:
 		if not dbitem.is_done:
 			try:
+				dbitem.log.debug('status()')
 				status = dbitem.compute_if.status()
 			except NoSuchJob as e:
 				dbitem.log.warning('qstat InvalidJobException (%s)' % (e,))
 				end_tracking(proc_item)
 			# if the status has changed and is not consistent with one from the object
-			if status is not None and status != dbitem.breeze_stat and not dbitem.aborting:
+			if status and status != dbitem.breeze_stat and not dbitem.aborting:
+				dbitem.log.debug('status says %s db.breeze_stat says %s' % (status, dbitem.breeze_stat))
 				dbitem.breeze_stat = status
+			else:
+				dbitem.log.debug('no change %s, %s' % (status, dbitem.get_status()))
 	elif dbitem.is_sgeid_timeout: # and not dbitem.is_done:
 		dbitem.log.warning('SgeId timeout !')
 		end_tracking(proc_item)
