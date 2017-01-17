@@ -2055,9 +2055,9 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 
 	# FIXME : user with whom report is shared are not able to download -result
 	# Enforce user access restrictions
-	if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
-			run_instance.author == request.user or request.user.is_superuser):
-		raise PermissionDenied
+	# if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
+	# 		run_instance.author == request.user or request.user.is_superuser):
+	# 	raise PermissionDenied
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
 		raise PermissionDenied
