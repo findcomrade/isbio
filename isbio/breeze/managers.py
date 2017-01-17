@@ -2,11 +2,11 @@ from __builtin__ import property
 
 from django.db.models.query import QuerySet as original_QS
 from django.db.models import Manager
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 import django.db.models.query_utils
 from django.conf import settings
 from django.http import Http404
-from breeze.b_exceptions import InvalidArguments, ObjectHasNoReadOnlySupport
+from breeze.b_exceptions import InvalidArguments, ObjectHasNoReadOnlySupport, PermissionDenied
 from comp import translate
 
 org_Q = django.db.models.query_utils.Q
@@ -374,7 +374,7 @@ class ObjectsWithAuth(CustomManager):
 		"""
 		# Enforce access rights
 		if not self.has_full_access:
-			raise PermissionDenied
+			raise PermissionDenied(user=self.context_user)
 		return True
 
 	# clem 21/06/2016
@@ -390,7 +390,7 @@ class ObjectsWithAuth(CustomManager):
 		"""
 		# Enforce access rights
 		if not self.has_read_access:
-			raise PermissionDenied
+			raise PermissionDenied(user=self.context_user)
 		return True
 
 	# clem 21/06/2016
@@ -468,7 +468,7 @@ class ObjectsWithAuth(CustomManager):
 			if self.has_read_access:
 				self.set_read_only_or_raise()
 				return self.context_obj
-			raise PermissionDenied
+			raise PermissionDenied(user=self.context_user)
 		return self.context_obj
 
 
