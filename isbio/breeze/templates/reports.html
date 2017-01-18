@@ -186,22 +186,25 @@
 		}
 		// var csrftoken = getCookie('csrftoken');
 		
-		
-		//$.ajaxSetup({
-		//	beforeSend: function (xhr, settings) {
-		//		if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-		//			// Only send the token to relative URLs i.e. locally.
-		//			xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-		//		}
-		//	}
-		//});
-		
+		$.ajaxSetup({
+			beforeSend: function (xhr, settings) {
+				if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+					// Only send the token to relative URLs i.e. locally.
+					xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+				}
+			}
+		});
 		
 		function getFormObj(formId) {
 			var formObj = {};
 			var inputs = $('#' + formId).serializeArray();
 			$.each(inputs, function (i, input) {
-				formObj[input.name] = input.value;
+				var val = input.value;
+				console.debug(input.type)
+				if (input.type === 'select-multiple') {
+					val = $('select[name=' + input.name + ']').val();
+				}
+				formObj[input.name] = val;
 			});
 			return formObj;
 		}
