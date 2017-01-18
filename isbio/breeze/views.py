@@ -1605,12 +1605,12 @@ def edit_report_access(request, rid):
 
 	if request.method == 'POST':
 		# Validates input info and commit the changes to report_inst instance directly through Django back-end
-		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
+		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst, request=request)
 		if property_form.is_valid():
 			property_form.save()
 			return HttpResponse(True)
 	# TODO check if else is no needed here
-	property_form = breezeForms.EditReportSharing(instance=report_inst)
+	property_form = breezeForms.EditReportSharing(instance=report_inst, request=request)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': property_form,
@@ -2658,7 +2658,7 @@ def edit_group_dialog(request, gid):
 	form_title = 'Edit Group: ' + str(group_data.name)
 
 	if request.method == 'POST':
-		group_form = breezeForms.EditGroupForm(request.POST)
+		group_form = breezeForms.EditGroupForm(request.POST, request=request)
 		if group_form.is_valid():
 			aux.edit_group(group_form, group_data, request.POST)
 			return HttpResponseRedirect(reverse(home, kwargs={'state': 'groups'}))
@@ -2667,7 +2667,7 @@ def edit_group_dialog(request, gid):
 		for arr in group_data.team.all():
 			team[arr.id] = True
 
-		group_form = breezeForms.EditGroupForm(initial={'group_team': team})
+		group_form = breezeForms.EditGroupForm(initial={'group_team': team}, request=request)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': group_form,

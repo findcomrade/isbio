@@ -251,12 +251,13 @@
 
 
 			$('#id_shared').addClass('multiselect');
+			$('#id_shared').multiselect(multiConfigurationSet);
 			$('#id_shared_g').addClass('multiselect');
-			$('#id_shared_g').multiselect(multiConfigurationSet)
+			$('#id_shared_g').multiselect(multiConfigurationSet);
 
 
 			var obj = $('#id_shared');
-			NameTranslate(  obj );
+			// NameTranslate(  obj );
 			$('#id_recipients').multiselect(multiConfigurationSet);
 		}
 
