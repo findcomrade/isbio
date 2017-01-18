@@ -198,7 +198,9 @@
 		function submitItemModalFormBind(url, target){
 			$('#form_modal_apply').submit(function(ev){
 				$(".multiselect option[value='multiselect-all']").remove();
-				var formData = $(this).serialize(); // new FormData($('#form_modal_apply')[0]);
+				// var formData = $(this).serialize(); // new FormData($('#form_modal_apply')[0]);
+				var formData = new FormData(document.querySelector('#form_modal_apply'));
+				console.debug(formData);
 
 				$("#submit-btn").attr("disabled", "disabled");
 
