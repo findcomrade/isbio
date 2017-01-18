@@ -187,6 +187,7 @@ class ObjectsWithACL(CustomModelAbstract):
 	class Meta:
 		abstract = True
 
+
 def generic_super_fn_spe(inst, filename):
 	return inst.file_name(filename)
 
