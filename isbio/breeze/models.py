@@ -111,7 +111,7 @@ class Project(CustomModel):
 # TODO add an Institute db field
 # TODO change to CustomModel
 class Group(CustomModelAbstract):
-	name = models.CharField(max_length=50, unique=True)
+	name = models.CharField(max_length=50)
 	author = ForeignKey(User)
 	team = models.ManyToManyField(User, blank=True, default=None, related_name='group_content')
 
