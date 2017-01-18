@@ -110,8 +110,8 @@ class GroupForm(forms.Form):
 	)
 
 	def __init__(self, *args, **kwargs):
+		self.author = kwargs.pop('author', None)
 		super(GroupForm, self).__init__(*args, **kwargs)
-		self.author = kwargs.get('author', None)
 	
 	def clean_group_name(self):
 		group_name = self.cleaned_data.get('group_name')
