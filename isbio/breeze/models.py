@@ -183,7 +183,9 @@ class ObjectsWithACL(CustomModelAbstract):
 	# clem 18/01/2017
 	def has_access(self, user):
 		return self.admin_override_param(user) or self.is_owner(user) or self.is_in_share_list(user)
-
+	
+	class Meta:
+		abstract = True
 
 def generic_super_fn_spe(inst, filename):
 	return inst.file_name(filename)
