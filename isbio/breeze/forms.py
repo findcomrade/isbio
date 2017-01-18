@@ -309,7 +309,7 @@ class EditReportSharing(forms.ModelForm, ReportPropsFormMixin):
 		self.fields['shared'].label = 'Individuals: '
 		self.fields['shared'].choices = self.users_list_of_tuples_gen()
 		self.fields['shared_g'].label = 'Groups: '
-		self.fields['shared_g'].queryset = self.group_list_of_tuples_gen()
+		self.fields['shared_g'].choices = self.group_list_of_tuples_gen()
 	
 	class Meta:
 		model = breeze.models.Report
