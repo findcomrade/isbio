@@ -256,7 +256,7 @@ class ReportPropsFormMixin(object):
 			users_list_of_tuples = list()
 
 			for ur in breeze.models.OrderedUser.objects.exclude(id__exact=self.request.user.id):
-				users_list_of_tuples.append(tuple((ur.id, ur.username)))
+				users_list_of_tuples.append(tuple((ur.id, ur.get_full_name() or ur.username)))
 			
 			self._share_options_ppl = list()
 			self._share_options_ppl.append(tuple(('', tuple(users_list_of_tuples))))
@@ -300,7 +300,7 @@ class ReportPropsFormMixin(object):
 
 		# self.fields["Share"] = forms.MultipleChoiceField( # TODO find out why this has various spelling
 		self.fields["shared"] = forms.MultipleChoiceField(
-			label='Individuals',
+			label='Individuals: ',
 			required=False,
 			choices=self.share_options_ppl,
 			widget=forms.SelectMultiple(
@@ -309,7 +309,7 @@ class ReportPropsFormMixin(object):
 		)
 		
 		self.fields["shared_g"] = forms.MultipleChoiceField(
-			label='Groups',
+			label='Groups: ' ,
 			required=False,
 			choices=self.share_options_group,
 			widget=forms.SelectMultiple(

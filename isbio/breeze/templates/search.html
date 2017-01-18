@@ -211,7 +211,7 @@
 						{% for field in props_form %}
 							{% if field.name == 'shared' %}
 								<p>Grant report access rights to:</p>
-								{{ field }}
+								{{ field|as_bootstrap:"horizontal" }}
 							{% else %}
 								{{ field|as_bootstrap:"horizontal" }}
 							{% endif %}
