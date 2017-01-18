@@ -186,21 +186,33 @@
 		}
 		// var csrftoken = getCookie('csrftoken');
 		
-		$.ajaxSetup({
-			beforeSend: function (xhr, settings) {
-				if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-					// Only send the token to relative URLs i.e. locally.
-					xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-				}
-			}
-		});
+		
+		//$.ajaxSetup({
+		//	beforeSend: function (xhr, settings) {
+		//		if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+		//			// Only send the token to relative URLs i.e. locally.
+		//			xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		//		}
+		//	}
+		//});
+		
+		
+		function getFormObj(formId) {
+			var formObj = {};
+			var inputs = $('#' + formId).serializeArray();
+			$.each(inputs, function (i, input) {
+				formObj[input.name] = input.value;
+			});
+			return formObj;
+		}
 		
 		function submitItemModalFormBind(url, target){
 			$('#form_modal_apply').submit(function(ev){
 				$(".multiselect option[value='multiselect-all']").remove();
 				// var formData = $(this).serialize(); // new FormData($('#form_modal_apply')[0]);
-				var formData = new FormData(document.querySelector('#form_modal_apply'));
-				console.debug(formData);
+				// var formData = new FormData(document.querySelector('#' + target + ' form'));
+				var formData = getFormObj('form_modal_apply');
+				console.debug(formData.toString());
 
 				$("#submit-btn").attr("disabled", "disabled");
 
