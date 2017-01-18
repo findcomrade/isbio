@@ -124,6 +124,67 @@ class Group(CustomModelAbstract):
 		return self.name
 
 
+class ObjectsWithACL(CustomModelAbstract):
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	@staticmethod
+	def admin_override_param(user):
+		""" Return wether settings.SU_ACCESS_OVERRIDE is True and user is super user
+
+		:param user: Django user object
+		:type user: models.User
+		:return: True | False
+		:rtype: bool
+		"""
+		assert isinstance(user, User)
+		return settings.SU_ACCESS_OVERRIDE and user.is_superuser
+	
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	def _get_author(self):
+		""" Return the author/owner of the provided object, independently of the name of the column storing it
+
+		:param self:
+		:type self:
+		:return: Django user object
+		:rtype: models.User
+		"""
+		auth = None
+		if hasattr(self, 'author'): # most objects
+			auth = self.author
+		elif hasattr(self, '_author'): # Reports
+			auth = self._author
+		elif hasattr(self, 'juser'): # Jobs
+			auth = self.juser
+		elif hasattr(self, 'added_by'): # OffsiteUser
+			auth = self.added_by
+		elif hasattr(self, 'user'): # UserProfile
+			auth = self.user
+		elif hasattr(self, 'script_buyer'): # CartInfo
+			auth = self.script_buyer
+		return auth
+	
+	# clem 18/01/2017
+	def is_in_share_list(self, user):
+		assert isinstance(user, User)
+		in_user_lst = hasattr(self, 'shared') and user in self.shared.all()
+		in_group = False
+		if hasattr(self, 'shared_g'):
+			for each_group in self.shared_g.all():
+				if user in Group.objects.get(pk=each_group.id).team.all():
+					in_group = True
+					break
+		return in_user_lst or in_group
+		
+	# clem 18/01/2017
+	def is_owner(self, user):
+		assert isinstance(user, User)
+		author = self._get_author() # author/owner of the object
+		return author == user
+	
+	# clem 18/01/2017
+	def has_access(self, user):
+		return self.admin_override_param(user) or self.is_owner(user) or self.is_in_share_list(user)
+
+
 def generic_super_fn_spe(inst, filename):
 	return inst.file_name(filename)
 
@@ -1029,7 +1090,7 @@ class UserProfile(CustomModelAbstract): # TODO move to a common base app
 		return self.user.get_full_name()  # return self.user.username
 
 
-class Runnable(FolderObj, CustomModelAbstract):
+class Runnable(FolderObj, ObjectsWithACL):
 	##
 	# CONSTANTS
 	##
@@ -2029,6 +2090,7 @@ class Report(Runnable):
 	# Report specific
 	project = models.ForeignKey(Project, null=True, blank=True, default=None)
 	shared = models.ManyToManyField(User, blank=True, default=None, related_name='report_shares')
+	shared_g = models.ManyToManyField(Group, blank=True, default=None, related_name='report_shares_g')
 	conf_params = models.TextField(null=True, editable=False)
 	conf_files = models.TextField(null=True, editable=False)
 	fm_flag = models.BooleanField(default=False)
@@ -2166,6 +2228,9 @@ class Report(Runnable):
 
 		if 'shared_users' in kwargs.keys():
 			self.shared = kwargs['shared_users']
+			
+		if 'shared_groups' in kwargs.keys():
+					self.shared_g = kwargs['shared_groups']
 
 	_path_tag_r_template = settings.TAGS_TEMPLATE_PATH
 

@@ -1,5 +1,4 @@
 from __builtin__ import property
-
 from django.db.models.query import QuerySet as original_QS
 from django.db.models import Manager
 from django.core.exceptions import ObjectDoesNotExist
@@ -374,7 +373,7 @@ class ObjectsWithAuth(CustomManager):
 		"""
 		# Enforce access rights
 		if not self.has_full_access:
-			raise PermissionDenied(user=self.context_user)
+			raise PermissionDenied(user=self.context_user, message=self.context_obj.id if self.context_obj else '')
 		return True
 
 	# clem 21/06/2016
@@ -468,7 +467,7 @@ class ObjectsWithAuth(CustomManager):
 			if self.has_read_access:
 				self.set_read_only_or_raise()
 				return self.context_obj
-			raise PermissionDenied(user=self.context_user)
+			raise PermissionDenied(user=self.context_user, message='%s' % kwargs.get('id', '') or kwargs.get('pk', ''))
 		return self.context_obj
 
 

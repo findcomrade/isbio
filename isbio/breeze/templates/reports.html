@@ -199,7 +199,7 @@
 					enctype: 'multipart/form-data',
 					data: formData,
 					headers: {
-						"HTTP_X_CSRFTOKEN" : csrftoken
+						"HTTP_X_CSRFTOKEN" : csrftoken // FIXME does not work
 					},
 					statusCode: {
 						302: function (request, status, error) {

@@ -233,8 +233,8 @@ def extract_users(groups, users):
 	"""
 	people = list()
 
-	#  Process Groups
-	if groups:
+	# *** LEGACY *** Process Groups *** LEGACY ***
+	if False and groups: # FIXME deprecated
 		for group_id in map(int, groups.split(',')):
 			dbitem = breeze.models.Group.objects.get(id=group_id)
 			ref = dbitem.team.all()
@@ -247,6 +247,21 @@ def extract_users(groups, users):
 		people = list(set(people) | set(ref))
 
 	return people
+
+
+def extract_groups(groups):
+	""" Produce a unique list of groups.
+	"""
+	group_lst = list()
+	
+	#  Process Groups
+	if groups:
+		for group_id in map(int, groups.split(',')):
+			# dbitem = breeze.models.Group.objects.get(id=group_id)
+			# ref = dbitem.team.all()
+			group_lst.append(group_id)
+	
+	return group_lst
 
 
 # TODO get rid of that
