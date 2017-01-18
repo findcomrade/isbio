@@ -388,8 +388,8 @@ def build_report(report_data, request_data, report_property, sections):
 	# get the request ReportType
 	rt = ReportType.objects.get(type=report_data['report_type'])
 	# list of users that will have access to this report
-	shared_users = aux.extract_users(request_data.POST.get('Groups'), request_data.POST.get('Individuals'))
-	shared_groups = aux.extract_groups(request_data.POST.get('Groups'))
+	shared_users = aux.extract_users(request_data.POST.get('shared'), request_data.POST.get('Individuals'))
+	shared_groups = aux.extract_groups(request_data.POST.get('shared_g'))
 	print shared_users, shared_groups
 	# if shared_users == list() and request_data.POST.get('shared'):
 	# 	shared_users = request_data.POST.getlist('shared')
