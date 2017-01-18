@@ -642,7 +642,7 @@ class UserManager(Manager):
 		return super(UserManager, self)
 	
 	def all(self):
-		return super(UserManager, self).filter(user__active=True)
+		return super(UserManager, self).filter(user_id__is_active=True)
 	
 	def filter(self, *args, **kwargs):
 		return self.all().filter(*args, **kwargs)
