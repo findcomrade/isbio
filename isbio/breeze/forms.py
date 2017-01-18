@@ -241,7 +241,8 @@ class AddOffsiteUser(forms.ModelForm):
 # clem 18/04/2016
 class ReportPropsFormMixin(object):
 	request = None
-	_share_options = None
+	_share_options_ppl = None
+	_share_options_group = None
 	_target_list = None
 	_project_qs = None
 
@@ -250,22 +251,28 @@ class ReportPropsFormMixin(object):
 		super(ReportPropsFormMixin, self).__init__(*args, **kwargs)
 
 	@property
-	def share_options(self):
-		if not self._share_options:
-			group_list_of_tuples = list()
+	def share_options_ppl(self):
+		if not self._share_options_ppl:
 			users_list_of_tuples = list()
 
 			for ur in breeze.models.OrderedUser.objects.all():
 				users_list_of_tuples.append(tuple((ur.id, ur.username)))
 
-			# for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
-			# 	group_list_of_tuples.append(tuple((gr.id, gr.name)))
-
-			self._share_options = list()
-			# self._share_options.append(tuple(('Groups', tuple(group_list_of_tuples))))
-			# self._share_options.append(tuple(('Individual Users', tuple(users_list_of_tuples))))
-			self._share_options.append(tuple(users_list_of_tuples))
-		return self._share_options
+			self._share_options_ppl.append(tuple(('', tuple(users_list_of_tuples))))
+		return self._share_options_ppl
+	
+	# clem 18/01/2017
+	@property
+	def share_options_group(self):
+		if not self._share_options_group:
+			group_list_of_tuples = list()
+			
+			for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
+				group_list_of_tuples.append(tuple((gr.id, gr.name)))
+			
+			self._share_options_ppl = list()
+			self._share_options_group.append(tuple(('', tuple(group_list_of_tuples))))
+		return self._share_options_group
 
 	# clem 19/04/2016
 	@property
@@ -293,7 +300,7 @@ class ReportPropsFormMixin(object):
 		self.fields["shared"] = forms.MultipleChoiceField(
 			label='Individuals',
 			required=False,
-			choices=self.share_options,
+			choices=self.share_options_ppl,
 			widget=forms.SelectMultiple(
 				attrs={ 'class': 'multiselect', }
 			)
@@ -302,7 +309,7 @@ class ReportPropsFormMixin(object):
 		self.fields["shared_g"] = forms.MultipleChoiceField(
 			label='Groups',
 			required=False,
-			choices=self.share_options,
+			choices=self.share_options_group,
 			widget=forms.SelectMultiple(
 				attrs={ 'class': 'multiselect', }
 			)
