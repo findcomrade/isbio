@@ -294,9 +294,9 @@ class EditReportSharing(forms.ModelForm, ReportPropsFormMixin):
 	author_id = 0
 	
 	def __init__(self, *args, **kwargs):
+		self.request = kwargs.pop("request", None)
 		super(EditReportSharing, self).__init__(*args, **kwargs)
 		instance = kwargs.get('instance', None)
-		self.request = kwargs.pop("request", None)
 		self.author_id = instance.author.id if instance else self.request.user if self.request else 0
 		self.fields['shared'].label = 'Individuals: '
 		# self.fields['shared'].queryset = User.objects.exclude(id=self.author_id)
@@ -318,8 +318,8 @@ class EditReportSharing(forms.ModelForm, ReportPropsFormMixin):
 
 class EditGroupForm(forms.Form, ReportPropsFormMixin):
 	def __init__(self, *args, **kwargs):
-		super(EditGroupForm, self).__init__(*args, **kwargs)
 		self.request = kwargs.pop("request", None)
+		super(EditGroupForm, self).__init__(*args, **kwargs)
 		self.fields['group_team'].choices = self.users_list_of_tuples
 	
 	group_team = forms.ModelMultipleChoiceField(
