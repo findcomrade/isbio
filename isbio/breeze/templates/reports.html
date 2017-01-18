@@ -168,10 +168,28 @@
 	<div id="Add" class="modal fade" role="dialog" aria-hidden="true"></div>
 	<!-- User Access edit form management and User name conversion, and other forms -->
 	<script type="text/javascript">
+		
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie !== '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+		var csrftoken = getCookie('csrftoken');
+	
 		function submitItemModalFormBind(url, target){
 			$('#form_modal_apply').submit(function(ev){
 				$(".multiselect option[value='multiselect-all']").remove();
-				var formData = $(this).serialize()// new FormData($('#form_modal_apply')[0]);
+				var formData = $(this).serialize(); // new FormData($('#form_modal_apply')[0]);
 
 				$("#submit-btn").attr("disabled", "disabled");
 
@@ -180,6 +198,9 @@
 					url: url,
 					enctype: 'multipart/form-data',
 					data: formData,
+					headers: {
+						"HTTP_X_CSRFTOKEN" : csrftoken // FIXME does not work
+					},
 					statusCode: {
 						302: function (request, status, error) {
 							console.log("moved");

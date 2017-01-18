@@ -389,8 +389,10 @@ def build_report(report_data, request_data, report_property, sections):
 	rt = ReportType.objects.get(type=report_data['report_type'])
 	# list of users that will have access to this report
 	shared_users = aux.extract_users(request_data.POST.get('Groups'), request_data.POST.get('Individuals'))
-	if shared_users == list() and request_data.POST.get('shared'):
-		shared_users = request_data.POST.getlist('shared')
+	shared_groups = aux.extract_groups(request_data.POST.get('Groups'))
+	print shared_users, shared_groups
+	# if shared_users == list() and request_data.POST.get('shared'):
+	# 	shared_users = request_data.POST.getlist('shared')
 	# author
 	the_user = request_data.user
 	the_user.prof = UserProfile.objects.get(user=the_user)
@@ -428,7 +430,8 @@ def build_report(report_data, request_data, report_property, sections):
 		target=target,
 		rora_id=report_data['instance_id']
 	)
-	dbitem.assemble(request_data=request_data, shared_users=shared_users, sections=sections)
+	dbitem.assemble(request_data=request_data, shared_users=shared_users, shared_groups=shared_groups,
+		sections=sections)
 	dbitem.submit_to_cluster()
 	
 	return True

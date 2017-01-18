@@ -431,9 +431,9 @@ def reports(request):
 		return report_search(request)
 	else:
 		page_index = 1
-		reports = paginator.page(page_index)
+		reports_list = paginator.page(page_index)
 		# access rights
-		for each in reports:
+		for each in reports_list:
 			each.user_is_owner = each.author == request.user
 			each.user_has_access = request.user in each.shared.all() or each.user_is_owner
 		user_profile = UserProfile.objects.get(user=request.user)
@@ -449,7 +449,7 @@ def reports(request):
 
 		return render_to_response('reports.html', RequestContext(request, {
 			'reports_status': 'active',
-			'reports': reports,
+			'reports': reports_list,
 			'sorting': sorting,
 			'rtypes': reptypelst,
 			'user_rtypes': user_rtypes,
@@ -476,7 +476,7 @@ def send_report(request, rid):
 
 	# Enforce access rights
 	if report_inst.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
 		send_form = breezeForms.SendReportTo(request.POST, request=request)
@@ -621,7 +621,7 @@ def edit_offsite_user(request, uid):
 	try:
 		edit_u = OffsiteUser.objects.filter(belongs_to=request.user).get(id=uid)
 	except ObjectDoesNotExist:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
 		off_site_user_form = breezeForms.AddOffsiteUser(request.user, request.POST, instance=edit_u)
@@ -647,7 +647,7 @@ def delete_off_site_user(request, uid):
 	try:
 		off_site_user = OffsiteUser.objects.filter(belongs_to=request.user).get(id=uid)
 	except ObjectDoesNotExist:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	off_site_user.drop(request.user)
 
@@ -1151,7 +1151,7 @@ def manage_scripts(request, page=None, view_all=False):
 	# script_selection = Rscripts.objects.all()
 	assert isinstance(request.user, User)
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	if view_all: # and request.user.is_superuser and settings.SU_ACCESS_OVERRIDE:
 		script_selection = Rscripts.objects.all()
@@ -1333,7 +1333,7 @@ def script_editor(request, sid=None, tab=None, script=None):
 	assert isinstance(request.user, User)
 	# ACL
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	if not script:
 		try:
 			script = Rscripts.objects.secure_get(id=sid, user=request.user)
@@ -1367,7 +1367,7 @@ def script_editor_update(request, sid=None):
 	# ACL
 	assert isinstance(request.user, User)
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	try:
 		script = Rscripts.objects.secure_get(id=sid, user=request.user)
 	except ObjectDoesNotExist:
@@ -1437,7 +1437,7 @@ def get_form(request, sid=None):
 	# ACL
 	assert isinstance(request.user, User)
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	try:
 		script = Rscripts.objects.secure_get(id=sid, user=request.user)
 	except ObjectDoesNotExist:
@@ -1464,7 +1464,7 @@ def get_rcode(request, sid=None, sfile=None):
 	# ACL
 	assert isinstance(request.user, User)
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	try:
 		script = Rscripts.objects.secure_get(id=sid, user=request.user)
 	except ObjectDoesNotExist:
@@ -1513,7 +1513,7 @@ def delete_job(request, jid, state='', page=1):
 		job = Jobs.objects.get(id=jid)
 		# Enforce access rights
 		if job._author != request.user:
-			raise PermissionDenied
+			raise PermissionDenied(request=request)
 		#rshell.del_job(job)
 		job.delete()
 	except ObjectDoesNotExist:
@@ -1530,7 +1530,7 @@ def delete_script(request, sid):
 	script = Rscripts.objects.get(id=sid)
 	# Enforce access rights
 	if script.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	script.delete()
 	return HttpResponseRedirect('/resources/scripts/') # FIXME hardcoded url
 
@@ -1540,7 +1540,7 @@ def delete_pipe(request, pid):
 	pipe = ReportType.objects.get(id=pid)
 	# Enforce access rights
 	if pipe.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	pipe.delete()
 	return HttpResponseRedirect('/resources/pipes/') # FIXME hardcoded url
 
@@ -1552,7 +1552,7 @@ def delete_report(request, rid, redir):
 		report = Report.objects.get(id=rid)
 		# Enforce access rights
 		if report.author != request.user:
-			raise PermissionDenied
+			raise PermissionDenied(request=request)
 		report.delete()
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no report with id ' + str(rid) + ' in database')
@@ -1601,10 +1601,10 @@ def edit_report_access(request, rid):
 
 	# Enforce access rights
 	if report_inst.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
-		# Validates input info and commit the changes to report_inst instance direclty through Django back-end
+		# Validates input info and commit the changes to report_inst instance directly through Django back-end
 		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
 		if property_form.is_valid():
 			property_form.save()
@@ -1626,7 +1626,7 @@ def delete_project(request, pid):
 	project = Project.objects.get(id=pid)
 	# Enforce access rights
 	if project.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	aux.delete_project(project)
 
 	return HttpResponseRedirect('/home/projects')  # FIXME hardcoded url
@@ -1637,7 +1637,7 @@ def delete_group(request, gid):
 	group = Group.objects.get(id=gid)
 	# Enforce access rights
 	if group.author != request.user:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	aux.delete_group(group)
 
 	return HttpResponseRedirect('/home/groups')  # FIXME hardcoded url
@@ -2048,7 +2048,6 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 02/10/2015 migrated to Runnable and FolderObj
 	assert issubclass(serv_obj, Runnable)
 	try:
-		# run_instance = serv_obj.objects.get(id=jid)
 		run_instance = serv_obj.objects.secure_get(id=jid, user=request.user) # TODO should fix the auth issue below
 		assert isinstance(run_instance, Runnable)
 	except ObjectDoesNotExist:
@@ -2056,12 +2055,12 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 
 	# FIXME : user with whom report is shared are not able to download -result
 	# Enforce user access restrictions
-	if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
-			run_instance.author == request.user or request.user.is_superuser):
-		raise PermissionDenied
+	# if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
+	# 		run_instance.author == request.user or request.user.is_superuser):
+	# 	raise PermissionDenied(request=request)
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	try:
 		wrapper, name, size = run_instance.download_zip(mod)
@@ -2115,7 +2114,7 @@ def send_file(request, ftype, fname):
 			return aux.fail_with404(request, 'There is no report with id ' + str(fname) + ' in database')
 		#  Enforce user access restrictions
 		if request.user not in fitem.shared.all() and fitem.author != request.user:
-			raise PermissionDenied
+			raise PermissionDenied(request=request)
 
 		local_path, path_to_file = get_report_path(fitem)
 
@@ -2139,7 +2138,7 @@ def report_shiny_view_tab(request, rid):
 		return aux.fail_with404(request)
 	# Enforce user access restrictions
 	if not report.has_access_to_shiny(request.user):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	# return HttpResponseRedirect(reverse(report_shiny_in_wrapper, kwargs={ 'rid': rid }))
 	return HttpResponseRedirect(report.get_shiny_report.url(report))
@@ -2212,7 +2211,7 @@ def report_shiny_view_tab_merged(request, rid, outside=False, u_key=None):
 	else:
 		# Enforce user access restrictions for Breeze users
 		if not fitem.has_access_to_shiny(request.user):
-			raise PermissionDenied
+			raise PermissionDenied(request=request)
 		# nozzle = reverse(report_file_view, kwargs={'rid': fitem.id})
 		frame_src = reverse(report_file_view, kwargs={'rid': rid})
 		nozzle = ''
@@ -2259,7 +2258,7 @@ def report_shiny_in_wrapper(request, rid, path=None):
 		return aux.fail_with404(request)
 	# Enforce user access restrictions
 	if not fitem.has_access_to_shiny(request.user):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	p1 = fitem.type.shiny_report.report_link_rel_path(fitem.id)
 	return aux.proxy_to(request, '%s/%s' % (p1, path), settings.SHINY_TARGET_URL)
@@ -2319,7 +2318,7 @@ def report_file_server(request, rid, category, file_name=None):
 	# Enforce user access restrictions
 	if request.user not in report_inst.shared.all() and report_inst.author != request.user\
 		and not request.user.is_superuser:
-		raise PermissionDenied(request)
+		raise PermissionDenied(request=request)
 
 	return report_file_server_sub(request, rid, category, fname=file_name, report_inst=report_inst)
 
@@ -2602,7 +2601,7 @@ def new_group_dialog(request):
 		This view provides a dialog to create a new Group in DB.
 	"""
 	__self__ = this_function_name()  # instance to self
-	group_form = breezeForms.GroupForm(request.POST or None)
+	group_form = breezeForms.GroupForm(request.POST or None, author=request.user)
 
 	if group_form.is_valid():
 		aux.save_new_group(group_form, request.user, request.POST)
@@ -2966,7 +2965,7 @@ def view_log(request, show_all=False, num=0):
 	if not request.user.is_superuser:
 		# logger.warning(
 		# 	'un-privileged user %s tried to trigger %s' % (request.user.get_full_name, utils.this_function_name()))
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	grab_next = False
 	last_pid = 0
 	with open(settings.LOG_PATH) as f:
@@ -3012,7 +3011,7 @@ def fix_file_acl(request, fid):
 	if not request.user.is_superuser:
 		# logger.warning('un-privileged user %s tried to trigger %s' % (request.user.get_full_name,
 		# utils.this_function_name()))
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 
 	try:
 		utils.fix_file_acl_interface(fid)
@@ -3033,7 +3032,7 @@ def fix_file_acl(request, fid):
 def user_list_advanced(request):
 	# user_lst = User.objects.all().order_by('username')
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	user_lst = OrderedUser.objects.all()
 
 	lst = list()
@@ -3053,7 +3052,7 @@ def user_list_advanced(request):
 @login_required(login_url='/')
 def job_list(request):
 	if not (request.user.is_superuser or request.user.is_staff):
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	all_rt = ReportType.objects.all()
 	resources = dict()
 	for rt in all_rt:
@@ -3118,7 +3117,7 @@ def job_url_hook(request, i_type, rid, md5, status='', code=0):
 @login_required(login_url='/')
 def invalidate_cache(request):
 	if not request.user.is_superuser:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	ObjectCache.clear()
 	return HttpResponse('ok', content_type=c_t.PLAIN)
 
@@ -3127,7 +3126,7 @@ def invalidate_cache(request):
 @login_required(login_url='/')
 def invalidate_cache_view(request):
 	if not request.user.is_superuser:
-		raise PermissionDenied
+		raise PermissionDenied(request=request)
 	ObjectCache.clear()
 	destination = request.META.get('HTTP_REFERER', reverse(resources))
 	return HttpResponseRedirect(destination)

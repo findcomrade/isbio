@@ -109,14 +109,18 @@ class GroupForm(forms.Form):
 		)
 	)
 
+	def __init__(self, *args, **kwargs):
+		self.author = kwargs.pop('author', None)
+		super(GroupForm, self).__init__(*args, **kwargs)
+	
 	def clean_group_name(self):
 		group_name = self.cleaned_data.get('group_name')
 		try:
-			breeze.models.Group.objects.get(name=group_name)
+			breeze.models.Group.objects.get(name=group_name, author=self.author)
 		except breeze.models.Group.DoesNotExist:
 			return group_name
 		else:
-			raise forms.ValidationError("Group names should be unique")
+			raise forms.ValidationError("You already have a group with this name !")
 
 
 class EditGroupForm(forms.Form):
@@ -254,12 +258,13 @@ class ReportPropsFormMixin(object):
 			for ur in breeze.models.OrderedUser.objects.all():
 				users_list_of_tuples.append(tuple((ur.id, ur.username)))
 
-			for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
-				group_list_of_tuples.append(tuple((gr.id, gr.name)))
+			# for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
+			# 	group_list_of_tuples.append(tuple((gr.id, gr.name)))
 
 			self._share_options = list()
-			self._share_options.append(tuple(('Groups', tuple(group_list_of_tuples))))
-			self._share_options.append(tuple(('Individual Users', tuple(users_list_of_tuples))))
+			# self._share_options.append(tuple(('Groups', tuple(group_list_of_tuples))))
+			# self._share_options.append(tuple(('Individual Users', tuple(users_list_of_tuples))))
+			self._share_options.append(tuple(users_list_of_tuples))
 		return self._share_options
 
 	# clem 19/04/2016
@@ -286,6 +291,16 @@ class ReportPropsFormMixin(object):
 
 		# self.fields["Share"] = forms.MultipleChoiceField( # TODO find out why this has various spelling
 		self.fields["shared"] = forms.MultipleChoiceField(
+			label='Individuals',
+			required=False,
+			choices=self.share_options,
+			widget=forms.SelectMultiple(
+				attrs={ 'class': 'multiselect', }
+			)
+		)
+		
+		self.fields["shared_g"] = forms.MultipleChoiceField(
+			label='Groups',
 			required=False,
 			choices=self.share_options,
 			widget=forms.SelectMultiple(

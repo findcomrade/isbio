@@ -132,14 +132,58 @@ class ObjectHasNoReadOnlySupport(RuntimeError):
 
 class PermissionDenied(PermissionDenied_org):
 	def __init__(self, *args, **kwargs):
-		super(PermissionDenied, self).__init__(*args, **kwargs)
-		from django.core.handlers.wsgi import WSGIRequest
-		final_text = ''
-		request = kwargs.get('request', None) or args[0] if len(args) >= 1 else None
-		message = kwargs.get('message', '') or kwargs.get('msg', '') or args[0] if len(args) >= 1 else ''
-		if isinstance(request, WSGIRequest):
-			final_text = 'Access denied to %s for %s' % (request.user.username, this_function_caller_name())
-		if message and isinstance(message, basestring):
+		
+		def is_user_obj(obj):
+			from django.contrib.auth.models import User
+			return isinstance(obj, User) or (hasattr(obj, '__class__') and issubclass(User, obj.__class__))
+		
+		def is_request_obj(obj):
+			from django.core.handlers.wsgi import WSGIRequest
+			return isinstance(obj, WSGIRequest) or (hasattr(obj, '__class__') and issubclass(WSGIRequest, obj.__class__))
+		
+		def _extract_user_obj():
+			if 'user' in kwargs.keys():
+				result = kwargs.get('user', None)
+				return result if is_user_obj(result) else None
+			elif len(args) >= 1:
+				for each in args:
+					if each and is_user_obj(each):
+						return each
+			return None
+		
+		def _extract_request_obj():
+			if 'request' in kwargs.keys():
+				result = kwargs.get('request', None)
+				return result if is_request_obj(result) else None
+			elif len(args) >= 1:
+				for each in args:
+					if each and is_request_obj(each):
+						return each
+			return None
+		
+		def get_message():
+			if 'message' in kwargs.keys():
+				result = kwargs.get('message', None)
+				return result if isinstance(result, basestring) else ''
+			elif len(args) >= 1:
+				for each in args:
+					if each and isinstance(each, basestring):
+						return each
+			return ''
+		
+		def get_user():
+			rq = _extract_request_obj()
+			return _extract_user_obj() or rq.user if rq else None
+		
+		def get_username():
+			user = get_user()
+			return user.username if user else ''
+		
+		super(PermissionDenied, self).__init__()
+		user_name = get_username()
+		message = get_message()
+		final_text = 'Access denied to %s for %s' % (user_name or '?', this_function_caller_name())
+		if message:
 			if final_text:
 				message = ' (%s)' % message
 			final_text += message

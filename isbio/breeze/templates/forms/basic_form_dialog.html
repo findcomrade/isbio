@@ -26,6 +26,7 @@
 	function while_sending() {
 		$('#submit-btn').on('click', function (e, el) {
 			e.preventDefault();
+			// TODO add a loading animation
 			$(this).attr("disabled", "disabled");
 			$(this).parents('form').first().submit();
 			return false;
