@@ -144,6 +144,12 @@ class EditReportAccessForm(forms.Form):
 
 
 class EditReportSharing(forms.ModelForm):
+	def __init__(self, *args, **kwargs):
+		super(EditReportSharing, self).__init__(*args, **kwargs)
+		# self.css_class = "rule"
+		self.fields['shared'].label = 'Individuals: '
+		self.fields['shared_g'].label = 'Groups: '
+	
 	class Meta:
 		model = breeze.models.Report
 		fields = ('shared', 'shared_g')
