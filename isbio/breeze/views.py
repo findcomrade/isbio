@@ -1607,9 +1607,9 @@ def edit_report_access(request, rid):
 		# Validates input info and commit the changes to report_inst instance directly through Django back-end
 		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
 		if property_form.is_valid():
-			print str(report_inst.shared), str(report_inst.shared_g)
+			print str(report_inst.shared.all()), str(report_inst.shared_g.all())
 			property_form.save()
-			print str(report_inst.shared), str(report_inst.shared_g)
+			print str(report_inst.shared.all()), str(report_inst.shared_g.all())
 			return HttpResponse(True)
 	# TODO check if else is no needed here
 	property_form = breezeForms.EditReportSharing(instance=report_inst)
