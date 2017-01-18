@@ -1099,13 +1099,15 @@ class UserProfile(CustomModelAbstract): # TODO move to a common base app
 	db_agreement = models.BooleanField(default=False)
 	last_active = models.DateTimeField(default=timezone.now)
 	
+	objects = managers.UserManager()
+	
 	# clem 19/01/2017
 	@property
 	def the_full_name(self):
 		return self.user.get_full_name() or self.user.username
 	
 	def __unicode__(self):
-		return self.user.get_full_name()  # return self.user.username
+		return self.the_full_name  # return self.user.username
 
 
 class Runnable(FolderObj, ObjectsWithACL):

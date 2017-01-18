@@ -634,3 +634,21 @@ class CustomUserManager(Manager):
 			user.save()
 		self.__send_mail(user)
 		return user
+
+
+# clem 19/01/2016
+class UserManager(Manager):
+	def dump(self):
+		return super(UserManager, self)
+	
+	def all(self):
+		return super(UserManager, self).filter(active=True)
+	
+	def filter(self, *args, **kwargs):
+		return self.all().filter(*args, **kwargs)
+	
+	def exclude(self, *args, **kwargs):
+		return self.all().exclude(*args, **kwargs)
+	
+	def get(self, *args, **kwargs):
+		return self.all().get(*args, **kwargs)
