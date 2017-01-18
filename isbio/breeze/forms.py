@@ -250,39 +250,14 @@ class ReportPropsFormMixin(object):
 	# clem 19/04/2016
 	def __init__(self, *args, **kwargs):
 		super(ReportPropsFormMixin, self).__init__(*args, **kwargs)
-
-	@property
-	def share_options_ppl(self):
-		if not self._share_options_ppl:
-			users_list_of_tuples = list()
-
-			for ur in breeze.models.OrderedUser.objects.exclude(id__exact=self.request.user.id):
-				users_list_of_tuples.append(tuple((ur.id, ur.get_full_name() or ur.username)))
-			
-			self._share_options_ppl = list()
-			self._share_options_ppl.append(tuple(('', tuple(users_list_of_tuples))))
-		return self._share_options_ppl
-	
-	# clem 18/01/2017
-	@property
-	def share_options_group(self):
-		if not self._share_options_group:
-			group_list_of_tuples = list()
-			
-			for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
-				group_list_of_tuples.append(tuple((gr.id, gr.name)))
-			
-			self._share_options_group = list()
-			self._share_options_group.append(tuple(('', tuple(group_list_of_tuples))))
-		return self._share_options_group
-	
+		
 	@property
 	def share_options(self):
 		if not self._share_options:
 			group_list_of_tuples = list()
 			users_list_of_tuples = list()
 			
-			for ur in breeze.models.OrderedUser.objects.all():
+			for ur in breeze.models.OrderedUser.objects.exclude(id__exact=self.request.user.id):
 				users_list_of_tuples.append(tuple(('u%s' % ur.id, ur.get_full_name() or ur.username)))
 			
 			for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
@@ -317,23 +292,12 @@ class ReportPropsFormMixin(object):
 
 		# self.fields["Share"] = forms.MultipleChoiceField( # TODO find out why this has various spelling
 		self.fields["shared"] = forms.MultipleChoiceField(
-			# label='Individuals: ',
 			required=False,
-			# choices=self.share_options_ppl,
 			choices=self.share_options,
 			widget=forms.SelectMultiple(
 				attrs={ 'class': 'multiselect', }
 			)
 		)
-		
-		#self.fields["shared_g"] = forms.MultipleChoiceField(
-		#	label='Groups: ' ,
-		#	required=False,
-		#	choices=self.share_options_group,
-		#	widget=forms.SelectMultiple(
-		#		attrs={ 'class': 'multiselect', }
-		#	)
-		#)
 
 
 # clem 18/04/2016

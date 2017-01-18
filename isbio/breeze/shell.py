@@ -399,10 +399,7 @@ def build_report(report_data, request_data, report_property, sections):
 	# get the request ReportType
 	rt = ReportType.objects.get(type=report_data['report_type'])
 	# list of users that will have access to this report
-	# shared_users = request_data.POST.getlist('shared')
-	# shared_groups = request_data.POST.getlist('shared_g')
 	shared_users, shared_groups = get_user_and_groups(request_data.POST.getlist('shared'))
-	print shared_users, shared_groups
 	# author
 	the_user = request_data.user
 	the_user.prof = UserProfile.objects.get(user=the_user)
