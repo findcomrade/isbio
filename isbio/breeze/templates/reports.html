@@ -89,7 +89,7 @@
 								<option id="" value="">All Authors</option>
 								{% for item in users %}
 									<option id="{{ item.user.id }}" value="{{ item.user.id }}">
-										{{ item.user.username }}</option><!-- {% firstof item.user.get_full_name item.user.username %} -->
+										{{ item.the_full_name }}</option><!-- {% firstof item.user.get_full_name item.user.username %} -->
 								{% endfor %}
 							</select>
 							<select id="filt_project" name="filt_project" class="input-medium">
