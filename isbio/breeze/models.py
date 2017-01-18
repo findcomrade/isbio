@@ -115,9 +115,10 @@ class Group(CustomModelAbstract):
 	author = ForeignKey(User)
 	team = models.ManyToManyField(User, blank=True, default=None, related_name='group_content')
 
-	def delete(self, _=None):
+	def delete(self, using=None, keep_parents=False):
 		if not self.read_only:
 			self.team.clear()
+		return super(Group, self).delete(using=using, keep_parents=keep_parents)
 
 	def __unicode__(self):
 		return self.name

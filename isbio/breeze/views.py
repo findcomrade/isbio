@@ -431,9 +431,9 @@ def reports(request):
 		return report_search(request)
 	else:
 		page_index = 1
-		reports = paginator.page(page_index)
+		reports_list = paginator.page(page_index)
 		# access rights
-		for each in reports:
+		for each in reports_list:
 			each.user_is_owner = each.author == request.user
 			each.user_has_access = request.user in each.shared.all() or each.user_is_owner
 		user_profile = UserProfile.objects.get(user=request.user)
@@ -449,7 +449,7 @@ def reports(request):
 
 		return render_to_response('reports.html', RequestContext(request, {
 			'reports_status': 'active',
-			'reports': reports,
+			'reports': reports_list,
 			'sorting': sorting,
 			'rtypes': reptypelst,
 			'user_rtypes': user_rtypes,
@@ -1604,7 +1604,7 @@ def edit_report_access(request, rid):
 		raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
-		# Validates input info and commit the changes to report_inst instance direclty through Django back-end
+		# Validates input info and commit the changes to report_inst instance directly through Django back-end
 		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
 		if property_form.is_valid():
 			property_form.save()
@@ -2601,7 +2601,7 @@ def new_group_dialog(request):
 		This view provides a dialog to create a new Group in DB.
 	"""
 	__self__ = this_function_name()  # instance to self
-	group_form = breezeForms.GroupForm(request.POST or None)
+	group_form = breezeForms.GroupForm(request.POST or None, author=request.user)
 
 	if group_form.is_valid():
 		aux.save_new_group(group_form, request.user, request.POST)
