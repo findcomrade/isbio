@@ -211,7 +211,7 @@
 				// var formData = $(this).serialize(); // new FormData($('#form_modal_apply')[0]);
 				// var formData = new FormData(document.querySelector('#' + target + ' form'));
 				var formData = getFormObj('form_modal_apply');
-				console.debug(formData.toString());
+				console.debug(formData);
 
 				$("#submit-btn").attr("disabled", "disabled");
 
@@ -270,7 +270,7 @@
 					},
 					cache: false,
 					contentType: 'html',
-					processData: false
+					// processData: false
 				});
 				return false;
 			});
