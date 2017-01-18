@@ -324,7 +324,7 @@ class EditGroupForm(forms.Form, ReportPropsFormMixin):
 	
 	group_team = forms.ModelMultipleChoiceField(
 		required=False,
-		# queryset=breeze.models.OrderedUser.objects.all(),
+		queryset=breeze.models.OrderedUser.objects.all(),
 		# choices=breeze.models.OrderedUser.objects.all(),
 		widget=forms.SelectMultiple(
 			attrs={ 'class': 'multiselect', }
