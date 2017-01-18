@@ -231,31 +231,39 @@ class ReportPropsFormMixin(object):
 		super(ReportPropsFormMixin, self).__init__(*args, **kwargs)
 	
 	# clem 19/01/2017
-	@property
-	def users_list_of_tuples(self):
+	def users_list_of_tuples_gen(self, prefix=''):
 		a_list = list()
 		
 		for ur in breeze.models.OrderedUser.objects.exclude(id__exact=self.request.user.id):
-			a_list.append(tuple(('u%s' % ur.id, ur.get_full_name() or ur.username)))
+			a_list.append(tuple(('%s%s' % (prefix, ur.id), ur.get_full_name() or ur.username)))
 			
 		return a_list
-	
+		
 	# clem 19/01/2017
 	@property
-	def group_list_of_tuples(self):
+	def _users_list_of_tuples(self):
+		return self.users_list_of_tuples_gen('u')
+	
+	# clem 19/01/2017
+	def group_list_of_tuples_gen(self, prefix=''):
 		a_list = list()
 				
 		for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
-			a_list.append(tuple(('g%s' % gr.id, gr.name)))
+			a_list.append(tuple(('%s%s' % (prefix, gr.id), gr.name)))
 			
 		return a_list
+		
+	# clem 19/01/2017
+	@property
+	def _group_list_of_tuples(self):
+		return self.group_list_of_tuples_gen('g')
 	
 	@property
 	def share_options(self):
 		if not self._share_options:
 			self._share_options = list()
-			self._share_options.append(tuple(('Groups', tuple(self.group_list_of_tuples))))
-			self._share_options.append(tuple(('Individual Users', tuple(self.users_list_of_tuples))))
+			self._share_options.append(tuple(('Groups', tuple(self._group_list_of_tuples))))
+			self._share_options.append(tuple(('Individual Users', tuple(self._users_list_of_tuples))))
 		return self._share_options
 
 	# clem 19/04/2016
@@ -299,10 +307,9 @@ class EditReportSharing(forms.ModelForm, ReportPropsFormMixin):
 		instance = kwargs.get('instance', None)
 		self.author_id = instance.author.id if instance else self.request.user if self.request else 0
 		self.fields['shared'].label = 'Individuals: '
-		# self.fields['shared'].queryset = User.objects.exclude(id=self.author_id)
-		self.fields['shared'].choices = self.users_list_of_tuples
+		self.fields['shared'].choices = self.users_list_of_tuples_gen()
 		self.fields['shared_g'].label = 'Groups: '
-		self.fields['shared_g'].queryset = breeze.models.Group.objects.filter(author=self.author_id)
+		self.fields['shared_g'].queryset = self.group_list_of_tuples_gen()
 	
 	class Meta:
 		model = breeze.models.Report
@@ -320,12 +327,10 @@ class EditGroupForm(forms.Form, ReportPropsFormMixin):
 	def __init__(self, *args, **kwargs):
 		self.request = kwargs.pop("request", None)
 		super(EditGroupForm, self).__init__(*args, **kwargs)
-		self.fields['group_team'].choices = self.users_list_of_tuples
+		self.fields['group_team'].choices = self.users_list_of_tuples_gen()
 	
 	group_team = forms.ModelMultipleChoiceField(
 		required=False,
-		queryset=breeze.models.OrderedUser.objects.all(),
-		# choices=breeze.models.OrderedUser.objects.all(),
 		widget=forms.SelectMultiple(
 			attrs={ 'class': 'multiselect', }
 		)
