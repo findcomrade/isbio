@@ -231,26 +231,13 @@ def extract_users(users): # def extract_users(groups, users):
 		Merge users from each group and set of individual users
 		and extracts a union of those people.
 	"""
-	people = list()
-
-	# Process Individual Users
-	if users:
-		people += breeze.models.OrderedUser.objects.filter(id__in=map(int, users.split(',')))
-
-	return people
+	return map(int, users.split(',')) or list()
 
 
 def extract_groups(groups):
 	""" Produce a unique list of groups.
 	"""
-	group_lst = list()
-	
-	#  Process Groups
-	if groups:
-		for group_id in map(int, groups.split(',')):
-			group_lst.append(group_id)
-	
-	return group_lst
+	return map(int, groups.split(',')) or list()
 
 
 # TODO get rid of that
