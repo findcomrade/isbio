@@ -1597,7 +1597,7 @@ def edit_report_access(request, rid):
 	report_inst = Report.objects.get(id=rid)
 	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
-	form_title = 'Edit "' + report_inst.name + '" access'
+	form_title = 'Edit "' + report_inst.name + '" sharing'
 
 	# Enforce access rights
 	if report_inst.author != request.user:
