@@ -109,14 +109,18 @@ class GroupForm(forms.Form):
 		)
 	)
 
+	def __init__(self, *args, **kwargs):
+		super(GroupForm, self).__init__(*args, **kwargs)
+		self.author = kwargs.get('author', None)
+	
 	def clean_group_name(self):
 		group_name = self.cleaned_data.get('group_name')
 		try:
-			breeze.models.Group.objects.get(name=group_name)
+			breeze.models.Group.objects.get(name=group_name, author=self.author)
 		except breeze.models.Group.DoesNotExist:
 			return group_name
 		else:
-			raise forms.ValidationError("Group names should be unique")
+			raise forms.ValidationError("You already have a group with this name !")
 
 
 class EditGroupForm(forms.Form):
