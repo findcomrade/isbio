@@ -133,7 +133,7 @@ class EditGroupForm(forms.Form):
 	)
 
 
-class EditReportAccessForm(forms.Form):
+class EditReportAccessForm(forms.Form): # FIXME obsolete & not in use anymore
 	access_list = forms.ModelMultipleChoiceField(
 		# required=True, # implicit
 		queryset=breeze.models.OrderedUser.objects.all(),
@@ -145,11 +145,9 @@ class EditReportAccessForm(forms.Form):
 
 class EditReportSharing(forms.ModelForm):
 	def __init__(self, *args, **kwargs):
-		# self.request = kwargs.pop('request', None)
 		instance = kwargs.get('instance', None)
 		author_id = instance.author.id if instance else 0
 		super(EditReportSharing, self).__init__(*args, **kwargs)
-		# self.css_class = "rule"
 		self.fields['shared'].label = 'Individuals: '
 		self.fields['shared'].queryset = User.objects.exclude(id=author_id)
 		self.fields['shared_g'].label = 'Groups: '

@@ -1608,6 +1608,7 @@ def edit_report_access(request, rid):
 		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
 		if property_form.is_valid():
 			property_form.save()
+			print str(property_form.shared), str(property_form.shared_g)
 			return HttpResponse(True)
 	# TODO check if else is no needed here
 	property_form = breezeForms.EditReportSharing(instance=report_inst)
