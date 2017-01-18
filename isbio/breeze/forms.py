@@ -241,6 +241,7 @@ class AddOffsiteUser(forms.ModelForm):
 # clem 18/04/2016
 class ReportPropsFormMixin(object):
 	request = None
+	_share_options = None
 	_share_options_ppl = None
 	_share_options_group = None
 	_target_list = None
@@ -268,13 +269,29 @@ class ReportPropsFormMixin(object):
 		if not self._share_options_group:
 			group_list_of_tuples = list()
 			
-			# for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
 			for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
 				group_list_of_tuples.append(tuple((gr.id, gr.name)))
 			
 			self._share_options_group = list()
 			self._share_options_group.append(tuple(('', tuple(group_list_of_tuples))))
 		return self._share_options_group
+	
+	@property
+	def share_options(self):
+		if not self._share_options:
+			group_list_of_tuples = list()
+			users_list_of_tuples = list()
+			
+			for ur in breeze.models.OrderedUser.objects.all():
+				users_list_of_tuples.append(tuple(('u%s' % ur.id, ur.get_full_name() or ur.username)))
+			
+			for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
+				group_list_of_tuples.append(tuple(('g%s' % gr.id, gr.name)))
+			
+			self._share_options = list()
+			self._share_options.append(tuple(('Groups', tuple(group_list_of_tuples))))
+			self._share_options.append(tuple(('Individual Users', tuple(users_list_of_tuples))))
+		return self._share_options
 
 	# clem 19/04/2016
 	@property
@@ -300,22 +317,23 @@ class ReportPropsFormMixin(object):
 
 		# self.fields["Share"] = forms.MultipleChoiceField( # TODO find out why this has various spelling
 		self.fields["shared"] = forms.MultipleChoiceField(
-			label='Individuals: ',
+			# label='Individuals: ',
 			required=False,
-			choices=self.share_options_ppl,
+			# choices=self.share_options_ppl,
+			choices=self.share_options,
 			widget=forms.SelectMultiple(
 				attrs={ 'class': 'multiselect', }
 			)
 		)
 		
-		self.fields["shared_g"] = forms.MultipleChoiceField(
-			label='Groups: ' ,
-			required=False,
-			choices=self.share_options_group,
-			widget=forms.SelectMultiple(
-				attrs={ 'class': 'multiselect', }
-			)
-		)
+		#self.fields["shared_g"] = forms.MultipleChoiceField(
+		#	label='Groups: ' ,
+		#	required=False,
+		#	choices=self.share_options_group,
+		#	widget=forms.SelectMultiple(
+		#		attrs={ 'class': 'multiselect', }
+		#	)
+		#)
 
 
 # clem 18/04/2016

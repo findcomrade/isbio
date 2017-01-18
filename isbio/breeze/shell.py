@@ -362,6 +362,17 @@ def get_report_overview(report_type, instance_name, instance_id):
 # DELETED dump_pipeline_config on 13/07/2015 (now part of Report)
 
 
+def get_user_and_groups(item_list):
+	group_list = list()
+	user_list = list()
+	for each in item_list:
+		if each[0] in ['u', u'u']:
+			user_list.append(each[1:])
+		elif each[0] in ['g', u'g']:
+			group_list.append(each[1:])
+	return user_list, group_list
+
+
 # TODO integrate in BreezeForm ? or Report or Runnable
 def build_report(report_data, request_data, report_property, sections):
 	""" Assembles report home folder, configures DRMAA and R related files
@@ -388,13 +399,10 @@ def build_report(report_data, request_data, report_property, sections):
 	# get the request ReportType
 	rt = ReportType.objects.get(type=report_data['report_type'])
 	# list of users that will have access to this report
-	# shared_users = aux.extract_users(request_data.POST.get('shared'))
-	shared_users = request_data.POST.getlist('shared')
-	# shared_groups = aux.extract_groups(request_data.POST.get('shared_g'))
-	shared_groups = request_data.POST.getlist('shared_g')
+	# shared_users = request_data.POST.getlist('shared')
+	# shared_groups = request_data.POST.getlist('shared_g')
+	shared_users, shared_groups = get_user_and_groups(request_data.POST.getlist('shared'))
 	print shared_users, shared_groups
-	# if shared_users == list() and request_data.POST.get('shared'):
-	# 	shared_users = request_data.POST.getlist('shared')
 	# author
 	the_user = request_data.user
 	the_user.prof = UserProfile.objects.get(user=the_user)

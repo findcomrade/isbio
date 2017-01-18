@@ -122,6 +122,7 @@ def edit_project(form, project):
 	return True
 
 
+# FIXME
 def edit_group(form, group, post):
 	""" Edit Group data.
 
@@ -226,19 +227,8 @@ def get_query(query_string, search_fields, exact=True):
 	return query
 
 
-def extract_users(users): # def extract_users(groups, users):
-	""" Produce a unique list of users from 2 lists.
-		Merge users from each group and set of individual users
-		and extracts a union of those people.
-	"""
-	return map(int, users.split(',')) or list()
-
-
-def extract_groups(groups):
-	""" Produce a unique list of groups.
-	"""
-	return map(int, groups.split(',')) or list()
-
+# DELETED extract_users 18/01/2017
+# DELETED extract_groups 18/01/2017
 
 # TODO get rid of that
 def merge_job_history(jobs, reports, user=None):
