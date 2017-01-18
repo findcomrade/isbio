@@ -1604,6 +1604,7 @@ def edit_report_access(request, rid):
 		raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
+		print request.POST
 		# Validates input info and commit the changes to report_inst instance directly through Django back-end
 		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
 		if property_form.is_valid():
