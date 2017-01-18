@@ -2809,8 +2809,10 @@ def report_search(request):
 	found_entries = paginator.page(page_index)
 	# just a shortcut for the template
 	for each in found_entries:
-		each.user_is_owner = each.author == request.user
-		each.user_has_access = request.user in each.shared.all() or each.user_is_owner
+		each.user_is_owner = each.is_owner(request.user)
+		each.user_has_access = each.has_access(request.user)
+		# each.user_is_owner = each.author == request.user
+		# each.user_has_access = request.user in each.shared.all() or each.user_is_owner
 	# Copy the query for the paginator to work with filtering
 	query_string = aux.make_http_query(request)
 	# paginator counter
