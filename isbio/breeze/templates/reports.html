@@ -197,10 +197,10 @@
 					type: "POST",
 					url: url,
 					enctype: 'multipart/form-data',
-					data: formData,
+					data: formData, /*
 					headers: {
 						"HTTP_X_CSRFTOKEN" : csrftoken // FIXME does not work
-					},
+					},*/
 					statusCode: {
 						302: function (request, status, error) {
 							console.log("moved");
@@ -275,6 +275,7 @@
 
 
 			$('#id_shared').addClass('multiselect');
+			$('#id_shared_g').addClass('multiselect');
 
 
 			var obj = $('#id_shared');
