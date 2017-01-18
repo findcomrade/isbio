@@ -146,10 +146,12 @@ class EditReportAccessForm(forms.Form):
 class EditReportSharing(forms.ModelForm):
 	class Meta:
 		model = breeze.models.Report
-		fields = ('shared', )
+		fields = ('shared', 'shared_g')
 
 	widgets = {
 		'shared': forms.SelectMultiple(
+			attrs={'class': 'multiselect', }, ),
+		'shared_g': forms.SelectMultiple(
 			attrs={'class': 'multiselect', }, )
 	}
 
