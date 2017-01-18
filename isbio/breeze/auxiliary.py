@@ -226,25 +226,16 @@ def get_query(query_string, search_fields, exact=True):
 	return query
 
 
-def extract_users(groups, users):
+def extract_users(users): # def extract_users(groups, users):
 	""" Produce a unique list of users from 2 lists.
 		Merge users from each group and set of individual users
 		and extracts a union of those people.
 	"""
 	people = list()
 
-	# *** LEGACY *** Process Groups *** LEGACY ***
-	if False and groups: # FIXME deprecated
-		for group_id in map(int, groups.split(',')):
-			dbitem = breeze.models.Group.objects.get(id=group_id)
-			ref = dbitem.team.all()
-			people = list(set(people) | set(ref))
-
 	# Process Individual Users
 	if users:
-		users_ids = map(int, users.split(','))
-		ref = breeze.models.OrderedUser.objects.filter(id__in=users_ids)
-		people = list(set(people) | set(ref))
+		people += breeze.models.OrderedUser.objects.filter(id__in=map(int, users.split(',')))
 
 	return people
 
@@ -257,8 +248,6 @@ def extract_groups(groups):
 	#  Process Groups
 	if groups:
 		for group_id in map(int, groups.split(',')):
-			# dbitem = breeze.models.Group.objects.get(id=group_id)
-			# ref = dbitem.team.all()
 			group_lst.append(group_id)
 	
 	return group_lst
