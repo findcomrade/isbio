@@ -199,12 +199,8 @@
 			var formObj = {};
 			var inputs = $('#' + formId).serializeArray();
 			$.each(inputs, function (i, input) {
-				var val = input.value;
-				console.debug(input.type)
-				if (input.type === 'select-multiple') {
-					val = $('select[name=' + input.name + ']').val();
-				}
-				formObj[input.name] = val;
+				var subSelect = '#' + formId + ' [name=' + input.name + ']';
+				formObj[input.name] = $(subSelect).val();
 			});
 			return formObj;
 		}
