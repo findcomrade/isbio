@@ -255,7 +255,7 @@ class ReportPropsFormMixin(object):
 		if not self._share_options_ppl:
 			users_list_of_tuples = list()
 
-			for ur in breeze.models.OrderedUser.objects.all():
+			for ur in breeze.models.OrderedUser.objects.exclude(id__exact=self.request.user.id):
 				users_list_of_tuples.append(tuple((ur.id, ur.username)))
 			
 			self._share_options_ppl = list()
@@ -268,7 +268,8 @@ class ReportPropsFormMixin(object):
 		if not self._share_options_group:
 			group_list_of_tuples = list()
 			
-			for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
+			# for gr in breeze.models.Group.objects.exclude(~Q(author__exact=self.request.user)).order_by("name"):
+			for gr in breeze.models.Group.objects.filter(author__exact=self.request.user).order_by("name"):
 				group_list_of_tuples.append(tuple((gr.id, gr.name)))
 			
 			self._share_options_group = list()
