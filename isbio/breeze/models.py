@@ -1,5 +1,5 @@
 # from __future__ import unicode_literals
-from __builtin__ import property
+from __builtin__ import property, classmethod
 from django.template.defaultfilters import slugify
 from django.db.models.fields.related import ForeignKey
 from django.contrib.auth.models import User # as DjangoUser
@@ -119,6 +119,16 @@ class Group(CustomModelAbstract):
 		if not self.read_only:
 			self.team.clear()
 		return super(Group, self).delete(using=using, keep_parents=keep_parents)
+	
+	# clem 19/01/2017
+	@classmethod
+	def list_users(cls, grp_id):
+		return cls.objects.get(pk=grp_id).user_list
+	
+	# clem 19/01/2017
+	@property
+	def user_list(self):
+		return self.team.all()
 
 	def __unicode__(self):
 		return self.name
