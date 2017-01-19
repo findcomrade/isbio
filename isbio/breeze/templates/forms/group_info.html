@@ -7,13 +7,18 @@
 <div class="modal-body">
   <dl>
     <dt class="text-info"> Group Members: </dt>
-    <dd>
-      {% for chel in user_list %}
-        {{ chel.get_full_name }},
-      {% empty %}
-        None
-      {% endfor %}
-    </dd>
+	    <!-- old style list -->
+		<dd style="display: none;">
+			{% for chel in user_list %}
+				{{ chel.get_full_name }},
+			{% empty %}
+				None
+			{% endfor %}
+		</dd>
+	    <!-- new list -->
+		<dd>
+			{{ group.printable_user_list }}
+		</dd>
   </dl>
 </div>
 <div class="modal-footer">
