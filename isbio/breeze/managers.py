@@ -468,7 +468,7 @@ class ObjectsWithAuth(CustomManager):
 			if self.has_read_access:
 				self.set_read_only_or_raise()
 				return self.context_obj
-			raise PermissionDenied(user=self.context_user, message='%s' % kwargs.get('id', '') or kwargs.get('pk', ''))
+			raise PermissionDenied(user=self.context_user, message=kwargs.get('id', '') or kwargs.get('pk', ''))
 		return self.context_obj
 
 

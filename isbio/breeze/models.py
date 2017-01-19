@@ -135,7 +135,7 @@ class Group(CustomModelAbstract):
 	def printable_user_list(self):
 		tmp_str = u''
 		for each in self.user_list.order_by('first_name'):
-			tmp_str += u'%s, ' % each.get_full_name().strip() or each.username
+			tmp_str += u'%s, ' % (each.get_full_name().strip() or each.username)
 		return tmp_str[:-2] if len(tmp_str) > 0 else u'None'
 
 	def __unicode__(self):
