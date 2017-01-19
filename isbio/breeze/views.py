@@ -2027,7 +2027,7 @@ def veiw_project(request, pid):
 
 def view_group(request, gid):
 	group = Group.objects.get(id=gid)
-	context = {'group': group}
+	context = {'group': group, 'user_list': group.user_list}
 
 	return render_to_response('forms/group_info.html', RequestContext(request, context))
 

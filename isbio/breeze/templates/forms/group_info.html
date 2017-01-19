@@ -8,8 +8,8 @@
   <dl>
     <dt class="text-info"> Group Members: </dt>
     <dd>
-      {% for chel in group.team.all %}
-        {{ chel }}
+      {% for chel in user_list %}
+        {{ chel.get_full_name }},
       {% empty %}
         None
       {% endfor %}
