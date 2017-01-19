@@ -129,6 +129,14 @@ class Group(CustomModelAbstract):
 	@property
 	def user_list(self):
 		return self.team.all()
+	
+	# clem 19/01/2017
+	@property
+	def printable_user_list(self):
+		tmp_str = ''
+		for each in self.user_list.order_by('first_name'):
+			tmp_str += u'%s, ' % each.get_full_name().strip() or each.username
+		return tmp_str[:-2] if len(tmp_str) > 0 or u'None'
 
 	def __unicode__(self):
 		return self.name
