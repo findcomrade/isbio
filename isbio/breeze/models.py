@@ -1458,7 +1458,71 @@ class UserProfile(models.Model):
 		return self.user.get_full_name()  # return self.user.username
 
 
-class Runnable(FolderObj, models.Model):
+class ObjectsWithACL(object):
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	@staticmethod
+	def admin_override_param(user):
+		""" Return wether settings.SU_ACCESS_OVERRIDE is True and user is super user
+
+		:param user: Django user object
+		:type user: models.User
+		:return: True | False
+		:rtype: bool
+		"""
+		assert isinstance(user, User)
+		return settings.SU_ACCESS_OVERRIDE and user.is_superuser
+	
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	def _get_author(self):
+		""" Return the author/owner of the provided object, independently of the name of the column storing it
+
+		:param self:
+		:type self:
+		:return: Django user object
+		:rtype: models.User
+		"""
+		auth = None
+		if hasattr(self, 'author'): # most objects
+			auth = self.author
+		elif hasattr(self, '_author'): # Reports
+			auth = self._author
+		elif hasattr(self, 'juser'): # Jobs
+			auth = self.juser
+		elif hasattr(self, 'added_by'): # OffsiteUser
+			auth = self.added_by
+		elif hasattr(self, 'user'): # UserProfile
+			auth = self.user
+		elif hasattr(self, 'script_buyer'): # CartInfo
+			auth = self.script_buyer
+		return auth
+	
+	# clem 18/01/2017
+	def is_in_share_list(self, user):
+		assert isinstance(user, User)
+		in_user_lst = hasattr(self, 'shared') and user in self.shared.all()
+		in_group = False
+		if hasattr(self, 'shared_g'):
+			for each_group in self.shared_g.all():
+				if user in Group.objects.get(pk=each_group.id).team.all():
+					in_group = True
+					break
+		return in_user_lst or in_group
+	
+	# clem 18/01/2017
+	def is_owner(self, user):
+		assert isinstance(user, User)
+		author = self._get_author() # author/owner of the object
+		return author == user
+	
+	# clem 18/01/2017
+	def has_access(self, user):
+		return self.admin_override_param(user) or self.is_owner(user) or self.is_in_share_list(user)
+	
+	class Meta:
+		abstract = True
+
+
+class Runnable(FolderObj, models.Model, ObjectsWithACL):
 	##
 	# CONSTANTS
 	##

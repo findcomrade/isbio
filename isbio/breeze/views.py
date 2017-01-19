@@ -2063,10 +2063,8 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no record with id ' + jid + ' in DB')
 
-	# FIXME : user with whom report is shared are not able to download -result
 	# Enforce user access restrictions
-	if not(('shared' in job.__dict__ and request.user in job.shared.all()) or
-			job.author == request.user or request.user.is_superuser):
+	if not job.has_access(request.user):
 		raise PermissionDenied
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
@@ -2312,7 +2310,8 @@ def report_file_server(request, rid, type, fname=None):
 		return aux.fail_with404(request, 'There is no report with id ' + rid + ' in DB')
 
 	# Enforce user access restrictions
-	if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+	# if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+	if not fitem.has_access(request.user):
 		raise PermissionDenied
 
 	return report_file_server_sub(request, rid, type, fname=fname, fitem=fitem)
