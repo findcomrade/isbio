@@ -46,7 +46,7 @@
 			<!-- View button (only if user has access or is super-user) -->
 			<td>
 				{% if report.user_has_access or user.is_superuser %}
-					<a class="Glyph" data-toggle="tooltip" title="View the Report" href="/reports/view/{{ report.id }}/report.html" target="_blank">
+					<a class="Glyph" data-toggle="tooltip" title="View the Report" href="/reports/view/{{ report.id }}/report.html">
 						<i class="icon-eye-open"></i>
 					</a>
 				{% else %}
