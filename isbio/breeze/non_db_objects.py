@@ -427,7 +427,8 @@ class FolderObj(object):
 			raise OSError(e)
 
 		archive.close()
-		wrapper = FileWrapper(temp)
+		chunk_size = 8192
+		wrapper = FileWrapper(temp, chunk_size)
 		size = temp.tell()
 		# save this zipfile for caching (disable to save space vs CPU)
 		temp.seek(0)
