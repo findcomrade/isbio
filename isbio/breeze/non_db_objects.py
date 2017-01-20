@@ -397,7 +397,7 @@ class FolderObj(object):
 			return open(cached_file_full_path, "rb"), arch_name, os.path.getsize(cached_file_full_path)
 		# otherwise, creates a new zip
 		temp = tempfile.TemporaryFile()
-		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
+		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED, True)
 
 		def filters(file_n, a_pattern_list):
 			return not a_pattern_list or file_inter_pattern_list(file_n, a_pattern_list)
