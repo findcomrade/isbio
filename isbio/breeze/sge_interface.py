@@ -9,6 +9,16 @@ __version__ = '0.1.6'
 __author__ = 'clem'
 __date__ = '06/05/2016'
 
+# clem 20/01/2017
+_drmaa_if = None
+
+
+def get_drmaa_if():
+	global _drmaa_if
+	if not _drmaa_if:
+		_drmaa_if = DrmaaIf()
+	return _drmaa_if
+
 
 class ConfigNames(enumerate):
 	q_master = 'SGE_MASTER_HOST'
@@ -76,7 +86,8 @@ class SGEInterfaceConnector(ComputeInterfaceBase):
 		# from import_drmaa import drmaa, drmaa_mutex
 		# self.drmaa = drmaa
 		# self.drmaa_mutex = drmaa_mutex
-		self.drmaa_if = DrmaaIf()
+		# self.drmaa_if = DrmaaIf()
+		self.drmaa_if = get_drmaa_if()
 		self.session = self.drmaa_if
 	
 	# clem 12/12/2016

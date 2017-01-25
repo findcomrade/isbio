@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datadog import util
+from pip._vendor.cachecontrol import wrapper
+
 import auxiliary as aux
 import forms as breezeForms
 import urllib
@@ -406,11 +408,12 @@ def reports(request):
 	sorting = aux.get_argument(request, 'sort') or '-created'
 	# get the user's institute
 	insti = UserProfile.objects.get(user=request.user).institute_info
-	all_reports = Report.objects.filter(status="succeed", institute=insti).order_by(sorting)
-	# all_reports = Report.objects.filter(status="succeed").order_by(sorting)
+	# all_reports = Report.objects.filter(status="succeed", institute=insti).order_by(sorting)
+	all_reports = Report.objects.filter(status="succeed").order_by(sorting)
 	user_rtypes = request.user.pipeline_access.all()
 	# later all_users will be changed to all users from the same institute
-	all_users = UserProfile.objects.filter(institute_info=insti).order_by('user__username')
+	# all_users = UserProfile.objects.filter(institute_info=insti).order_by('user__username')
+	all_users = UserProfile.objects.all().order_by('user__username')
 	# first find all the users from the same institute, then find their accessible report types
 	reptypelst = list()
 	for each in all_users:
@@ -421,7 +424,8 @@ def reports(request):
 					reptypelst.append(each_type)
 
 	# report_type_lst = ReportType.objects.filter(access=request.user)
-	all_projects = Project.objects.filter(institute=insti)
+	# all_projects = Project.objects.filter(institute=insti)
+	all_projects = Project.objects.all()
 	count = {'total': all_reports.count()}
 	paginator = Paginator(all_reports, entries_nb)  # show 18 items per page
 
@@ -434,8 +438,8 @@ def reports(request):
 		reports_list = paginator.page(page_index)
 		# access rights
 		for each in reports_list:
-			each.user_is_owner = each.author == request.user
-			each.user_has_access = request.user in each.shared.all() or each.user_is_owner
+			each.user_is_owner = each.is_owner(request.user)
+			each.user_has_access = each.has_access(request.user)
 		user_profile = UserProfile.objects.get(user=request.user)
 		db_access = user_profile.db_agreement
 		url_lst = {  # TODO remove static url mappings
@@ -466,7 +470,7 @@ def reports(request):
 @login_required(login_url='/')
 def send_report(request, rid):
 	__self__ = this_function_name()  # instance to self
-	report_inst = Report.objects.get(id=rid)  # only for auth
+	report_inst = Report.objects.owner_get(request, rid)  # only for auth
 	assert isinstance(report_inst, Report)
 	# offsite_u = OffsiteUser.objects.filter(belongs_to=request.user)
 	# we need the email since the form is AJAX loaded, and thus cannot just send to url #
@@ -475,8 +479,8 @@ def send_report(request, rid):
 	form_title = 'Send "' + report_inst.name + ' to Off-Site users'
 
 	# Enforce access rights
-	if report_inst.author != request.user:
-		raise PermissionDenied(request=request)
+	# if report_inst.author != request.user:
+	# 	raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
 		send_form = breezeForms.SendReportTo(request.POST, request=request)
@@ -950,7 +954,7 @@ def report_overview(request, rtype, iname=None, iid=None, mod=None):
 
 	if mod == 'reload':
 		try:
-			report = Report.objects.get(id=iid)
+			report = Report.objects.secure_get(id=iid, user=request.user)
 		except ObjectDoesNotExist:
 			return aux.fail_with404(request, 'There is no report with id ' + iid + ' in database')
 		rtype = str(report.type)
@@ -1549,10 +1553,10 @@ def delete_pipe(request, pid):
 def delete_report(request, rid, redir):
 	report = None
 	try:
-		report = Report.objects.get(id=rid)
+		report = Report.objects.owner_get(request, rid)
 		# Enforce access rights
-		if report.author != request.user:
-			raise PermissionDenied(request=request)
+		# if report.author != request.user:
+		#	raise PermissionDenied(request=request)
 		report.delete()
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no report with id ' + str(rid) + ' in database')
@@ -1594,23 +1598,23 @@ def runnable_del(request, page=1, state=None):
 
 @login_required(login_url='/')
 def edit_report_access(request, rid):
-	report_inst = Report.objects.get(id=rid)
+	report_inst = Report.objects.owner_get(request, rid)
 	__self__ = this_function_name()  # instance to self
 	form_action = reverse(__self__, kwargs={'rid': rid})
 	form_title = 'Edit "' + report_inst.name + '" sharing'
 
 	# Enforce access rights
-	if report_inst.author != request.user:
-		raise PermissionDenied(request=request)
+	# if report_inst.author != request.user:
+	#	raise PermissionDenied(request=request)
 
 	if request.method == 'POST':
 		# Validates input info and commit the changes to report_inst instance directly through Django back-end
-		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst)
+		property_form = breezeForms.EditReportSharing(request.POST, instance=report_inst, request=request)
 		if property_form.is_valid():
 			property_form.save()
 			return HttpResponse(True)
 	# TODO check if else is no needed here
-	property_form = breezeForms.EditReportSharing(instance=report_inst)
+	property_form = breezeForms.EditReportSharing(instance=report_inst, request=request)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': property_form,
@@ -2025,7 +2029,7 @@ def veiw_project(request, pid):
 
 def view_group(request, gid):
 	group = Group.objects.get(id=gid)
-	context = {'group': group}
+	context = {'group': group, 'user_list': group.user_list}
 
 	return render_to_response('forms/group_info.html', RequestContext(request, context))
 
@@ -2046,31 +2050,32 @@ def send_zipfile_j(request, jid, mod=None):
 def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 28/08/2015 changes : ACL, object agnostic, added Reports
 	# 02/10/2015 migrated to Runnable and FolderObj
+	# 20/01/2017 changed HttpResponse to StreamingHttpResponse for large file transfer
+	# 25/01/2017 add nginx internal redirect ( HTTP header X-Accel-Redirect ) if archive already exists,
+	# stream otherwise
 	assert issubclass(serv_obj, Runnable)
+	from django.http import StreamingHttpResponse
 	try:
-		run_instance = serv_obj.objects.secure_get(id=jid, user=request.user) # TODO should fix the auth issue below
+		run_instance = serv_obj.objects.secure_get(id=jid, user=request.user)
 		assert isinstance(run_instance, Runnable)
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no record with id ' + jid + ' in DB')
-
-	# FIXME : user with whom report is shared are not able to download -result
-	# Enforce user access restrictions
-	# if not(('shared' in run_instance.__dict__ and request.user in run_instance.shared.all()) or
-	# 		run_instance.author == request.user or request.user.is_superuser):
-	# 	raise PermissionDenied(request=request)
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
 		raise PermissionDenied(request=request)
 
 	try:
-		wrapper, name, size = run_instance.download_zip(mod)
+		wrapper, name, size, stream = run_instance.download_zip(mod)
 	except OSError as e:
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
 
 	zip_name = 'attachment; filename=' + name + '.zip'
-
-	response = HttpResponse(wrapper, content_type=c_t.ZIP)
-	response['Content-Disposition'] = zip_name  # 'attachment; filename=test.zip'
+	if stream:
+		response = StreamingHttpResponse(wrapper, content_type=c_t.ZIP)
+	else:
+		response = HttpResponse()
+		response['X-Accel-Redirect'] = '/cached/reports/%s.zip' % name
+	response['Content-Disposition'] = zip_name
 	response['Content-Length'] = size
 	response['Content-Transfer-Encoding'] = 'binary'
 	return response
@@ -2309,16 +2314,16 @@ def report_file_server(request, rid, category, file_name=None):
 	Serve report files, while enforcing access rights
 	"""
 	try:
-		report_inst = Report.objects.get(id=rid)
+		report_inst = Report.objects.secure_get(id=rid, user=request.user)
 	except ObjectDoesNotExist:
 		msg = 'There is no report with id %s in DB' % rid
 		logger.warning(msg)
 		return aux.fail_with404(request, msg)
 
 	# Enforce user access restrictions
-	if request.user not in report_inst.shared.all() and report_inst.author != request.user\
-		and not request.user.is_superuser:
-		raise PermissionDenied(request=request)
+	# if request.user not in report_inst.shared.all() and report_inst.author != request.user\
+	#	and not request.user.is_superuser:
+	#	raise PermissionDenied(request=request)
 
 	return report_file_server_sub(request, rid, category, fname=file_name, report_inst=report_inst)
 
@@ -2658,7 +2663,7 @@ def edit_group_dialog(request, gid):
 	form_title = 'Edit Group: ' + str(group_data.name)
 
 	if request.method == 'POST':
-		group_form = breezeForms.EditGroupForm(request.POST)
+		group_form = breezeForms.EditGroupForm(request.POST, request=request)
 		if group_form.is_valid():
 			aux.edit_group(group_form, group_data, request.POST)
 			return HttpResponseRedirect(reverse(home, kwargs={'state': 'groups'}))
@@ -2667,7 +2672,7 @@ def edit_group_dialog(request, gid):
 		for arr in group_data.team.all():
 			team[arr.id] = True
 
-		group_form = breezeForms.EditGroupForm(initial={'group_team': team})
+		group_form = breezeForms.EditGroupForm(initial={'group_team': team}, request=request)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
 		'form': group_form,
@@ -2813,8 +2818,10 @@ def report_search(request):
 	found_entries = paginator.page(page_index)
 	# just a shortcut for the template
 	for each in found_entries:
-		each.user_is_owner = each.author == request.user
-		each.user_has_access = request.user in each.shared.all() or each.user_is_owner
+		each.user_is_owner = each.is_owner(request.user)
+		each.user_has_access = each.has_access(request.user)
+		# each.user_is_owner = each.author == request.user
+		# each.user_has_access = request.user in each.shared.all() or each.user_is_owner
 	# Copy the query for the paginator to work with filtering
 	query_string = aux.make_http_query(request)
 	# paginator counter

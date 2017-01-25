@@ -84,7 +84,7 @@ class CustomManager(Manager):
 
 	# clem 20/06/2016
 	@staticmethod
-	def get_author_param(obj):
+	def get_author_param(obj):  # FIXME deprecated ?
 		""" Return the author/owner of the provided object, independently of the name of the column storing it
 
 		:param obj:
@@ -119,8 +119,9 @@ class CustomManager(Manager):
 		:return: True | False
 		:rtype: bool
 		"""
-		author = cls.get_author_param(obj) # author/owner of the object
-		return author == user or cls.admin_override_param(user)
+		# author = cls.get_author_param(obj) # author/owner of the object
+		# return author == user or cls.admin_override_param(user)
+		return obj.is_owner(user) or cls.admin_override_param(user)
 
 	# clem 20/06/2016
 	@classmethod
@@ -137,8 +138,8 @@ class CustomManager(Manager):
 		:return: True | False
 		:rtype: bool
 		"""
-		return cls.has_full_access_param(obj, user) or \
-			(hasattr(obj, 'shared') and user in obj.shared.all())
+		# return cls.has_full_access_param(obj, user) or obj.has
+		return obj.has_access(user)
 
 	@property
 	def _has_context(self):
@@ -171,7 +172,7 @@ class CustomManager(Manager):
 
 	# clem 19/02/2016
 	@property
-	def get_author(self):
+	def get_author(self): # FIXME deprecated ?
 		""" Return the author/owner of the context object, independently of the name of the column storing it
 
 		No argument wrapper for self.get_author_param
@@ -467,7 +468,7 @@ class ObjectsWithAuth(CustomManager):
 			if self.has_read_access:
 				self.set_read_only_or_raise()
 				return self.context_obj
-			raise PermissionDenied(user=self.context_user, message='%s' % kwargs.get('id', '') or kwargs.get('pk', ''))
+			raise PermissionDenied(user=self.context_user, message=kwargs.get('id', '') or kwargs.get('pk', ''))
 		return self.context_obj
 
 
@@ -633,3 +634,21 @@ class CustomUserManager(Manager):
 			user.save()
 		self.__send_mail(user)
 		return user
+
+
+# clem 19/01/2016
+class UserManager(Manager):
+	def dump(self):
+		return super(UserManager, self)
+	
+	def all(self):
+		return super(UserManager, self).filter(user_id__is_active=True)
+	
+	def filter(self, *args, **kwargs):
+		return self.all().filter(*args, **kwargs)
+	
+	def exclude(self, *args, **kwargs):
+		return self.all().exclude(*args, **kwargs)
+	
+	def get(self, *args, **kwargs):
+		return self.all().get(*args, **kwargs)

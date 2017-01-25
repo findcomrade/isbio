@@ -1,5 +1,5 @@
 # from __future__ import unicode_literals
-from __builtin__ import property
+from __builtin__ import property, classmethod
 from django.template.defaultfilters import slugify
 from django.db.models.fields.related import ForeignKey
 from django.contrib.auth.models import User # as DjangoUser
@@ -119,6 +119,24 @@ class Group(CustomModelAbstract):
 		if not self.read_only:
 			self.team.clear()
 		return super(Group, self).delete(using=using, keep_parents=keep_parents)
+	
+	# clem 19/01/2017
+	@classmethod
+	def list_users(cls, grp_id):
+		return cls.objects.get(pk=grp_id).user_list
+	
+	# clem 19/01/2017
+	@property
+	def user_list(self):
+		return self.team.all()
+	
+	# clem 19/01/2017
+	@property
+	def printable_user_list(self):
+		tmp_str = u''
+		for each in self.user_list.order_by('first_name'):
+			tmp_str += u'%s, ' % (each.get_full_name().strip() or each.username)
+		return tmp_str[:-2] if len(tmp_str) > 0 else u'None'
 
 	def __unicode__(self):
 		return self.name
@@ -1089,8 +1107,15 @@ class UserProfile(CustomModelAbstract): # TODO move to a common base app
 	db_agreement = models.BooleanField(default=False)
 	last_active = models.DateTimeField(default=timezone.now)
 	
+	objects = managers.UserManager()
+	
+	# clem 19/01/2017
+	@property
+	def the_full_name(self):
+		return self.user.get_full_name() or self.user.username
+	
 	def __unicode__(self):
-		return self.user.get_full_name()  # return self.user.username
+		return self.the_full_name  # return self.user.username
 
 
 class Runnable(FolderObj, ObjectsWithACL):

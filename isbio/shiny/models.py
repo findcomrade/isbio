@@ -749,9 +749,9 @@ class ShinyTag(CustomModel):
 		# zf = kwargs.pop('zf', None)
 		zf = None
 		try:
-			zf = zipfile.ZipFile(self.zip_file)
-		except Exception:
-			pass
+			zf = zipfile.ZipFile(self.zip_file, allowZip64=True)
+		except Exception as e:
+			logger.warning(str(e))
 		# rebuild = kwargs.pop('rebuild', False)
 
 		new_name = self.name
@@ -809,7 +809,7 @@ class ShinyTag(CustomModel):
 		# Zip file and folder management
 		##
 		try: # loads zip file
-			zf = zipfile.ZipFile(self.zip_file)
+			zf = zipfile.ZipFile(self.zip_file, allowZip64=True)
 		except Exception as e:
 			zf = None
 			self._zip_clean()
