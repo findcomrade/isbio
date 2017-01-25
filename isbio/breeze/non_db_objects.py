@@ -433,14 +433,14 @@ class FolderObj(object):
 		temp.seek(0)
 		
 		@new_thread
-		def save_archive():
+		def save_archive(temp_file):
 			# save this zipfile for caching (disable to save space vs CPU)
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
-				f.write(temp.read())
-			temp.seek(0)
+				f.write(temp_file.read())
+			temp_file.seek(0)
 		
 		if auto_cache:
-			save_archive()
+			save_archive(temp)
 
 		return wrapper, arch_name, size, True
 
