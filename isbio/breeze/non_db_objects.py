@@ -437,11 +437,12 @@ class FolderObj(object):
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
 				f.write(temp_file.read())
 			temp_file.seek(0)
+			archive.close()
 		
 		if auto_cache:
 			save_archive(temp)
-		
-		archive.close()
+		else:
+			archive.close()
 
 		return wrapper, arch_name, size, True
 
