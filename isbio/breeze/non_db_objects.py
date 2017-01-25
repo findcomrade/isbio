@@ -426,7 +426,6 @@ class FolderObj(object):
 			logger.exception(e)
 			raise OSError(e)
 
-		archive.close()
 		chunk_size = 8192
 		wrapper = FileWrapper(temp, chunk_size)
 		size = temp.tell()
@@ -441,6 +440,8 @@ class FolderObj(object):
 		
 		if auto_cache:
 			save_archive(temp)
+		
+		archive.close()
 
 		return wrapper, arch_name, size, True
 
