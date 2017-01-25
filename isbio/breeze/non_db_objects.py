@@ -394,7 +394,7 @@ class FolderObj(object):
 		cached_file_full_path = os.path.join(self.base_folder, '_cache', arch_name + '.zip')
 		# if cached zip file exists, send it instead
 		if os.path.isfile(cached_file_full_path):
-			return open(cached_file_full_path, "rb"), arch_name, os.path.getsize(cached_file_full_path)
+			return open(cached_file_full_path, "rb"), arch_name, os.path.getsize(cached_file_full_path), False
 		# otherwise, creates a new zip
 		temp = tempfile.TemporaryFile()
 		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED, True)
@@ -430,14 +430,19 @@ class FolderObj(object):
 		chunk_size = 8192
 		wrapper = FileWrapper(temp, chunk_size)
 		size = temp.tell()
-		# save this zipfile for caching (disable to save space vs CPU)
 		temp.seek(0)
-		if auto_cache:
+		
+		@new_thread
+		def save_archive():
+			# save this zipfile for caching (disable to save space vs CPU)
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
 				f.write(temp.read())
 			temp.seek(0)
+		
+		if auto_cache:
+			save_archive()
 
-		return wrapper, arch_name, size
+		return wrapper, arch_name, size, True
 
 	def delete(self, using=None):
 		safe_rm(self.home_folder_full_path)
