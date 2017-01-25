@@ -2050,8 +2050,8 @@ def send_zipfile_j(request, jid, mod=None):
 def send_zipfile(request, jid, mod=None, serv_obj=None):
 	# 28/08/2015 changes : ACL, object agnostic, added Reports
 	# 02/10/2015 migrated to Runnable and FolderObj
-	# 20/01/2017 changed HttpResponse to StreamingHttpResponse for large file transfert
-	from django.http import StreamingHttpResponse
+	# 20/01/2017 changed HttpResponse to StreamingHttpResponse for large file transfer
+	# 25/01/2017 removed StreamingHttpResponse to use nginx internal redirect ( HTTP header X-Accel-Redirect )
 	assert issubclass(serv_obj, Runnable)
 	try:
 		run_instance = serv_obj.objects.secure_get(id=jid, user=request.user)
@@ -2068,11 +2068,11 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
 
 	zip_name = 'attachment; filename=' + name + '.zip'
-	chunk_size = 8192
-	response = StreamingHttpResponse(wrapper, content_type=c_t.ZIP)
+	response = HttpResponse()
 	response['Content-Disposition'] = zip_name
 	response['Content-Length'] = size
 	response['Content-Transfer-Encoding'] = 'binary'
+	response['X-Accel-Redirect'] = '/cached/%s.zip' % name
 	return response
 
 
