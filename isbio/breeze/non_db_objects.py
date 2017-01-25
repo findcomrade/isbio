@@ -425,24 +425,18 @@ class FolderObj(object):
 		except OSError as e:
 			logger.exception(e)
 			raise OSError(e)
-
+		
+		archive.close()
 		chunk_size = 8192
 		wrapper = FileWrapper(temp, chunk_size)
 		size = temp.tell()
 		temp.seek(0)
 		
-		@new_thread
-		def save_archive(temp_file):
+		if auto_cache:
 			# save this zipfile for caching (disable to save space vs CPU)
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
-				f.write(temp_file.read())
-			temp_file.seek(0)
-			archive.close()
-		
-		if auto_cache:
-			save_archive(temp)
-		else:
-			archive.close()
+				f.write(temp.read())
+			temp.seek(0)
 
 		return wrapper, arch_name, size, True
 
