@@ -2074,7 +2074,7 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 		response = StreamingHttpResponse(wrapper, content_type=c_t.ZIP)
 	else:
 		response = HttpResponse()
-		response['X-Accel-Redirect'] = '/cached/%s.zip' % name
+		response['X-Accel-Redirect'] = '/cached/reports/%s.zip' % name
 	response['Content-Disposition'] = zip_name
 	response['Content-Length'] = size
 	response['Content-Transfer-Encoding'] = 'binary'
