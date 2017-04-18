@@ -3122,10 +3122,11 @@ class Report(Runnable):
 		:type code: int
 		"""
 		self.log.info('hook : %s (%s)' % (status, code))
-		if status == 'success':
-			self.make_zip('-result', threaded=True) # only Results folder (if exists), or relevant data
-		elif status == 'failed':
-			self.make_zip(threaded=True) # all data (for debug)
+		if not True: # FIXME disabled due to non file locking making possibly incomplete file downloads
+			if status == 'success':
+				self.make_zip('-result', threaded=True) # only Results folder (if exists), or relevant data
+			elif status == 'failed':
+				self.make_zip(threaded=True) # all data (for debug)
 
 
 class CustomList(list):
