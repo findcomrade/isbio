@@ -3096,10 +3096,12 @@ def job_list(request):
 # clem 06/05/2016
 def job_url_hook(request, i_type, rid, md5, status='', code=0):
 	""" Endpoint of job feedback url.
-	Instead of polling local jobs for completion, they will reach out to this url, upon termination
+	Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and error
 
 	:param request: usual request object
 	:type request: int | str
+	:param i_type: letter j or r meaning job or report object
+	:type i_type: str
 	:param rid: id of the job
 	:type rid: int | str
 	:param md5: key identifying the job (a 32 chars md5 hash of the sh file for this job)
@@ -3113,9 +3115,9 @@ def job_url_hook(request, i_type, rid, md5, status='', code=0):
 	try:
 		obj = Report if i_type == 'r' else Jobs
 		a_runnable = obj.objects.f.get(pk=rid)
-		if get_file_md5(a_runnable.rexec.path) == md5:
-			# print 'OKAY GOOD' # TODO do stuff
-			a_runnable.log.info('hook : %s (%s)' % (status, code))
+		if get_file_md5(a_runnable.rexec.path) == md5: # id matches job key (safety)
+			a_runnable.sge_hook(status, code)
+		# purposedly gives no feedback
 	except ObjectDoesNotExist:
 		pass
 	return HttpResponse('ok', mimetype='text/plain')

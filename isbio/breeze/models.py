@@ -13,6 +13,7 @@ from os.path import isfile # , isdir, islink, exists, getsize
 from django.conf import settings
 from django.db import models
 import os
+import abc
 # import sys
 # from pandas.tslib import re_compile
 # from os import symlink
@@ -511,7 +512,8 @@ class FolderObj(object):
 		:rtype:
 		"""
 		folder_to_archive = self.home_folder_full_path # writing shortcut
-		if cat.endswith('-result'): # returning only the Results sub-folder for result switch
+		if cat.endswith('-result') and os.path.isdir(folder_to_archive + '/Results'):
+			# returning only the Results sub-folder for result switch
 			folder_to_archive += '/Results'
 		
 		# get the ignore and filtering list
@@ -2579,6 +2581,19 @@ class Runnable(FolderObj, models.Model, ObjectsWithACL):
 
 	class Meta:
 		abstract = True
+	
+	@abc.abstractmethod
+	def sge_hook(self, status, code):
+		""" Endpoint of job feedback url.
+		Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and
+		error
+
+		:param status: string of the current status (starting | success | failed)
+		:type status: str
+		:param code: code of the exit status if not 0
+		:type code: int
+		"""
+		pass
 
 
 class Jobs(Runnable):
@@ -2730,6 +2745,9 @@ class Jobs(Runnable):
 	class Meta(Runnable.Meta): # TODO check if inheritance is required here
 		abstract = False
 		db_table = 'breeze_jobs'
+	
+	def sge_hook(self, status, code):
+		self.log.warning('NOT IMP hook : %s (%s)' % (status, code))
 
 
 class Report(Runnable):
@@ -3093,6 +3111,21 @@ class Report(Runnable):
 	class Meta(Runnable.Meta): # TODO check if inheritance is required here
 		abstract = False
 		db_table = 'breeze_report'
+		
+	def sge_hook(self, status, code):
+		""" Endpoint of job feedback url.
+		Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and error
+
+		:param status: string of the current status (starting | success | failed)
+		:type status: str
+		:param code: code of the exit status if not 0
+		:type code: int
+		"""
+		self.log.info('hook : %s (%s)' % (status, code))
+		if status == 'success':
+			self.make_zip('-result', threaded=True) # only Results folder (if exists), or relevant data
+		elif status == 'failed':
+			self.make_zip(threaded=True) # all data (for debug)
 
 
 class CustomList(list):
