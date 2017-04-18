@@ -458,7 +458,7 @@ class DevSettings(BreezeSettings):
 	SUCCESS_FN = '.done'
 	R_DONE_FN = '.sub_done'
 	
-
+	REPORTS_CACHE_INTERNAL_URL = '/cached/reports/'
 
 
 	##

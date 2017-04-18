@@ -2069,19 +2069,23 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
 		raise PermissionDenied
-
+	
 	try:
-		wrapper, name, size = job.download_zip(mod)
+		temp_file, do_stream = job.download_zip(mod or '')
+		
+		content_dispo = 'attachment; filename=' + temp_file.name
+		if do_stream:
+			from django.http import StreamingHttpResponse
+			response = StreamingHttpResponse(temp_file.stream(), content_type=c_t.ZIP)
+		else:
+			response = HttpResponse(content_type=c_t.ZIP)
+			response['X-Accel-Redirect'] = '%s%s' % (settings.REPORTS_CACHE_INTERNAL_URL, temp_file.name)
+		response['Content-Disposition'] = content_dispo
+		response['Content-Length'] = temp_file.size
+		response['Content-Transfer-Encoding'] = 'binary'
+		return response
 	except OSError as e:
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
-
-	zip_name = 'attachment; filename=' + name + '.zip'
-
-	response = HttpResponse(wrapper, content_type='application/zip')
-	response['Content-Disposition'] = zip_name  # 'attachment; filename=test.zip'
-	response['Content-Length'] = size
-	response['Content-Transfer-Encoding'] = 'binary'
-	return response
 
 
 @login_required(login_url='/')
