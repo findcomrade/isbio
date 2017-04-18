@@ -389,7 +389,7 @@ class FolderObj(object):
 			return open(cached_file_full_path, "rb"), arch_name, os.path.getsize(cached_file_full_path)
 		# otherwise, creates a new zip
 		temp = tempfile.TemporaryFile()
-		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
+		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
 
 		def filters(file_n, a_pattern_list):
 			return not a_pattern_list or file_inter_pattern_list(file_n, a_pattern_list)
@@ -421,7 +421,7 @@ class FolderObj(object):
 		archive.close()
 		wrapper = FileWrapper(temp)
 		size = temp.tell()
-		# save this zipfile for caching (disalbe to save space vs CPU)
+		# save this zipfile for caching (disable to save space vs CPU)
 		temp.seek(0)
 		if auto_cache:
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
