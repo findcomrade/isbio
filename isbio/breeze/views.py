@@ -2074,12 +2074,20 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 		temp_file, do_stream = job.download_zip(mod or '')
 		
 		content_dispo = 'attachment; filename=' + temp_file.name
-		if do_stream:
-			from django.http import StreamingHttpResponse
-			response = StreamingHttpResponse(temp_file.stream(), content_type=c_t.ZIP)
+		if do_stream or not temp_file.exists:
+			try:
+				# noinspection PyUnresolvedReferences
+				from django.http import StreamingHttpResponse
+				response_object = StreamingHttpResponse
+			except ImportError: # backward compatibility for django version not supporting StreamingHttpResponse
+				logger.warning('This version of Django does not support StreamingHttpResponse !')
+				response_object = HttpResponse
+			response = response_object(temp_file.stream(), content_type=c_t.ZIP)
 		else:
 			response = HttpResponse(content_type=c_t.ZIP)
-			response['X-Accel-Redirect'] = '%s%s' % (settings.REPORTS_CACHE_INTERNAL_URL, temp_file.name)
+			cache_place = '%s%s/' % (settings.CACHE_INTERNAL_URL_BASE, 'jobs' if type(job) is Jobs else 'reports')
+			response['X-Accel-Redirect'] = '%s%s' % (cache_place, temp_file.name)
+
 		response['Content-Disposition'] = content_dispo
 		response['Content-Length'] = temp_file.size
 		response['Content-Transfer-Encoding'] = 'binary'

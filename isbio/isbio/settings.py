@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 from breeze.utilities import git_get_status, git_get_branch, git_get_commit, is_host_online, test_url
 
-ENABLE_DATADOG = True
+ENABLE_DATADOG = False
 try:
 	from datadog import statsd
 	if ENABLE_DATADOG:
@@ -458,8 +458,7 @@ class DevSettings(BreezeSettings):
 	SUCCESS_FN = '.done'
 	R_DONE_FN = '.sub_done'
 	
-	REPORTS_CACHE_INTERNAL_URL = '/cached/reports/'
-
+	CACHE_INTERNAL_URL_BASE = '/cached/'
 
 	##
 	# Report config

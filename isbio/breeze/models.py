@@ -2529,8 +2529,7 @@ class Runnable(FolderObj, models.Model, ObjectsWithACL):
 
 	@property
 	def instance_type(self):
-		# print self.ins
-		# return 'report' if self.is_report else 'job' if self.is_job else 'abstract'
+		# return 'report' if self.is_report else 'jobs' if self.is_job else 'abstract'
 		return self.instance_of.__name__.lower()
 
 	@property
