@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from datadog import util
-from datadog.api import users
-
 import auxiliary as aux
 import forms as breezeForms
 import urllib
@@ -44,6 +41,8 @@ from breeze.legacy import get_report_path, get_report_path_test
 import hashlib
 import sys
 
+# from datadog import util
+# from datadog.api import users
 # from datetime import datetime
 # from _mysql import result
 # from Bio.Sequencing.Ace import rt

@@ -14,6 +14,7 @@ try:
 		ENABLE_DATADOG = True
 except Exception:
 	ENABLE_DATADOG = False
+	statsd = None
 	pass
 ENABLE_REMOTE_FW = False
 
