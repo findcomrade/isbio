@@ -9,6 +9,8 @@ from b_exceptions import *
 from django.conf import settings
 if settings.ENABLE_DATADOG:
 	from datadog import statsd
+else:
+	statsd = None
 
 # import time
 # from exceptions import Exception

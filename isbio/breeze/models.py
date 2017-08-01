@@ -12,6 +12,8 @@ from utils import *
 from os.path import isfile # , isdir, islink, exists, getsize
 from django.conf import settings
 from django.db import models
+import os
+import abc
 # import sys
 # from pandas.tslib import re_compile
 # from os import symlink
@@ -351,7 +353,7 @@ class FolderObj(object):
 
 	# clem 02/10/2015
 	# TODO : download with no subdirs
-	def download_zip(self, cat=None, auto_cache=True):
+	def OLD_download_zip(self, cat=None, auto_cache=True):
 		""" Compress the folder object for download
 		<i>cat</i> argument enables to implement different kind of selective downloads into <i>download_ignore(cat)</i>
 		auto_cache determine if generated zip should be saved for caching purposes
@@ -388,7 +390,7 @@ class FolderObj(object):
 			return open(cached_file_full_path, "rb"), arch_name, os.path.getsize(cached_file_full_path)
 		# otherwise, creates a new zip
 		temp = tempfile.TemporaryFile()
-		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
+		archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
 
 		def filters(file_n, a_pattern_list):
 			return not a_pattern_list or file_inter_pattern_list(file_n, a_pattern_list)
@@ -420,7 +422,7 @@ class FolderObj(object):
 		archive.close()
 		wrapper = FileWrapper(temp)
 		size = temp.tell()
-		# save this zipfile for caching (disalbe to save space vs CPU)
+		# save this zipfile for caching (disable to save space vs CPU)
 		temp.seek(0)
 		if auto_cache:
 			with open(cached_file_full_path, "wb") as f: # use `wb` mode
@@ -438,12 +440,137 @@ class FolderObj(object):
 				sys._getframe(1).f_code.co_name, self.__class__.__name__))
 
 	def delete(self, using=None):
+		self._get_cache_file().delete(False)
 		safe_rm(self.home_folder_full_path)
 		super(FolderObj, self).delete(using=using)
 		return True
 
 	class Meta:
 		abstract = True
+	
+	# back-ports of Fclem/isbio2 commits bfd22d295ac07cfa2389f1b2ba6216269d22e523 to
+	# e8f2e7440ea5544a75f1f788ef15d8863e15cabc (redesigned zip creation and download feature)
+	# clem 27/01/2017
+	@staticmethod
+	def _walks_folder_generic(path, filter_list, ignore_list):
+		""" walks path to list files and folder, while applying filters and exclusions
+
+		:type path: str
+		:yield: (path to file, name/path to register relatively)
+		"""
+		
+		def filters(file_n, a_pattern_list):
+			return not a_pattern_list or file_inter_pattern_list(file_n, a_pattern_list)
+		
+		def no_exclude(file_n, a_pattern_list):
+			return not a_pattern_list or not file_inter_pattern_list(file_n, a_pattern_list)
+		
+		def file_inter_pattern_list(file_n, a_pattern_list):
+			""" Returns if <i>file_n</i> is match at least one pattern in <i>a_pattern_list</i>
+			"""
+			import fnmatch
+			for each in a_pattern_list:
+				if fnmatch.fnmatch(file_n, each):
+					return True
+			return False
+		
+		for root, dirs, files in os.walk(path):
+			for name in files:
+				if filters(name, filter_list) and no_exclude(name, ignore_list):
+					path_to_file = os.path.join(root, name)
+					name_in_arch = path_to_file.replace(path, '')
+					yield path_to_file, str(name_in_arch)
+	
+	# clem 27/01/2017
+	def walks_folder(self, filter_list=list(), ignore_list=list()):
+		return self._walks_folder_generic(self.home_folder_full_path, filter_list, ignore_list)
+	
+	# clem 27/01/2017
+	def _get_cache_file(self, auto_cache=True, sup=''):
+		""" Returns the cache file object with appropriate name for this FolderObj
+
+		:param auto_cache:
+		:type auto_cache: bool
+		:param sup:
+		:type sup: str
+		:return:
+		:rtype: CachedFile
+		"""
+		arch_full_name = str(self.folder_name) + sup + '.zip'
+		# create the cached file object
+		return CachedFile(arch_full_name, os.path.join(self.base_folder, '_cache'), auto_cache)
+	
+	# clem 27/01/2017
+	def _archive_conf(self, auto_cache, cat='', ):
+		""" Return data regarding download and caching along with cache file object
+
+		:param auto_cache:
+		:type auto_cache: bool
+		:param cat:
+		:type cat: str
+		:return:
+		:rtype:
+		"""
+		folder_to_archive = self.home_folder_full_path # writing shortcut
+		if cat.endswith('-result') and os.path.isdir(folder_to_archive + '/Results'):
+			# returning only the Results sub-folder for result switch
+			folder_to_archive += '/Results'
+		
+		# get the ignore and filtering list
+		ignore_list, filter_list, sup = self._download_ignore(cat)
+		# create the cached file object
+		return self._get_cache_file(auto_cache, sup), folder_to_archive, ignore_list, filter_list
+	
+	# clem 27/01/2017
+	@new_thread
+	def _make_zip_threaded(self, cat, auto_cache):
+		return self.make_zip(cat, auto_cache)
+	
+	# clem 26/01/2017
+	def make_zip(self, cat='', auto_cache=True, threaded=False):
+		""" Compress the folder object for storage or streaming
+
+		<i>cat</i> argument enables to implement different kind of selective downloads into
+		<i>download_ignore(cat)</i>
+		auto_cache determine if generated zip should be saved for caching purposes or not
+		auto_cache => not do_stream and not auto_cache => do_stream
+
+		Returns
+			_ a CachedFile object
+			_ should the file content be streamed from the object (True) or can it be read from
+				the fs directly (False). auto_cache implies NOT_stream and vice-versa
+
+
+		:type cat : str
+		:type auto_cache : bool
+		:type threaded : bool
+		:return: the cached file (either temp-file or actual), read from obj ?
+		"""
+		if threaded:
+			return self._make_zip_threaded(cat, auto_cache)
+		cached_file, folder_to_archive, ignore_list, filter_list = self._archive_conf(auto_cache, cat)
+		
+		# if cached zip file exists, send it directly
+		if cached_file.exists and auto_cache:
+			return cached_file, False
+		# otherwise, creates a new zip
+		with cached_file as archive:
+			# add files and folder to the archive, while applying filters and exclusions
+			try:
+				for new_p, name in self._walks_folder_generic(folder_to_archive, filter_list, ignore_list):
+					archive.write(new_p, str(name))
+			except OSError as e:
+				logger.exception(e)
+				raise OSError(e)
+		
+		return cached_file, not auto_cache
+	
+	# clem 27/01/2017
+	def download_zip(self, cat='', auto_cache=True):
+		if not self.ALLOW_DOWNLOAD:
+			raise PermissionDenied
+		
+		return self.make_zip(cat, auto_cache)
 
 
 # 04/06/2015
@@ -476,7 +603,8 @@ class Project(models.Model):
 	pi = models.CharField(max_length=50)
 	author = ForeignKey(User)
 	# store the institute info of the user who creates this report
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 	
 	collaborative = models.BooleanField(default=False)
 	
@@ -486,6 +614,12 @@ class Project(models.Model):
 	
 	def __unicode__(self):
 		return self.name
+
+	def save(self, force_insert=False, force_update=False, using=None):
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
+		super(Project, self).save(force_insert, force_update, using)
 
 
 class Group(models.Model):
@@ -541,7 +675,8 @@ class ShinyReport(models.Model):
 	description = models.CharField(max_length=350, blank=True, help_text="Optional description text")
 	author = ForeignKey(User)
 	created = models.DateTimeField(auto_now_add=True)
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 
 	custom_header = models.TextField(blank=True, default=shiny_header(),
 		help_text="Use R Shiny code here to customize the header of the dashboard<br />"
@@ -1071,6 +1206,9 @@ class ShinyReport(models.Model):
 		pass
 
 	def save(self, *args, **kwargs):
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
 		super(ShinyReport, self).save(*args, **kwargs) # Call the "real" save() method.
 		self.regen_report()
 
@@ -1103,7 +1241,7 @@ class ReportType(FolderObj, models.Model):
 
 	type = models.CharField(max_length=17, unique=True)
 	description = models.CharField(max_length=5500, blank=True)
-	search = models.BooleanField(default=False, help_text="NB : LEAVE THIS UN-CHECKED")
+	search = models.BooleanField(default=False, help_text="NB : LEAVE THIS UN-CHECKED", editable=False)
 	access = models.ManyToManyField(User, null=True, blank=True, default=None,
 									related_name='pipeline_access')  # share list
 	# tags = models.ManyToManyField(Rscripts, blank=True)
@@ -1111,7 +1249,8 @@ class ReportType(FolderObj, models.Model):
 	# who creates this report
 	author = ForeignKey(User)
 	# store the institute info of the user who creates this report
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, editable=False)
 	
 	def file_name(self, filename):
 		# FIXME check for FolderObj property fitness
@@ -1169,12 +1308,20 @@ class ReportType(FolderObj, models.Model):
 		return self.__prev_shiny_report != self.shiny_report_id
 
 	def save(self, *args, **kwargs):
+		
+		# set the institute for this ReportType :
+		if self.author_id:
+			print self.author
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
+		else:
+			self.institute = UserProfile().institute_info
+		
 		obj = super(ReportType, self).save(*args, **kwargs) # Call the "real" save() method.
 
 		if self.__shiny_changed:
 			if self.__prev_shiny_report:
 				ShinyReport.objects.get(pk=self.__prev_shiny_report).regen_report()
-			if self.shiny_report:
+			if self.shiny_report_id:
 				self.shiny_report.regen_report()
 
 		try:
@@ -1266,10 +1413,10 @@ class Rscripts(FolderObj, models.Model):
 	# tag related
 	istag = models.BooleanField(default=False, help_text="Defines whether this script can be included in a Pipeline")
 	must = models.BooleanField(default=False, help_text="Defines whether the tag is enabled by default")
-	r3 = models.BooleanField(default=False, help_text="Set this script to be independently run in R3 (only for "
-	"tags)\n<br>N.B. If checked, this script will be run in a separate process, and while having access to "
-	"the same work folder,<br>\nit will NOT be able to access any variables/memory from other scripts in the same "
-	"pipeline.<br>\nCAUTION ! R3 is a whole separate environement with its own libraries and configurations.")
+	r3 = models.BooleanField(default=False, help_text="N.B. If checked, this script will be run in a separate process; "
+	"however it will still be able to "
+	"access and<br>\nmodify any variables/memory from other scripts in the same  pipeline, like if it was one single "
+	"process.<br>\nCAUTION ! R3 is still a separate environement, with its own libraries and configurations.")
 	order = models.DecimalField(max_digits=3, decimal_places=1, blank=True, default=0)
 	report_type = models.ManyToManyField(ReportType, null=True, blank=True,
 		default=None, help_text="Include this tag in the following pipelines")  # assosiation with report type
@@ -1348,11 +1495,12 @@ class Rscripts(FolderObj, models.Model):
 		# final step - fire header
 		headers = open(self._header_path).read()
 
-		d = { 'tag_name': self.name,
-				'body': body,
-				'gen_params': gen_params,
-				'headers': headers,
-			}
+		d = {
+			'tag_name'  : self.name,
+			'body'      : body,
+			'gen_params': gen_params,
+			'headers'   : headers,
+		}
 		# do the substitution
 		return src.substitute(d)
 
@@ -1426,7 +1574,8 @@ class UserProfile(models.Model):
 	
 	fimm_group = models.CharField(max_length=75, blank=True)
 	logo = models.FileField(upload_to=file_name, blank=True)
-	institute_info = models.ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute_info = models.ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute_info = models.ForeignKey(Institute, default=1)
 	# if user accepts the agreement or not
 	db_agreement = models.BooleanField(default=False)
 	last_active = models.DateTimeField(default=timezone.now)
@@ -1435,20 +1584,85 @@ class UserProfile(models.Model):
 		return self.user.get_full_name()  # return self.user.username
 
 
-class Runnable(FolderObj, models.Model):
+class ObjectsWithACL(object):
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	@staticmethod
+	def admin_override_param(user):
+		""" Return wether settings.SU_ACCESS_OVERRIDE is True and user is super user
+
+		:param user: Django user object
+		:type user: models.User
+		:return: True | False
+		:rtype: bool
+		"""
+		assert isinstance(user, User)
+		return settings.SU_ACCESS_OVERRIDE and user.is_superuser
+	
+	# clem 20/06/2016 moved 18/01/2017 from managers
+	def _get_author(self):
+		""" Return the author/owner of the provided object, independently of the name of the column storing it
+
+		:param self:
+		:type self:
+		:return: Django user object
+		:rtype: models.User
+		"""
+		auth = None
+		if hasattr(self, 'author'): # most objects
+			auth = self.author
+		elif hasattr(self, '_author'): # Reports
+			auth = self._author
+		elif hasattr(self, 'juser'): # Jobs
+			auth = self.juser
+		elif hasattr(self, 'added_by'): # OffsiteUser
+			auth = self.added_by
+		elif hasattr(self, 'user'): # UserProfile
+			auth = self.user
+		elif hasattr(self, 'script_buyer'): # CartInfo
+			auth = self.script_buyer
+		return auth
+	
+	# clem 18/01/2017
+	def is_in_share_list(self, user):
+		assert isinstance(user, User)
+		in_user_lst = hasattr(self, 'shared') and user in self.shared.all()
+		in_group = False
+		if hasattr(self, 'shared_g'):
+			for each_group in self.shared_g.all():
+				if user in Group.objects.get(pk=each_group.id).team.all():
+					in_group = True
+					break
+		return in_user_lst or in_group
+	
+	# clem 18/01/2017
+	def is_owner(self, user):
+		assert isinstance(user, User)
+		author = self._get_author() # author/owner of the object
+		return author == user
+	
+	# clem 18/01/2017
+	def has_access(self, user):
+		return self.admin_override_param(user) or self.is_owner(user) or self.is_in_share_list(user)
+	
+	class Meta:
+		abstract = True
+
+
+class Runnable(FolderObj, models.Model, ObjectsWithACL):
 	##
 	# CONSTANTS
 	##
 	ALLOW_DOWNLOAD = True
-	BASE_FOLDER_NAME = '' # folder name
-	BASE_FOLDER_PATH = '' # absolute path to the container folder
-	FAILED_FN = settings.FAILED_FN 				# '.failed'
-	SUCCESS_FN = settings.SUCCESS_FN			# '.done'
-	SUB_DONE_FN = settings.R_DONE_FN			# '.sub_done'
-	SH_NAME = settings.GENERAL_SH_NAME			# 'run_job.sh'
-	FILE_MAKER_FN = settings.REPORTS_FM_FN		# 'transfer_to_fm.txt'
-	R_HOME = settings.R_HOME					# %project_folder%/R/lib64/R
-	INC_RUN_FN = settings.INCOMPLETE_RUN_FN		# '.INCOMPLETE_RUN'
+	BASE_FOLDER_NAME = ''							# folder name
+	BASE_FOLDER_PATH = ''							# absolute path to the container folder
+	FAILED_FN = settings.FAILED_FN					# '.failed'
+	SUCCESS_FN = settings.SUCCESS_FN				# '.done'
+	SUB_DONE_FN = settings.R_DONE_FN				# '.sub_done'
+	SH_NAME = settings.GENERAL_SH_NAME				# 'run_job.sh'
+	SH_CONF_NAME = settings.GENERAL_SH_CONF_NAME	# 'run_job_conf.sh'
+	FILE_MAKER_FN = settings.REPORTS_FM_FN			# 'transfer_to_fm.txt'
+	INC_RUN_FN = settings.INCOMPLETE_RUN_FN			# '.INCOMPLETE_RUN'
+	LOG_FOLDER = settings.SH_LOG_FOLDER
 	# output file name (without extension) for nozzle report. MIGHT not be enforced everywhere
 	REPORT_FILE_NAME = settings.NOZZLE_REPORT_FN	# 'report'
 	RQ_FIELDS = ['_name', '_author', '_type']
@@ -1457,14 +1671,14 @@ class Runnable(FolderObj, models.Model):
 	R_OUT_EXT = settings.R_OUT_EXT					# '.Rout'
 	R_OUT_FILE_NAME = R_FILE_NAME + R_OUT_EXT
 	R_FULL_PATH = settings.R_ENGINE_PATH			# 'R '
-	R_CMD = 'CMD BATCH --no-save'
+	R_CMD = settings.R_GENERAL_CMD
 	RQ_SPECIFICS = ['request_data', 'sections']
 	FAILED_TEXT = 'Execution halted'
 
-	HIDDEN_FILES = [R_FILE_NAME, R_OUT_FILE_NAME, SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ?
+	HIDDEN_FILES = [SH_NAME, SUCCESS_FN, FILE_MAKER_FN, SUB_DONE_FN] # TODO add FM file ? #
 	SYSTEM_FILES = HIDDEN_FILES + [INC_RUN_FN, FAILED_FN]
 
-	objects = managers.WorkersManager() # The default manager.
+	objects = managers.WorkersManager() # Custom manage
 
 	def __init__(self, *args, **kwargs):
 		super(Runnable, self).__init__(*args, **kwargs)
@@ -1494,11 +1708,8 @@ class Runnable(FolderObj, models.Model):
 			self._set_status(value)
 		elif attr_name == 'status':
 			raise ReadOnlyAttribute # prevent direct writing
-		else:
+		else: # FIXME get rid of that
 			attr_name = Trans.swap(attr_name) # backward compatibility
-
-		# if attr_name == 'sgeid':
-		# 	print self.short_id, 'set sgeid to', str(value)
 
 		super(Runnable, self).__setattr__(attr_name, value)
 
@@ -1513,7 +1724,7 @@ class Runnable(FolderObj, models.Model):
 		from django.core.urlresolvers import reverse
 		from breeze.views import job_url_hook
 		md5 = get_file_md5(self._rexec.path)
-		return 'http://%s%s' % (settings.FULL_HOST_NAME, reverse(job_url_hook, args=(self.id, md5)))
+		return 'http://%s%s' % (settings.FULL_HOST_NAME, reverse(job_url_hook, args=(self.instance_type[0], self.id, md5)))
 
 	# SPECIFICS
 	# clem 17/09/2015
@@ -1590,13 +1801,16 @@ class Runnable(FolderObj, models.Model):
 	def html_path(self):
 		return '%s%s' % (self.home_folder_full_path, self.REPORT_FILE_NAME)
 
-	@property # UNUSED ?
+	@property # UNUSED ?  # FIXME obsolete
 	def _r_out_path(self):
-		return self._rout_file
+		return self.exec_out_file_path
 
-	@property # used by write_sh_file() # useless #Future ?
-	def _r_exec_path(self):
-		return self._rexec
+	@property
+	def source_file_path(self):
+		if not str(self._rexec).startswith(self.home_folder_full_path): # Quick fix for old style project path
+			self._rexec = '%s%s' % (self.home_folder_full_path, os.path.basename(str(self._rexec)))
+			self.save()
+		return self._rexec.path
 
 	@property # UNUSED ?
 	def _html_full_path(self):
@@ -1606,27 +1820,27 @@ class Runnable(FolderObj, models.Model):
 	def _test_file(self):
 		"""
 		full path of the job competition verification file
-		used to store the retval value, that has timings and perf related datas
+		used to store the retval value, that has timings and perf related data
+
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.SUCCESS_FN)
 
-	@property
-	def _rout_file(self):
+	@property  # FIXME obsolete
+	def exec_out_file_path(self):
 		# return '%s%s' % (self.home_folder_full_path, self.R_OUT_FILE_NAME)
 		return '%s%s' % (self._rexec, self.R_OUT_EXT)
 
 	@property
-	def _failed_file(self):
-		"""
-		full path of the job failure verification file
-		used to store the retval value, that has timings and perf related datas
+	def failed_file_path(self):
+		""" full path of the job failure verification file used to store the retval value, that has timings and perf related data
+
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.FAILED_FN)
 
 	@property
-	def _incomplete_file(self):
+	def incomplete_file_path(self):
 		"""
 		full path of the job incomplete run verification file
 		exist only if job was interrupted, or aborted
@@ -1634,10 +1848,11 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.INC_RUN_FN)
 
-	@property
+	@property  # FIXME obsolete
 	def _sge_log_file(self):
 		"""
-		Return the name of the autogenerated debug/warning file from SGE
+		Return the name of the auto-generated debug/warning file from SGE
+
 		:rtype: str
 		"""
 		return '%s_%s.o%s' % (self._name.lower(), self.instance_of.__name__, self.sgeid)
@@ -1657,13 +1872,23 @@ class Runnable(FolderObj, models.Model):
 		return res
 
 	@property
-	def _sh_file_path(self):
+	def sh_file_path(self):
 		"""
 		the full path of the sh file used to run the job on the cluster.
 		This is the file that SGE has to instruct the cluster to run.
 		:rtype: str
 		"""
 		return '%s%s' % (self.home_folder_full_path, self.SH_NAME)
+	
+	# clem 06/10/2016
+	@property
+	def sh_conf_file_path(self):
+		"""
+		the full path of the sh conf file used to run the job on the cluster.
+		This is the file that SGE has to instruct the cluster to run.
+		:rtype: str
+		"""
+		return '%s%s' % (self.home_folder_full_path, self.SH_CONF_NAME)
 
 	# clem 11/09/2015
 	@property
@@ -1675,17 +1900,18 @@ class Runnable(FolderObj, models.Model):
 		return self.SYSTEM_FILES + [self._sge_log_file] + self._shiny_files
 
 	# clem 16/09/2015
-	@property
+	@property # FIXME obsolete
 	def r_error(self):
 		""" Returns the last line of script.R which may contain an error message
+
 		:rtype: str
 		"""
 		out = ''
 		if self.is_r_failure:
-			lines = open(self._rout_file).readlines()
+			lines = open(self.exec_out_file_path).readlines()
 			i = len(lines)
 			size = i
-			for i in range(len(lines)-1, 0, -1):
+			for i in range(len(lines) - 1, 0, -1):
 				if lines[i].startswith('>'):
 					break
 			if i != size:
@@ -1701,6 +1927,7 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self.HIDDEN_FILES + [self._sge_log_file, '*~', '*.o%s' % self.sgeid] + self._shiny_files
 
+	# FIXME obsolete
 	def _download_ignore(self, cat=None):
 		"""
 		:type cat: str
@@ -1720,7 +1947,7 @@ class Runnable(FolderObj, models.Model):
 			exclude_list = self.hidden_files # + ['*.xml', '*.r*', '*.sh*']
 		return exclude_list, filer_list, name
 
-	@property
+	@property  # FIXME obsolete
 	def sge_job_name(self):
 		"""The job name to submit to SGE
 		:rtype: str
@@ -1728,7 +1955,7 @@ class Runnable(FolderObj, models.Model):
 		name = self._name if not self._name[0].isdigit() else '_%s' % self._name
 		return '%s_%s' % (slugify(name), self.instance_type.capitalize())
 
-	@property
+	@property  # FIXME obsolete
 	def is_done(self):
 		"""
 		Tells if the job run is not running anymore, using it's breeze_stat or
@@ -1743,7 +1970,7 @@ class Runnable(FolderObj, models.Model):
 		# return isfile(self._test_file)
 		return self._breeze_stat == JobStat.DONE or isfile(self._test_file)
 
-	@property
+	@property  # FIXME obsolete
 	def is_sge_successful(self):
 		"""
 		Tells if the job was properly run or not, using it's breeze_stat or
@@ -1754,7 +1981,7 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self._status != JobStat.FAILED and self.is_done
 
-	@property
+	@property  # FIXME obsolete
 	def is_successful(self):
 		"""
 		Tells if the job was successfully done or not, using it's breeze_stat or
@@ -1765,21 +1992,21 @@ class Runnable(FolderObj, models.Model):
 		"""
 		return self._status == JobStat.SUCCEED and self.is_r_successful
 
-	@property
+	@property  # FIXME obsolete
 	def is_r_successful(self):
 		"""Tells if the job R job completed successfully
 		:rtype: bool
 		"""
-		return self.is_done and not isfile(self._failed_file) and not isfile(self._incomplete_file) and \
-			isfile(self._rout_file)
+		return self.is_done and not isfile(self.failed_file_path) and not isfile(self.incomplete_file_path) and \
+			   isfile(self.exec_out_file_path)
 
-	@property
+	@property # FIXME obsolete
 	def is_r_failure(self):
 		"""Tells if the job R job has failed (not equal to the oposite of is_r_successful)
 		:rtype: bool
 		"""
-		return self.is_done and isfile(self._failed_file) and not isfile(self._incomplete_file) and \
-			isfile(self._rout_file)
+		return self.is_done and isfile(self.failed_file_path) and not isfile(self.incomplete_file_path) and \
+			   isfile(self.exec_out_file_path)
 
 	@property
 	def aborting(self):
@@ -1805,31 +2032,50 @@ class Runnable(FolderObj, models.Model):
 		return False
 
 	def write_sh_file(self):
-		"""
-		Generate the SH file that will be executed on the compute target to configure and run the job
-		"""
-		import os
+		""" Generate the SH file that will be executed on the compute target to configure and run the job """
+		from os import chmod
 
-		conf_dict = {
-			'failed_fn'		: self.FAILED_FN,
-			'inc_run_fn'	: self.INC_RUN_FN,
-			'success_fn'	: self.SUCCESS_FN,
-			'done_fn'		: self.SUB_DONE_FN,
-			'file_name'		: self.R_FILE_NAME,
-			'out_file_name'	: self.R_OUT_FILE_NAME,
-			'full_path'		: self.R_FULL_PATH,
-			'cmd'			: self.R_CMD,
-			'failed_txt'	: self.FAILED_TEXT,
-			'user'			: self._author,
-			'date'			: datetime.now(),
-			'poke_url'		: self.poke_url,
+		base_var_dict = { # header variables common to both files
+			'user'         : self._author,
+			'date'         : datetime.now(),
+			'tz'           : time.tzname[time.daylight],
+			'url'          : 'http://%s' % settings.FULL_HOST_NAME,
+			'target'       : 'hardcoded_sge@%s' % settings.SGE_QUEUE_NAME,
 		}
 
-		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, conf_dict, self._sh_file_path)
+		conf_file_dict = {
+			'log_folder'   : self.LOG_FOLDER,
+			'failed_fn'    : self.FAILED_FN,
+			'inc_run_fn'   : self.INC_RUN_FN,
+			'success_fn'   : self.SUCCESS_FN,
+			'done_fn'      : self.SUB_DONE_FN,
+			'in_file_name' : self.R_FILE_NAME,
+			'out_file_name': self.R_OUT_FILE_NAME,
+			'full_path'    : self.R_FULL_PATH,
+			'args'         : '',
+			'cmd'          : self.R_CMD,
+			'failed_txt'   : self.FAILED_TEXT,
+			'poke_url'     : self.poke_url,
+			'arch_cmd'     : "$(%s --slave -e 'cat(R.Version()$platform)')" % self.R_FULL_PATH,
+			'version_cmd'  : "$(%s --slave -e 'cat(c(R.Version()$version.string, %s" %
+				(self.R_FULL_PATH, "\"(\", R.Version()$nickname, \")\"))')"),
+			'engine'       : 'hardcoded_r2',
+		}
+		conf_file_dict.update(base_var_dict)
+		
+		run_file_dict = {
+			'conf_file'    : self.SH_CONF_NAME
+		}
+		run_file_dict.update(base_var_dict)
+
+		# conf file
+		gen_file_from_template(settings.BOOTSTRAP_SH_CONF_TEMPLATE, conf_file_dict, self.sh_conf_file_path) # FIXME
+		# run file
+		gen_file_from_template(settings.BOOTSTRAP_SH_TEMPLATE, run_file_dict, self.sh_file_path) # FIXME
 
 		# config should be readable and executable but not writable, same for script.R
-		os.chmod(self._sh_file_path, ACL.RX_RX_)
-		os.chmod(self._r_exec_path.path, ACL.R_R_)
+		chmod(self.sh_file_path, ACL.RX_RX_)
+		chmod(self.source_file_path, ACL.R_R_)
 
 	# INTERFACE for extending assembling process
 	# TODO @abc.abstractmethod ?
@@ -1870,9 +2116,6 @@ class Runnable(FolderObj, models.Model):
 			os.makedirs(self.home_folder_full_path, ACL.RWX_RWX_)
 
 		# BUILD instance specific R-File
-		# self.generate_r_file(kwargs['sections'], kwargs['request_data'], custom_form=kwargs['custom_form'])
-		# self.generate_r_file(sections=kwargs['sections'], request_data=kwargs['request_data'],
-		# 	custom_form=kwargs['custom_form'])
 		self.generate_r_file(*args, **kwargs)
 		# other stuff that might be needed by specific kind of instances (Report and Jobs)
 		self.deferred_instance_specific(*args, **kwargs)
@@ -1904,7 +2147,7 @@ class Runnable(FolderObj, models.Model):
 		if settings.HOST_NAME.startswith('breeze'):
 			import drmaa
 
-		config = self._sh_file_path
+		config = self.sh_file_path
 		log = get_logger('run_%s' % self.instance_type )
 		default_dir = os.getcwd() # Jobs specific ? or Report specific ?
 
@@ -2101,7 +2344,7 @@ class Runnable(FolderObj, models.Model):
 
 		:type ret_val: drmaa.JobInfo
 		"""
-		self.__auto_json_dump(ret_val, self._failed_file)
+		self.__auto_json_dump(ret_val, self.failed_file_path)
 		log = get_logger()
 
 		if drmaa_waiting is not None:
@@ -2230,9 +2473,9 @@ class Runnable(FolderObj, models.Model):
 			self._doc_ml.name = self.home_folder_full_path + os.path.basename(str(self._doc_ml.name))
 
 			utils.remove_file_safe(self._test_file)
-			utils.remove_file_safe(self._failed_file)
-			utils.remove_file_safe(self._incomplete_file)
-			utils.remove_file_safe(self._sh_file_path)
+			utils.remove_file_safe(self.failed_file_path)
+			utils.remove_file_safe(self.incomplete_file_path)
+			utils.remove_file_safe(self.sh_file_path)
 			self.save()
 			self.write_sh_file()
 			# self.submit_to_cluster()
@@ -2286,8 +2529,7 @@ class Runnable(FolderObj, models.Model):
 
 	@property
 	def instance_type(self):
-		# print self.ins
-		# return 'report' if self.is_report else 'job' if self.is_job else 'abstract'
+		# return 'report' if self.is_report else 'jobs' if self.is_job else 'abstract'
 		return self.instance_of.__name__.lower()
 
 	@property
@@ -2312,16 +2554,45 @@ class Runnable(FolderObj, models.Model):
 	@property
 	def short_id(self):
 		return self.instance_type[0], self.id
+	
+	@property
+	def short_id_text(self):
+		return "%s%s" % self.short_id
 
 	@property
 	def text_id(self):
 		return u'%s%s %s' % (self.short_id + (unicode(self.name),))
+		
+	# clem 11/05/2016
+	@property
+	def log(self):
+		return self.log_custom(1)
+	
+	# clem 11/05/2016
+	def log_custom(self, level=0):
+		from logging import LoggerAdapter
+		log_obj = LoggerAdapter(get_logger(level=level + 1), dict())
+		log_obj.process = lambda msg, kwargs: ('%s : %s' % (self.short_id_text, msg), kwargs)
+		return log_obj
 
 	def __unicode__(self): # Python 3: def __str__(self):
 		return u'%s' % self.text_id
 
 	class Meta:
 		abstract = True
+	
+	@abc.abstractmethod
+	def sge_hook(self, status, code):
+		""" Endpoint of job feedback url.
+		Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and
+		error
+
+		:param status: string of the current status (starting | success | failed)
+		:type status: str
+		:param code: code of the exit status if not 0
+		:type code: int
+		"""
+		pass
 
 
 class Jobs(Runnable):
@@ -2400,7 +2671,9 @@ class Jobs(Runnable):
 
 		# params = rshell.gen_params_string_job_temp(sections, request_data.POST, self, request_data.FILES) # TODO funct
 		params = self.gen_params_string_job_temp(*args, **kwargs)
+		# code = "options(java.parameters = \"-Xmx2048m\")\n"
 		code = "setwd('%s')\n%s\n" % (self.home_folder_full_path[:-1], self._type.get_R_code(params))
+		# code += "setwd('%s')\n%s\n" % (self.home_folder_full_path[:-1], self._type.get_R_code(params))
 		code += 'system("touch %s")' % self.SUB_DONE_FN
 
 		# save r-file
@@ -2471,6 +2744,9 @@ class Jobs(Runnable):
 	class Meta(Runnable.Meta): # TODO check if inheritance is required here
 		abstract = False
 		db_table = 'breeze_jobs'
+	
+	def sge_hook(self, status, code):
+		self.log.warning('NOT IMP hook : %s (%s)' % (status, code))
 
 
 class Report(Runnable):
@@ -2531,6 +2807,43 @@ class Report(Runnable):
 	# @property
 	# def _rtype_config_path(self):
 	#	return settings.MEDIA_ROOT + str(self._type.config)
+		
+	# clem 01/02/2017
+	@property
+	def has_count_suffix(self):
+		suffix = self.name.split('_')
+		if len(suffix) > 1:
+			try:
+				return bool(int(suffix[-1]))
+			except ValueError:
+				pass
+		return False
+	
+	# clem 01/02/2017
+	def get_striped_name(self):
+		return '_'.join(self.name.split('_')[:-1]) if self.has_count_suffix else self.name
+	
+	# clem 01/02/2017
+	def get_suffix(self):
+		the_name = self.get_striped_name()
+		res = Report.objects.f.owned(self._author).filter(_name__startswith=the_name + u'_')
+		count_list = list()
+		
+		if len(res) > 0:
+			for each in res:
+				rep = each.name.replace(the_name, u'').split(u'_')
+				if len(rep) >= 2:
+					try:
+						count_list.append(int(rep[-1]))
+					except ValueError:
+						pass
+		if not count_list:
+			count_list.append(0)
+		return u'_%s' % str(max(count_list) + 1) if count_list else u''
+	
+	# clem 01/02/2017
+	def get_repeat_name(self):
+		return self.get_striped_name() + self.get_suffix()
 
 	@property
 	def title(self):
@@ -2647,7 +2960,9 @@ class Report(Runnable):
 	_path_tag_r_template = settings.TAGS_TEMPLATE_PATH
 	_path_tag_r3_template = settings.TAGS_R3_TEMPLATE_PATH
 	_path_r3_container_template = settings.R3_CONTAINER_TEMPLATE_PATH
-	_path_r3_bin = settings.R3_BOOTSTRAP_PATH
+	_path_r3_bootstrap = settings.R3_BOOTSTRAP_PATH
+	_path_r3_bin = settings.R3_BIN_PATH
+	_cmd_r3 = settings.R_GENERAL_CMD
 
 	# TODO : use clean or save ?
 	# def generate_r_file(self, sections, request_data):
@@ -2684,9 +2999,13 @@ class Report(Runnable):
 				gen_params = rshell.gen_params_string(tree, request_data.POST, self,
 					request_data.FILES)
 				# clem 26/07/2016 added specific code to bootstrap individual script in R3
-				full_script_code = tag.get_R_code(gen_params)
 				location = self.home_folder_full_path[:-1]
-
+				# same as full script code but with added Nozzle entry
+				full_tag_code = Template(report_specific).substitute(
+					{ 'loc': location,
+					'full_script_code': tag.get_R_code(gen_params)
+					})
+				# TODO FIXME logic of boxing up templates
 				# add specific bootstrap for external R3 run
 				if tag.r3:
 					r3_tag = open(self._path_tag_r3_template).read()
@@ -2694,20 +3013,21 @@ class Report(Runnable):
 					r3_script_file_path = '%s/r3_%s.r' % (location, tag.name)
 					# dict for tag_r3 template
 					a_dict = {'tag_name': tag.name,
-						'full_script_code': full_script_code,
-						'sub_script_path': r3_script_file_path
+						'full_script_code': full_tag_code,
+						'sub_script_path': r3_script_file_path,
+						'r3_path': self._path_r3_bin,
+						'r3_cmd': self._cmd_r3,
 					}
 					# dict for r3_script_container template
-					b_dict = {'full_script_code': full_script_code, 'loc': location, 'r3_path': self._path_r3_bin}
+					b_dict = {'full_script_code': full_tag_code, 'loc': location, 'r3_path': self._path_r3_bootstrap }
 					# create the external file
 					with open(r3_script_file_path, 'w') as r3_script_file_obj:
 						r3_script_file_obj.write(Template(r3_container).substitute(b_dict))
-					utils.chmod(r3_script_file_path, ACL.RWX_RX_)
+					# utils.chmod(r3_script_file_path, ACL.RWX_RX_)
 					# assemble special R3 code
-					full_script_code = Template(r3_tag).substitute(a_dict)
+					full_tag_code = Template(r3_tag).substitute(a_dict)
 				# assemble the whole script + tag code
-				tag_list.append(full_script_code + Template(report_specific).substitute(
-					{ 'loc': location }))
+				tag_list.append(full_tag_code)
 
 		d = { 'loc': self.home_folder_full_path[:-1],
 			'report_name': self.title,
@@ -2790,6 +3110,22 @@ class Report(Runnable):
 	class Meta(Runnable.Meta): # TODO check if inheritance is required here
 		abstract = False
 		db_table = 'breeze_report'
+		
+	def sge_hook(self, status, code):
+		""" Endpoint of job feedback url.
+		Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and error
+
+		:param status: string of the current status (starting | success | failed)
+		:type status: str
+		:param code: code of the exit status if not 0
+		:type code: int
+		"""
+		self.log.info('hook : %s (%s)' % (status, code))
+		if not True: # FIXME disabled due to non file locking making possibly incomplete file downloads
+			if status == 'success':
+				self.make_zip('-result', threaded=True) # only Results folder (if exists), or relevant data
+			elif status == 'failed':
+				self.make_zip(threaded=True) # all data (for debug)
 
 
 class CustomList(list):
@@ -2825,7 +3161,8 @@ class ShinyTag(models.Model):
 	description = models.CharField(max_length=350, blank=True, help_text="Optional description text")
 	author = ForeignKey(OrderedUser)
 	created = models.DateTimeField(auto_now_add=True)
-	institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	# institute = ForeignKey(Institute, default=Institute.objects.get(id=1))
+	institute = ForeignKey(Institute, default=1, editable=False)
 	order = models.PositiveIntegerField(default=0, help_text="sorting index number (0 is the topmost)")
 	menu_entry = models.TextField(default=DEFAULT_MENU_ITEM,
 		help_text="Use menuItem or other Shiny  Dashboard items to customize the menu entry "
@@ -2931,9 +3268,9 @@ class ShinyTag(models.Model):
 		# zf = kwargs.pop('zf', None)
 		zf = None
 		try:
-			zf = zipfile.ZipFile(self.zip_file)
+			zf = zipfile.ZipFile(self.zip_file, allowZip64=True)
 		except Exception as e:
-			pass
+			logger.warning(str(e))
 		# rebuild = kwargs.pop('rebuild', False)
 
 		new_name = self.name
@@ -2960,6 +3297,10 @@ class ShinyTag(models.Model):
 					os.chmod(path, ACL.RW_RW_)
 			# removes the zip from temp upload folder
 			self._zip_clean()
+
+		# force the institute to be updated to match the one from author
+		if self.author_id:
+			self.institute = UserProfile.objects.get(pk=self.author_id).institute_info
 
 		super(ShinyTag, self).save(*args, **kwargs) # Call the "real" save() method.
 
@@ -2993,7 +3334,7 @@ class ShinyTag(models.Model):
 		# Zip file and folder management
 		##
 		try: # loads zip file
-			zf = zipfile.ZipFile(self.zip_file)
+			zf = zipfile.ZipFile(self.zip_file, allowZip64=True)
 		except Exception as e:
 			zf = None
 			self._zip_clean()
@@ -3121,3 +3462,102 @@ class OffsiteUser(models.Model):
 	def __unicode__(self):
 		return unicode(self.full_name)
 
+
+# clem 26/01/2017
+# back-ports of Fclem/isbio2 commits bfd22d295ac07cfa2389f1b2ba6216269d22e523 to
+# e8f2e7440ea5544a75f1f788ef15d8863e15cabc
+class CachedFile(object):
+	name = ''
+	path = ''
+	save = None
+	_fd = None
+	_archive = None
+	_archive_opened_mode = ''
+	
+	def __init__(self, name, path='', save=True):
+		self.name = name # slugify(name)
+		self.save = save
+		if self.save:
+			if not os.path.isdir(path):
+				try:
+					os.mkdir(path)
+				except Exception:
+					raise
+			self.path = path
+	
+	# clem 27/01/2017
+	@property
+	def base_name(self):
+		return self.name.rsplit('.', 1)[0] if '.' in self.name else self.name
+	
+	@property
+	def full_path(self):
+		return '%s/%s' % (self.path, self.name) if self.save and self.path else ''
+	
+	@property
+	def exists(self):
+		return os.path.isfile(self.full_path)
+	
+	# clem 27/01/2017
+	@property
+	def archive(self):
+		if not self._archive:
+			self._open_archive()
+		return self._archive
+	
+	# clem 27/01/2017
+	def _get_temp_file(self):
+		import tempfile
+		if not self._fd:
+			self._fd = tempfile.TemporaryFile()
+		return self._fd
+	
+	def _open_archive(self, mode='r'):
+		if not self._archive or self._archive_opened_mode != mode:
+			import zipfile
+			opener = self.full_path if self.save and self.path else self._get_temp_file()
+			self._archive = zipfile.ZipFile(opener, mode, zipfile.ZIP_DEFLATED, True)
+		return self._archive
+	
+	@property
+	def size(self):
+		return os.path.getsize(self.full_path) if self.exists else 0
+	
+	# clem 27/01/2017
+	@property
+	def _descriptor(self):
+		return file(self.full_path) if self.exists else self._get_temp_file()
+	
+	def stream(self, chunk_size=8192):
+		from wsgiref.util import FileWrapper
+		return FileWrapper(self._descriptor, chunk_size)
+	
+	# clem 27/01/2017
+	def close(self):
+		if self._archive:
+			self.archive.close()
+	
+	# clem 27/01/2017
+	def open(self, mode=None):
+		if not mode:
+			mode = 'r' if self.exists else 'w'
+		return self._open_archive(mode)
+	
+	# clem 27/01/2017
+	def delete(self, only_this=True):
+		if only_this: # delete this very file
+			if self.exists:
+				remove_file_safe(self.full_path)
+			else:
+				logger.debug('cannot delete non existing CachedFile %s' % self.full_path)
+		else: # delete all files cached for this report (there is result, but also all, and so on)
+			for base_p, sub_p, file_list in os.walk(self.path):
+				for each_name in file_list:
+					if each_name.startswith(self.base_name):
+						remove_file_safe(os.path.join(base_p, each_name))
+	
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		self.close()
+	
+	def __enter__(self):
+		return self.open()

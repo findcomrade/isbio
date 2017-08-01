@@ -742,8 +742,7 @@ class NewScriptDialog(forms.Form):
 class NewRepTypeDialog(forms.ModelForm):
 	class Meta:
 		model = breeze.models.ReportType
-		fields = ('type', 'description', 'search', 'access', 'manual')
-		# widgets = {'access': forms.CheckboxSelectMultiple( attrs = {'class': 'multiselect', })}
+		fields = ('type', 'description', 'access', 'manual')
 
 
 class BasicJobForm(forms.Form):
@@ -838,10 +837,17 @@ class ScriptDescription(forms.Form):
 
 
 class ScriptAttributes(forms.ModelForm):
+	def __init__(self, *args, **kwargs):
+		super(forms.ModelForm, self).__init__(*args, **kwargs)
+		self.fields['r3'].label = 'Run this script on R3.2.1 (for tags only)'
+		self.fields['istag'].label = 'Is a tag'
+
 	class Meta:
 		model = breeze.models.Rscripts
 		fields = ('author', 'category', 'draft', 'istag', 'r3', 'report_type')
-		widgets = { 'report_type': forms.SelectMultiple(attrs={ 'class': 'multiselect', }) }
+		widgets = {
+			'report_type': forms.SelectMultiple(attrs={ 'class': 'multiselect', })
+		}
 
 
 class ScriptLogo(forms.Form):
@@ -977,6 +983,17 @@ def xml_from_form(form_g, form_d, form_s):
 
 def form_from_xml(xml_parser, req=None, init=False, usr=None, post=None, files=None, path=None):
 	input_array = xml_parser.getroot().find('inputArray')
+	
+	def gen_file_format_string(file_format):
+		if file_format == 'undefined':
+			return ''
+		else:
+			file_format_list = file_format.split(',')
+			new_list = list()
+			for each in file_format_list:
+				if each and each != '.':
+					new_list.append(each if each.startswith('.') else '.' + each)
+			return ','.join(new_list)
 
 	if req:
 		custom_form = CustomForm(req.POST, req.FILES)
@@ -1103,6 +1120,7 @@ def form_from_xml(xml_parser, req=None, init=False, usr=None, post=None, files=N
 							attrs={
 								'class': input_item.attrib["type"],
 								'which': input_item.attrib["default"],
+								'accept': gen_file_format_string(input_item.attrib.get("file_format", '')),
 							}
 						)
 					)

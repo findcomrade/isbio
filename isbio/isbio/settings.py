@@ -5,15 +5,16 @@ import os
 import socket
 import time
 from datetime import datetime
-from breeze.utilities import git_get_status, git_get_branch
+from breeze.utilities import git_get_status, git_get_branch, git_get_commit, is_host_online, test_url
 
-ENABLE_DATADOG = True
+ENABLE_DATADOG = False
 try:
 	from datadog import statsd
 	if ENABLE_DATADOG:
 		ENABLE_DATADOG = True
 except Exception:
 	ENABLE_DATADOG = False
+	statsd = None
 	pass
 ENABLE_REMOTE_FW = False
 
@@ -99,6 +100,19 @@ LOG_PATH = '%s%s' % (LOG_FOLDER, log_fname)
 LOG_HIT_PATH = '%s%s' % (LOG_FOLDER, log_hit_fname)
 
 
+def check_cas(server_ip, server_url):
+	""" Check if CAS server is responding
+	
+		imported code from system_check.check_cas
+	"""
+	if is_host_online(server_ip, 2):
+		try:
+			return test_url(server_url)
+		except Exception:
+			pass
+	return False
+
+
 class BreezeSettings(Settings):
 	# RUN only on prod it seems
 	global USUAL_DATE_FORMAT, LOG_PATH, LOG_HIT_PATH
@@ -107,7 +121,6 @@ class BreezeSettings(Settings):
 
 	ADMINS = (
 		('Clement FIERE', 'clement.fiere@helsinki.fi'),
-		# ('Dmitrii Bychkov', 'piter.dmitry@gmail.com'),
 	)
 
 	MANAGERS = ADMINS
@@ -177,7 +190,7 @@ class BreezeSettings(Settings):
 
 	# Additional locations of static files
 	STATICFILES_DIRS = (
-		#"/home/comrade/Projects/fimm/isbio/breeze/",
+		# "/home/comrade/Projects/fimm/isbio/breeze/",
 		# Put strings here, like "/home/html/static" or "C:/www/django/static".
 		# Always use forward slashes, even on Windows.
 		# Don't forget to use absolute paths, not relative paths.
@@ -194,11 +207,10 @@ class BreezeSettings(Settings):
 	# Make this unique, and don't share it with anybody.
 	SECRET_KEY = str(getkey())
 
-	# List of callables that know how to import templates from various sources.
+	# List of callable that know how to import templates from various sources.
 	TEMPLATE_LOADERS = (
 		'django.template.loaders.filesystem.Loader',
 		'django.template.loaders.app_directories.Loader',
-		#     'django.template.loaders.eggs.Loader',
 	)
 
 	MIDDLEWARE_CLASSES = (
@@ -215,9 +227,6 @@ class BreezeSettings(Settings):
 		'breeze.middlewares.DataDog' if ENABLE_DATADOG else 'breeze.middlewares.Empty',
 		'breeze.middlewares.RemoteFW' if ENABLE_REMOTE_FW else 'breeze.middlewares.Empty',
 		'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-		# 'breeze.middleware.Log',
-		# Uncomment the next line for simple clickjacking protection:
-		# 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	)
 	# from django_cas.backends import CASBackend
 	AUTHENTICATION_BACKENDS = (
@@ -225,12 +234,21 @@ class BreezeSettings(Settings):
 		'django_cas.backends.CASBackend',
 	)
 
+	HOME_PAGE = '/jobs/'
+	ROOT_URLCONF = 'isbio.urls'
+
 	# CAS_SERVER_IP = '192.168.0.218'
 	CAS_SERVER_IP = 'cas-prot.fimm.fi'
-	CAS_SERVER_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
+	CAS_FRONT_END_URL = 'https://%s/cas/' % CAS_SERVER_IP
+	CAS_BACK_END_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
+	CAS_SERVER_URL = CAS_FRONT_END_URL
+	# automatic CAS url
+	if not check_cas(CAS_SERVER_IP, CAS_SERVER_URL):
+		CAS_SERVER_URL = CAS_BACK_END_URL
+	# CAS_SERVER_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
+	# CAS_SERVER_URL = 'https://%s/cas/' % CAS_SERVER_IP
 	CAS_REDIRECT_URL = '/home/'
-
-	ROOT_URLCONF = 'isbio.urls'
+	
 	APPEND_SLASH = True
 
 	# Python dotted path to the WSGI application used by Django's runserver.
@@ -333,7 +351,7 @@ class DevSettings(BreezeSettings):
 	APPEND_SLASH = True
 
 	ADMINS = (
-	('Clement FIERE', 'clement.fiere@helsinki.fi'),  # ('Dmitrii Bychkov', 'piter.dmitry@gmail.com'),
+		('Clement FIERE', 'clement.fiere@helsinki.fi'),
 	)
 
 	MANAGERS = ADMINS
@@ -346,23 +364,6 @@ class DevSettings(BreezeSettings):
 	pipe = sp.Popen(['/bin/bash', '-c', '%s && %s' % (source, dump)], stdout=sp.PIPE)
 	env = json.loads(pipe.stdout.read())
 	os.environ = env
-
-	# sge_arch = "lx26-amd64"
-	# os.environ['SGE_ROOT'] = '/opt/gridengine'
-	# os.environ['QSTAT_BIN'] = os.environ['SGE_ROOT']+'/bin/'+sge_arch+'/qstat'
-	# Q_BIN = '/usr/bin/'
-	Q_BIN = os.environ.get('Q_BIN', '')
-	QSTAT_BIN = '%sqstat' % Q_BIN
-	QDEL_BIN = '%sqdel' % Q_BIN
-	SGE_QUEUE_NAME = os.environ.get('SGE_QUEUE', '')
-	# os.environ['QSTAT_BIN'] = QSTAT_BIN
-	# os.environ['SGE_ARCH'] = 'UNSUPPORTED-lx3.2.0-40-generic-amd64'
-	# os.environ['LD_LIBRARY_PATH'] = os.environ['SGE_ROOT'] + '/lib/' + os.environ['SGE_ARCH']
-	# os.environ['SGE_QMASTER_PORT'] = '6444'
-	# os.environ['SGE_EXECD_PORT'] = '6445'
-	# os.environ['SGE_CELL'] = 'default'
-	# os.environ['DRMAA_LIBRARY_PATH'] = os.environ['SGE_ROOT']+'/lib/'+sge_arch+'/libdrmaa.so'
-	# os.environ['DRMAA_LIBRARY_PATH'] = os.environ['SGE_ROOT'] + '/lib/' + sge_arch + '/libdrmaa.so.1.0'
 	os.environ['MAIL'] = '/var/mail/dbychkov'
 
 	DATABASES = {
@@ -374,9 +375,8 @@ class DevSettings(BreezeSettings):
 			'HOST': '/var/run/mysqld/mysqld.sock',  # Set to empty string for localhost. Not used with sqlite3.
 			'PORT': '3306',  # Set to empty string for default. Not used with sqlite3.
 			'OPTIONS': {
-
 				"init_command": "SET default_storage_engine=INNODB; SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED", }
-				# "init_command": "SET transaction isolation level READ COMMITTED", }
+			# "init_command": "SET transaction isolation level READ COMMITTED", }
 		}
 	}
 
@@ -389,8 +389,16 @@ class DevSettings(BreezeSettings):
 	DEV_MODE = RUN_MODE == 'dev'
 	MODE_PROD = RUN_MODE == 'prod'
 	PHARMA_MODE = False
+	
+	# monitoring only
+	LEGACY_MONITORING_SGE_QUEUE_NAME = 'breeze.q' if DEV_MODE else 'all.q'
+	Q_BIN = os.environ.get('Q_BIN', '')
+	QSTAT_BIN = '%sqstat' % Q_BIN
+	QDEL_BIN = '%sqdel' % Q_BIN
+	SGE_QUEUE_NAME = os.environ.get('SGE_QUEUE', LEGACY_MONITORING_SGE_QUEUE_NAME)
+	LEGACY_MONITORING_SGE_QUEUE_NAME = SGE_QUEUE_NAME
 
-	# Super User on breeze can Access all datas
+	# Super User on breeze can Access all data
 	SU_ACCESS_OVERRIDE = True
 
 	# contains everything else (including breeze generated content) than the breeze web source code and static files
@@ -436,31 +444,38 @@ class DevSettings(BreezeSettings):
 	UPLOAD_FOLDER = MEDIA_ROOT + 'upload_temp/'
 	DATASETS_FOLDER = MEDIA_ROOT + 'datasets/'
 	STATIC_ROOT = SOURCE_ROOT + 'static/'
-	# STATIC_ROOT = SOURCE_ROOT + 'static/'
 	TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/'
 	MOULD_FOLDER = MEDIA_ROOT + DATA_TEMPLATES_FN
 	NO_TAG_XML = TEMPLATE_FOLDER + 'notag.xml'
-	# GENERAL_SH_NAME = 'sgeconfig.sh'
-	GENERAL_SH_NAME = 'run_job.sh'
+	
+	SH_LOG_FOLDER = '.log'
+	GENERAL_SH_BASE_NAME = 'run_job'
+	GENERAL_SH_NAME = '%s.sh' % GENERAL_SH_BASE_NAME
+	GENERAL_SH_CONF_NAME = '%s_conf.sh' % GENERAL_SH_BASE_NAME
+	DOCKER_SH_NAME = 'run.sh'
+	SGE_REQUEST_FN = '.sge_request'
 	INCOMPLETE_RUN_FN = '.INCOMPLETE_RUN'
 	FAILED_FN = '.failed'
 	SUCCESS_FN = '.done'
 	R_DONE_FN = '.sub_done'
-	# SGE_QUEUE_NAME = 'breeze.q'
-	# SGE_QUEUE_NAME = 'breeze.q' # monitoring only
-
-
+	
+	CACHE_INTERNAL_URL_BASE = '/cached/'
 
 	##
 	# Report config
 	##
 	BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_NAME
+	BOOTSTRAP_SH_CONF_TEMPLATE = TEMPLATE_FOLDER + GENERAL_SH_CONF_NAME
+	DOCKER_BOOTSTRAP_SH_TEMPLATE = TEMPLATE_FOLDER + DOCKER_SH_NAME
+	SGE_REQUEST_TEMPLATE = TEMPLATE_FOLDER + SGE_REQUEST_FN
 
 	NOZZLE_TEMPLATE_FOLDER = TEMPLATE_FOLDER + 'nozzle_templates/'
 	TAGS_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'tag.R'
 	TAGS_R3_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'tag_r3.R'
 	R3_CONTAINER_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'r3_script_container.R'
 	R3_BOOTSTRAP_PATH = '/apps/statistics2/R-3.2.1/bin/Rscript'
+	R3_BIN_PATH = '/apps/statistics2/R-3.2.1/bin/R'
+	R_GENERAL_CMD = 'CMD BATCH --no-save'
 	NOZZLE_REPORT_TEMPLATE_PATH = NOZZLE_TEMPLATE_FOLDER + 'report.R'
 	NOZZLE_REPORT_FN = 'report'
 
@@ -515,8 +530,8 @@ class DevSettings(BreezeSettings):
 	SHINY_LOCAL_STANDALONE_BREEZE_URL = 'http://' + SHINY_ORIG_STANDALONE_URL % SHINY_LOCAL_IP
 	# remote Shiny
 	SHINY_REMOTE_ENABLE = True
-	# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
-	SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
+	SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi'
+	# SHINY_REMOTE_IP = 'vm0326.kaj.pouta.csc.fi:3838'
 	SHINY_REMOTE_LOCAL_PATH = '/shiny-csc/'
 	SHINY_REMOTE_CSC_LOCAL_PATH = '/home/shiny/shiny/'
 	SHINY_REMOTE_BREEZE_REPORTS_PATH = SHINY_REMOTE_LOCAL_PATH + REPORTS_FN
@@ -525,7 +540,7 @@ class DevSettings(BreezeSettings):
 	SHINY_REMOTE_TAGS = '%s%s/' % (SHINY_REMOTE_LOCAL_PATH, SHINY_FN_TAGS)
 	SHINY_REMOTE_TAGS_INTERNAL = '%s%s/' % (SHINY_REMOTE_CSC_LOCAL_PATH, SHINY_FN_TAGS)
 	# SHINY_REMOTE_PROTOCOL = 'https'
-	SHINY_REMOTE_PROTOCOL = 'http'
+	SHINY_REMOTE_PROTOCOL = 'https'
 	SHINY_REMOTE_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_TARGET_URL % SHINY_REMOTE_IP
 	SHINY_REMOTE_LIBS_TARGET_URL = '%s://' % SHINY_REMOTE_PROTOCOL + SHINY_ORIG_LIBS_TARGET_URL % SHINY_REMOTE_IP
 	SHINY_REMOTE_LIBS_BREEZE_URL = '/libs/'
@@ -557,6 +572,8 @@ class DevSettings(BreezeSettings):
 		NOZZLE_TEMPLATE_FOLDER, SCRIPT_TEMPLATE_FOLDER, JOBS_PATH, REPORT_TYPE_PATH, REPORTS_PATH, RSCRIPTS_PATH, MEDIA_ROOT,
 		PROJECT_FHRB_PM_PATH, RORA_LIB, STATIC_ROOT]
 
+	GRAPH_URL = 'http://192.168.0.225'
+	
 
 	##
 	# System Autocheck config
@@ -704,7 +721,6 @@ class DevSettings(BreezeSettings):
 	else:
 		VERBOSE = False
 
-
 	try:
 		import rollbar
 		BASE_DIR = SOURCE_ROOT
@@ -732,6 +748,8 @@ if not BreezeSettings.SECRET_KEY:
 	SECRET_KEY = getkey(DevSettings.SOURCE_ROOT)
 	BreezeSettings.SECRET_KEY = SECRET_KEY
 
+CURRENT_GIT_COMMIT = git_get_commit()
+CURRENT_GIT_BRANCH = git_get_branch()
 
 def make_run_file():
 	f = open('running', 'w+')
@@ -758,6 +776,7 @@ else:
 		(Bcolors.bold(LOG_PATH), Bcolors.ok_blue(git_get_branch()), Bcolors.ok_blue(Bcolors.bold(DevSettings.RUN_MODE)),
 		Bcolors.ok_blue(DevSettings.FULL_HOST_NAME))
 	git_stat = git_get_status()
+	
 	print git_stat
 	if DevSettings.PHARMA_MODE:
 		print Bcolors.bold('RUNNING WITH PHARMA')

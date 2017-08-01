@@ -63,15 +63,15 @@ def init_script(name, inline, person):
 
 
 # TODO : integrate into Pipe data model
-def init_pipeline(form):
+def init_pipeline(form, user):
 	"""
 		Initiates a new RetortType item in the DB.
 		Creates a folder for initial pipeline data.
 	"""
 	# First Save the data that comes with a form:
 	# 'type', 'description', 'search', 'access'
-	new_pipeline = form.save()
-
+	new_pipeline = form.save(commit=False)
+	new_pipeline.author = user
 	# Add configuration file
 	new_pipeline.config.save('config.txt', base.ContentFile('#          Configuration Module  \n'))
 	new_pipeline.save()
@@ -239,8 +239,8 @@ def gen_params_string(docxml, data, runnable_inst, files):
 	for item in docxml.getroot().iter('inputItem'):
 		# item.set('val', str(data.cleaned_data[item.attrib['comment']])) # FIXME
 		if item.attrib['type'] == 'CHB':
-			params += str(item.attrib['rvarname']) + ' <- ' + str(
-				data.get(item.attrib['comment'], "NA")).upper() + '\n'
+			params += str(item.attrib['rvarname']) + ' <- "' + str(
+				data.get(item.attrib['comment'], "NA")).upper() + '"\n'
 		elif item.attrib['type'] == 'NUM':
 			params += str(item.attrib['rvarname']) + ' <- ' + str(data.get(item.attrib['comment'], "NA")) + '\n'
 		elif item.attrib['type'] == 'TAR':

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+</head>
+<body>
+
+<form class='form'>
+	<div class='controls' style='margin-left: 10px'>
+		<label class='control-label'>Label Text
+			<input class='input-medium' type='text' name='label' id='label'></label>
+		<label class='control-label'>Inline Variable Name
+			<input class='input-medium' type='text' name='r_inline' id='r_inline' placeholder='R var name. Must
+			fulfill R variable naming conventions (i.e. no spaces)'
+			       title='R var name. Must fulfill R variable naming conventions (i.e. no spaces)'></label>
+		<label class='control-label'>File Format:
+			<input class='input-medium' type='text' name='file_format' id='file_format'
+			       placeholder='empty or coma-separated list of acceptable file extensions'
+			       title='empty or coma-separated list of acceptable file extensions'></label>
+		<label class='control-label'>Help Text:
+			<textarea class='input-medium' style='min-height: 135px' name='help_text' id='help_text'>
+		</textarea></label>
+		<label class='control-label'>Available Templates:
+			<select class='input-medium' name='tmpl_list' id='tmpl_list'></select></label>
+		<label class='checkbox inline control-label'>Optional<input type='checkbox' name='flag_optional'
+		                                                            id='flag_optional'> </label>
+		<hr/>
+		<button class='btn btn-primary'>Save</button>
+		<button class='btn btn-danger'>Cancel</button>
+	</div>
+</form>
+</body>
+</html>

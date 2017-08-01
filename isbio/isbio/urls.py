@@ -17,10 +17,12 @@ else:
 
 	urlpatterns = patterns('',
 		url(r'^user_list/?$', views.user_list),
+		url(r'^stats/analytics/?$', views.user_stats_analytics, name='stats.analytics'),
 		url(r'^test1/?', views.job_list),
 		url(r'^mail_list/?$', views.user_list_advanced),
 		url(r'^custom_list/?$', views.custom_list),
-		url(r'^$', django_cas_login),  # views.breeze),
+		url(r'^login/?$', django_cas_login, name='login'),  # views.breeze),
+		url(r'^$', views.login),  # views.breeze),
 		url(r'^breeze/?$', views.breeze),
 		url(r'^logout/?$', django_cas_logout),  # views.logout),
 		url(r'^stat/?$', views.ajax_user_stat),
@@ -68,7 +70,7 @@ else:
 		url(r'^media/reports/(?P<rid>\d+)/(?P<fname>.+)?$', views.report_file_wrap2),
 		url(r'^reports/delete/(?P<rid>\d+)(?P<redir>-[a-z]+)?$', views.delete_report),
 		url(r'^reports/edit_access/(?P<rid>\d+)$', views.edit_report_access),
-		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/-]+)-(?P<iid>[^/-]+)$', views.report_overview),
+		url(r'^reports/overview/(?P<rtype>\w+)-(?P<iname>[^/]+)-(?P<iid>[^/-]+)$', views.report_overview),
 		url(r'^reports/edit/(?P<jid>\d+)?$', views.edit_report),  # Re Run report
 		url(r'^reports/check/?$', views.check_reports),  # Re Run report
 		url(r'^reports/send/(?P<rid>\d+)$', views.send_report),
@@ -100,7 +102,7 @@ else:
 		url(r'^jobs/(?P<page>\d+)?(/)?(?P<state>[a-z]+)?(/)?edit/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.edit_job),
 		url(r'^jobs/show-code/(?P<jid>\d+)$', views.show_rcode),
 		url(r'^jobs/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.send_zipfile_j),
-		url(r'^report/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.send_zipfile_r),
+		url(r'^reports?/download/(?P<jid>\d+)(?P<mod>-[a-z]+)?$', views.send_zipfile_r),
 		url(r'^update-jobs/(?P<jid>\d+)-(?P<item>[a-z]+)$', views.update_jobs), # FIXME DEPRECATED
 		url(r'^jobs/info/(?P<jid>\d+)-(?P<item>[a-z]+)$', views.update_jobs), # FIXME DEPRECATED
 		url(r'^jobs/info/(?P<item>[a-z]+)/(?P<jid>\d+)$', views.update_jobs),
@@ -109,7 +111,8 @@ else:
 		# new
 		url(r'^jobs/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', views.update_jobs_lp, { 'item': 'script' }),
 		url(r'^reports/info_lp/(?P<jid>\d+)/(?P<md5_t>[a-z0-9_]{32})?$', views.update_jobs_lp, { 'item': 'report' }),
-		url(r'^hook/(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<code>\w+)?$', views.job_url_hook),
+		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)?$', views.job_url_hook),
+		url(r'^hook/(?P<i_type>r|j)(?P<rid>\d+)/(?P<md5>[a-z0-9_]{32})/(?P<status>\w+)/(?P<code>\w+)?$', views.job_url_hook),
 		# url(r'^update-all-jobs/$', views.update_all_jobs), # DO NOT USE : TOOOOOOOO SLOW
 		url(r'^scripts/(?P<layout>[a-z]+)?$', views.scripts),
 		url(r'^scripts/delete/(?P<sid>\d+)$', views.delete_script),
@@ -166,13 +169,15 @@ else:
 
 		# Uncomment/comment the next line to enable/disable the admin:
 		url(r'^admin/?', include(admin.site.urls)),
+		url(r'^graph/(?P<path>.*)$', views.proxy_to, { 'target_url': settings.GRAPH_URL, })
+		# testing
 	)
 
 	if settings.DEBUG and settings.DEV_MODE:
 		urlpatterns += patterns('django.contrib.staticfiles.views',
 			url(r'^closed$', 'serve', { 'document_root': settings.DJANGO_ROOT + '/index.html', }),
-			url(r'^static/(?P<path>.*)$', 'serve'),
-			url(r'^shiny/sample/(?P<path>.*)$', views.proxy_to, {'target_url': 'http://127.0.0.1:3838/sample-apps/', })  # testing
+			# url(r'^static/(?P<path>.*)$', 'serve'),
+			url(r'^shiny/sample/(?P<path>.*)$', views.proxy_to, {'target_url': settings.SHINY_LOCAL_TARGET_URL + '/sample-apps/', })  # testing
 		)
 		urlpatterns += patterns(
 			url(r'^shiny/rep/(?P<rid>\d+)/nozzle$', views.report_file_view_redir),

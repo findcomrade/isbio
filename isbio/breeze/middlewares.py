@@ -105,6 +105,8 @@ class BreezeAwake:
 
 if settings.ENABLE_DATADOG:
 	from datadog import statsd
+else:
+	statsd = None
 
 
 	class DataDog:

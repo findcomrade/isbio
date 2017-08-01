@@ -154,3 +154,19 @@ def gen_file_from_template(template_path, sub_dict, output_path=None, safe=True)
 				pass
 		return True
 	return result
+
+
+# 18/04/2017 backport from
+class ContentType(object):
+	HTML = 'text/html'
+	DEFAULT = HTML
+	# TEXT_PLAIN = 'text/plaintext'
+	TEXT_PLAIN = 'text/plain'
+	PLAIN = TEXT_PLAIN
+	JSON = 'application/json'
+	ZIP = 'application/zip'
+	FORCE_DL = 'application/force-download'
+	OCTET_STREAM = 'application/octet-stream'
+
+
+c_t = ContentType

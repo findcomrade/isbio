@@ -3,6 +3,7 @@ from breeze.models import JOB_PS
 from django.conf import settings
 # from breeze.utils import get_logger
 
+DEFAULT_SYSTEM_USER_NAME = 'breeze'
 
 # clem on 20/08/2015
 def sys_user_name():
@@ -103,7 +104,8 @@ class Qstat(object): # would need some proper error management if SGE is not set
 
 	def __sub_proc(self, arg):
 		import subprocess
-		return subprocess.Popen('%s|grep %s' % (self.qstat, str(arg)), shell=True, stdout=subprocess.PIPE).stdout
+		return subprocess.Popen('%s|grep %s' % (self.qstat, str(arg) or DEFAULT_SYSTEM_USER_NAME), shell=True,
+			stdout=subprocess.PIPE).stdout
 
 	# clem 12/10/2015
 	@property

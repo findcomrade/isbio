@@ -630,12 +630,15 @@ def git_get_status():
 # clem 18/04/2016
 def git_get_commit_line(full=False, hash_only=False):
 	ret = ''
-	s = get_term_cmd_stdout(["git", "show"])
-	if s:
-		commit = s[0].strip()[:14] if not full else s[0].strip()
-		if hash_only:
-			return commit
-		ret = '%s on %s' % (commit, s[2].replace('Date:   ', '').strip())
+	try:
+		s = get_term_cmd_stdout(["git", "show"])
+		if s:
+			commit = s[0].strip()[:14] if not full else s[0].strip()
+			if hash_only:
+				return commit
+			ret = '%s on %s' % (commit, s[2].replace('Date:   ', '').strip())
+	except Exception:
+		pass
 	return ret
 
 
@@ -683,3 +686,30 @@ def is_admin(request):
 	if not (request.user.is_superuser or request.user.is_staff):
 		raise PermissionDenied
 	return True
+
+
+# clem 11/10/2016
+def get_http_code(target_url):
+	import urllib2
+	# from sys import _getframe # TODO replace by inspect.currentframe
+	log_obj = logger.getChild(sys._getframe().f_code.co_name) # TODO replace by inspect.currentframe
+	assert isinstance(log_obj, logging.getLoggerClass())  # for code assistance only
+	
+	get_response = None
+	code = 999
+
+	try:
+		opener = urllib2.build_opener()
+		get_response = opener.open(target_url, None, timeout=5)
+	except (urllib2.URLError, urllib2.HTTPError) as e:
+		logger.warning('%s : %s' % (e, target_url))
+	
+	if hasattr(get_response, 'code'):
+		code = get_response.code
+	
+	return code
+
+
+# clem 11/10/2016
+def test_url(target_url):
+	return get_http_code(target_url) == 200

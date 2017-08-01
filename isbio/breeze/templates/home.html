@@ -9,7 +9,7 @@
 	<script type="text/javascript" src="/static/js/bootstrap-multiselect.js"></script>
 	<link rel="stylesheet" href="/static/css/bootstrap-multiselect.css" type="text/css"/>
 	<script type="text/javascript" src="/static/js/bootstrap-paginator.min.js"></script>
-	<link rel="stylesheet" type="text/css" hrf="/static/css/jquery.jqplot.min.css" />
+	<link rel="stylesheet" type="text/css" href="/static/css/jquery.jqplot.min.css" />
 
 	<script type="text/javascript" src="/static/js/jquery.jqplot.min.js"></script>
 	<script type="text/javascript" src="/static/js/jqplot.json2.min.js"></script>
@@ -101,7 +101,8 @@
 						{% endif %}
 					</h4></p>
 				</div>
-				<!-- FEED -->
+				<!-- OLD FEED -->
+				<!--
 				<div class="tab-pane {{ show_feed }}" id="feed_menu">
 					<div class="row-fluid">
 						<div class="span 12">
@@ -124,6 +125,15 @@
 									</ul>
 								</div>
 							</div>
+						</div>
+					</div>
+				</div>
+				-->
+				<!-- FEED -->
+				<div class="tab-pane {{ show_feed }}" id="feed_menu">
+					<div class="row-fluid">
+						<div class="span 12">
+							{% include "news-integrated.html" %}
 						</div>
 					</div>
 				</div>
@@ -236,7 +246,7 @@
 				<div class="tab-pane {{ show_statistics }}" id="statistics_menu">
 					<!-- User Statistics / Analysis Statistics -->
 					<div class="row-fluid">
-						<div class="span 12">
+						<div class="span12">
 							<div class="tabbable">
 								<!-- Tabs' Header -->
 								<ul class="nav nav-tabs">
@@ -333,13 +343,13 @@
 									<!-- users analysis statistics -->
 									<div id="rtype_stat_tab" class="tab-pane {{ rtype_stat_tab }}">
 										<div class="row-fluid">
-											<div class="span12">
+											<div class="offset1 span10">
 												<!-- user statistics data -->
-												{% include "user-analitics-stats-paginator.html" %}
+												<pre>The following data take several second to load, thus they are on another page : <a
+												  href="/stats/analytics/">analysis statistics data</a></pre>
 											</div>
 										</div>
 									</div>
-
 									<!-- END of Tabs' Content -->
 								</div>
 							</div>
@@ -347,27 +357,6 @@
 					</div>
 				</div>
 			</div>
-
-			<!-- HOUM NOTIFICATION ROW
-			<div class="row-fluid">
-			  <div class="span12 alert alert-info">
-				<p><strong>HUOM!</strong></p>
-				<p align="justify">
-				  Please keep in mind that this is a BETA version, so it might be unstable. We strongly advise that you use any other browser
-				  (<a href="http://www.google.com/chrome/" target="_blank">Google Chrome</a>,
-				  <a href="http://www.mozilla.org/en-US/firefox/new/" target="_blank">Mozilla Firefox</a>,
-				  <a href="http://www.apple.com/safari/" target="_blank">Safari</a>) but Microsoft IE so far.
-
-				  For BUG Tracking reasons please make use of BREEZE GitHub
-				  <a href="https://github.com/findcomrade/isbio/issues" target="_blank">Issues Page</a>
-				  or contact us by dmitrii.bychkov(at)helsinki.fi.
-				  Any ideas regarding desirable improvements and enhancements are very welcome. Kiitos!
-				</p>
-			  </div>
-			</div>
-			HOUM NOTIFICATION ROW -->
-
-			<!-- <div id="chart" style="width:100%; height:400px;"></div> -->
 		</div>
 
 

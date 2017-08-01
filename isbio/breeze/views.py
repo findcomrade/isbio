@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from datadog import util
-from datadog.api import users
-
 import auxiliary as aux
 import forms as breezeForms
 import urllib
@@ -44,6 +41,8 @@ from breeze.legacy import get_report_path, get_report_path_test
 import hashlib
 import sys
 
+# from datadog import util
+# from datadog.api import users
 # from datetime import datetime
 # from _mysql import result
 # from Bio.Sequencing.Ace import rt
@@ -93,9 +92,14 @@ def logout(request):
 	return HttpResponseRedirect('/')  # FIXME hardcoded url
 
 
+# clem 19/10/2016 Fix loop when accessing breeze-fimm from another website while being already logged-in
+def login(request):
+	return HttpResponseRedirect(reverse('login'))
+	
+
 def register_user(request):
 	if request.user.is_authenticated():
-		return HttpResponseRedirect('/home/')  # FIXME hardcoded url
+		return HttpResponseRedirect(settings.HOME_PAGE)  # FIXME hardcoded url
 	if request.method == 'POST':
 		form = breezeForms.RegistrationForm(request.POST)
 		if form.is_valid():
@@ -121,6 +125,26 @@ def base(request):
 
 
 @login_required(login_url='/')
+def user_stats_analytics(request):
+	r_type_stats = list()
+	for each in ReportType.objects.all():
+		# Users stats
+		a_user_list = each.get_all_users_ever_with_count()
+		tmp_lst = list()
+		for each_user, count in a_user_list.iteritems():
+			tmp_lst.append({
+				'name' : each_user.get_full_name() or each_user.username,
+				'email': each_user.email or 'N/A',
+				'count': count
+			})
+		r_type_stats.append({ 'name': each.type, 'user_lst': tmp_lst })
+	
+	return render_to_response('script_user_stats.html', RequestContext(request, {
+		'r_type_stats': r_type_stats
+	}))
+	
+
+@login_required(login_url='/') # FIXME : SLOOOOOOOOOOOW
 def home(request, state="feed"):
 	# user_info = User.objects.get(username=request.user)
 	user_info = request.user
@@ -203,17 +227,6 @@ def home(request, state="feed"):
 			count = Jobs.objects.filter(script=each).count()
 		analitics_stats.append({'script': each, 'author': each.author, 'istag': each.istag, 'times': count})
 
-	r_type_stats = list()
-	for each in ReportType.objects.all():
-		# Users stats
-		a_user_list = each.get_all_users_ever_with_count()
-		tmp_lst = list()
-		for each_user, count in a_user_list.iteritems():
-			tmp_lst.append({ 'name': each_user.get_full_name() or each_user.username , 'email': each_user.email or
-																								'N/A',
-				'count': count })
-		r_type_stats.append({ 'name': each.type, 'user_lst': tmp_lst})
-
 	# Get Screens
 	screens = dict()  # rora.get_screens_info()
 
@@ -256,7 +269,7 @@ def home(request, state="feed"):
 		'screens': screens,
 		'patients': patients,
 		'stats': analitics_stats,
-		'r_type_stats': r_type_stats,
+		# 'r_type_stats': r_type_stats,
 		'user_info': user_info_complete,
 		'server_info': server_info,
 		'server_status': server,
@@ -965,7 +978,7 @@ def report_overview(request, rtype, iname=None, iid=None, mod=None):
 		except ObjectDoesNotExist:
 			return aux.fail_with404(request, 'There is no report with id ' + iid + ' in database')
 		rtype = str(report.type)
-		iname = report.name + '_bis'
+		iname = report.get_repeat_name()
 		iid = report.rora_id
 		try:
 			# filter tags according to report type (here we pick non-draft tags):
@@ -1134,9 +1147,9 @@ def search(request, what=None):
 def resources(request):
 	from breeze.system_check import get_template_check_list
 	usage_graph = (
-		{'url': 'http://192.168.0.225/S/D', 'html_alt': 'queue stats on the last 24h',
+		{'url': '/graph/S/D', 'html_alt': 'queue stats on the last 24h',
 			'html_title': 'queue stats on the last 24h', 'legend': 'queue stats on the last 24h', 'href': ''},
-		{'url': 'http://192.168.0.225/S/B', 'html_alt': 'This is an example of another graph',
+		{'url': '/graph/S/B', 'html_alt': 'This is an example of another graph',
 			'html_title': 'This is an example of another graph',
 			'legend': 'This is an example of another graph', }
 	)
@@ -2049,27 +2062,37 @@ def send_zipfile(request, jid, mod=None, serv_obj=None):
 	except ObjectDoesNotExist:
 		return aux.fail_with404(request, 'There is no record with id ' + jid + ' in DB')
 
-	# FIXME : user with whom report is shared are not able to download -result
 	# Enforce user access restrictions
-	if not(('shared' in job.__dict__ and request.user in job.shared.all()) or
-			job.author == request.user or request.user.is_superuser):
+	if not job.has_access(request.user):
 		raise PermissionDenied
 
 	if mod != "-result" and not request.user.is_superuser and not request.user.is_staff:
 		raise PermissionDenied
-
+	
 	try:
-		wrapper, name, size = job.download_zip(mod)
+		temp_file, do_stream = job.download_zip(mod or '')
+		
+		content_dispo = 'attachment; filename=' + temp_file.name
+		if do_stream or not temp_file.exists:
+			try:
+				# noinspection PyUnresolvedReferences
+				from django.http import StreamingHttpResponse
+				response_object = StreamingHttpResponse
+			except ImportError: # backward compatibility for django version not supporting StreamingHttpResponse
+				logger.warning('This version of Django does not support StreamingHttpResponse !')
+				response_object = HttpResponse
+			response = response_object(temp_file.stream(), content_type=c_t.ZIP)
+		else:
+			response = HttpResponse(content_type=c_t.ZIP)
+			cache_place = '%s%s/' % (settings.CACHE_INTERNAL_URL_BASE, 'jobs' if type(job) is Jobs else 'reports')
+			response['X-Accel-Redirect'] = '%s%s' % (cache_place, temp_file.name)
+
+		response['Content-Disposition'] = content_dispo
+		response['Content-Length'] = temp_file.size
+		response['Content-Transfer-Encoding'] = 'binary'
+		return response
 	except OSError as e:
 		return aux.fail_with404(request, 'Some OS disk operation failed : %s' % e)
-
-	zip_name = 'attachment; filename=' + name + '.zip'
-
-	response = HttpResponse(wrapper, content_type='application/zip')
-	response['Content-Disposition'] = zip_name  # 'attachment; filename=test.zip'
-	response['Content-Length'] = size
-	response['Content-Transfer-Encoding'] = 'binary'
-	return response
 
 
 @login_required(login_url='/')
@@ -2298,7 +2321,8 @@ def report_file_server(request, rid, type, fname=None):
 		return aux.fail_with404(request, 'There is no report with id ' + rid + ' in DB')
 
 	# Enforce user access restrictions
-	if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+	# if request.user not in fitem.shared.all() and fitem.author != request.user and not request.user.is_superuser:
+	if not fitem.has_access(request.user):
 		raise PermissionDenied
 
 	return report_file_server_sub(request, rid, type, fname=fname, fitem=fitem)
@@ -2346,7 +2370,7 @@ def report_file_server_sub(request, rid, type, fitem=None, fname=None):
 	mime_type = mime_type or 'application/octet-stream'
 
 	try:
-		my_html = aux.html_auto_content_cache(path_to_file)
+		my_html = aux.html_auto_content_cache(path_to_file, False)
 
 		response = HttpResponse(my_html, mimetype=mime_type)
 		folder, slash, a_file = local_path.rpartition('/')
@@ -2472,7 +2496,7 @@ def new_rtype_dialog(request):
 	form = breezeForms.NewRepTypeDialog(request.POST or None)
 
 	if form.is_valid():
-		rshell.init_pipeline(form)
+		rshell.init_pipeline(form, request.user)
 		return HttpResponse(True)
 
 	return render_to_response('forms/basic_form_dialog.html', RequestContext(request, {
@@ -3077,24 +3101,30 @@ def job_list(request):
 
 
 # clem 06/05/2016
-def job_url_hook(request, rid, md5, code=''):
+def job_url_hook(request, i_type, rid, md5, status='', code=0):
 	""" Endpoint of job feedback url.
-	Instead of polling local jobs for completion, they will reach out to this url, upon termination
+	Instead of polling local jobs for completion, they will reach out to this url, upon start, completion and error
 
 	:param request: usual request object
 	:type request: int | str
+	:param i_type: letter j or r meaning job or report object
+	:type i_type: str
 	:param rid: id of the job
 	:type rid: int | str
-	:param md5: key identifying the job
+	:param md5: key identifying the job (a 32 chars md5 hash of the sh file for this job)
 	:type md5: str
-	:param code: code or string stating the exit status
-	:type code: int | str
+	:param status: string of the current status (starting | success | failed)
+	:type status: str
+	:param code: code of the exit status if not 0
+	:type code: int
 	:rtype: HttpResponse
 	"""
 	try:
-		a_report = Report.objects.f.get(pk=rid)
-		if get_file_md5(a_report.rexec.path) == md5:
-			print 'OKAY GOOD' # TODO do stuff
+		obj = Report if i_type == 'r' else Jobs
+		a_runnable = obj.objects.f.get(pk=rid)
+		if get_file_md5(a_runnable.rexec.path) == md5: # id matches job key (safety)
+			a_runnable.sge_hook(status, code)
+		# purposedly gives no feedback
 	except ObjectDoesNotExist:
 		pass
 	return HttpResponse('ok', mimetype='text/plain')
