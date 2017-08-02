@@ -396,6 +396,10 @@ def global_r_call(function_name, args=None, r_file=PATIENT_MODULE_FILE_NAME):
 
 	# R call
 	data = list()
+	from system_check import check_rora
+	if not check_rora():
+		from b_exceptions import RORAUnreachable
+		raise RORAUnreachable
 	try:
 		# Arguments magics
 		if args:
@@ -405,6 +409,7 @@ def global_r_call(function_name, args=None, r_file=PATIENT_MODULE_FILE_NAME):
 		else:
 			data = r_getter_func()
 	except RRuntimeError as e:
-		get_logger().error(e)
+		import traceback
+		get_logger().error(str(e) + '\n' + traceback.format_exc())
 
 	return data
