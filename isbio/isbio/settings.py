@@ -102,7 +102,7 @@ LOG_HIT_PATH = '%s%s' % (LOG_FOLDER, log_hit_fname)
 
 def check_cas(server_ip, server_url):
 	""" Check if CAS server is responding
-	
+
 		imported code from system_check.check_cas
 	"""
 	if is_host_online(server_ip, 2):
@@ -120,7 +120,8 @@ class BreezeSettings(Settings):
 	TEMPLATE_DEBUG = DEBUG
 
 	ADMINS = (
-		('Clement FIERE', 'clement.fiere@helsinki.fi'),
+	# ('Clement FIERE', 'clement.fiere@helsinki.fi'),
+	('Aleksandr Ianevski', 'aleksandr.ianevski@helsinki.fi'),
 	)
 
 	MANAGERS = ADMINS
@@ -248,7 +249,7 @@ class BreezeSettings(Settings):
 	# CAS_SERVER_URL = 'https://%s:8443/cas/' % CAS_SERVER_IP
 	# CAS_SERVER_URL = 'https://%s/cas/' % CAS_SERVER_IP
 	CAS_REDIRECT_URL = '/home/'
-	
+
 	APPEND_SLASH = True
 
 	# Python dotted path to the WSGI application used by Django's runserver.
@@ -389,7 +390,7 @@ class DevSettings(BreezeSettings):
 	DEV_MODE = RUN_MODE == 'dev'
 	MODE_PROD = RUN_MODE == 'prod'
 	PHARMA_MODE = False
-	
+
 	# monitoring only
 	LEGACY_MONITORING_SGE_QUEUE_NAME = 'breeze.q' if DEV_MODE else 'all.q'
 	Q_BIN = os.environ.get('Q_BIN', '')
@@ -447,7 +448,7 @@ class DevSettings(BreezeSettings):
 	TEMPLATE_FOLDER = DJANGO_ROOT + 'templates/'
 	MOULD_FOLDER = MEDIA_ROOT + DATA_TEMPLATES_FN
 	NO_TAG_XML = TEMPLATE_FOLDER + 'notag.xml'
-	
+
 	SH_LOG_FOLDER = '.log'
 	GENERAL_SH_BASE_NAME = 'run_job'
 	GENERAL_SH_NAME = '%s.sh' % GENERAL_SH_BASE_NAME
@@ -458,7 +459,7 @@ class DevSettings(BreezeSettings):
 	FAILED_FN = '.failed'
 	SUCCESS_FN = '.done'
 	R_DONE_FN = '.sub_done'
-	
+
 	CACHE_INTERNAL_URL_BASE = '/cached/'
 
 	##
@@ -573,7 +574,7 @@ class DevSettings(BreezeSettings):
 		PROJECT_FHRB_PM_PATH, RORA_LIB, STATIC_ROOT]
 
 	GRAPH_URL = 'http://192.168.0.225'
-	
+
 
 	##
 	# System Autocheck config
@@ -776,7 +777,7 @@ else:
 		(Bcolors.bold(LOG_PATH), Bcolors.ok_blue(git_get_branch()), Bcolors.ok_blue(Bcolors.bold(DevSettings.RUN_MODE)),
 		Bcolors.ok_blue(DevSettings.FULL_HOST_NAME))
 	git_stat = git_get_status()
-	
+
 	print git_stat
 	if DevSettings.PHARMA_MODE:
 		print Bcolors.bold('RUNNING WITH PHARMA')
